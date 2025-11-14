@@ -445,6 +445,15 @@ class BlueprintSystem {
     this.boxSelectStart = null;
     this.boxSelectEnd = null;
 
+    // Camera state
+    this.camera = {
+      x: 0,
+      y: 0,
+      zoom: 1,
+    };
+    this.isPanning = false;
+    this.panStart = { x: 0, y: 0 };
+
     this.setupCanvas();
     this.setupEventListeners();
     this.setupInputField();
@@ -542,11 +551,17 @@ class BlueprintSystem {
     const bounds = port.getValueBoxBounds(this.ctx);
     const rect = this.canvas.getBoundingClientRect();
 
+    // Transform world coordinates to screen coordinates
+    const screenX = bounds.x * this.camera.zoom + this.camera.x;
+    const screenY = bounds.y * this.camera.zoom + this.camera.y;
+    const screenWidth = bounds.width * this.camera.zoom;
+    const screenHeight = bounds.height * this.camera.zoom;
+
     this.inputField.value = port.value.toString();
-    this.inputField.style.left = `${rect.left + window.scrollX + bounds.x}px`;
-    this.inputField.style.top = `${rect.top + window.scrollY + bounds.y}px`;
-    this.inputField.style.width = `${bounds.width}px`;
-    this.inputField.style.height = `${bounds.height}px`;
+    this.inputField.style.left = `${rect.left + window.scrollX + screenX}px`;
+    this.inputField.style.top = `${rect.top + window.scrollY + screenY}px`;
+    this.inputField.style.width = `${screenWidth}px`;
+    this.inputField.style.height = `${screenHeight}px`;
     this.inputField.style.display = "block";
     this.inputField.style.visibility = "visible";
     this.inputField.style.opacity = "1";
@@ -732,10 +747,13 @@ class BlueprintSystem {
 
   selectNodeType(key, nodeType) {
     const rect = this.canvas.getBoundingClientRect();
-    const x = this.searchMenuPosition.x - rect.left;
-    const y = this.searchMenuPosition.y - rect.top;
+    // Convert screen coordinates to world coordinates
+    const screenX = this.searchMenuPosition.x - rect.left;
+    const screenY = this.searchMenuPosition.y - rect.top;
+    const worldX = (screenX - this.camera.x) / this.camera.zoom;
+    const worldY = (screenY - this.camera.y) / this.camera.zoom;
 
-    const newNode = this.addNode(x, y, nodeType);
+    const newNode = this.addNode(worldX, worldY, nodeType);
 
     // If we were dragging a wire, connect it to the new node
     if (this.searchFilterPort) {
@@ -836,6 +854,9 @@ class BlueprintSystem {
     this.canvas.addEventListener("mousemove", (e) => this.onMouseMove(e));
     this.canvas.addEventListener("mouseup", (e) => this.onMouseUp(e));
     this.canvas.addEventListener("contextmenu", (e) => this.onContextMenu(e));
+    this.canvas.addEventListener("wheel", (e) => this.onWheel(e), {
+      passive: false,
+    });
 
     // Keyboard events
     document.addEventListener("keydown", (e) => this.onKeyDown(e));
@@ -958,6 +979,43 @@ class BlueprintSystem {
       e.preventDefault();
       this.deleteSelected();
     }
+  }
+
+  onWheel(e) {
+    e.preventDefault();
+
+    const rect = this.canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    // Check if this is a zoom gesture (Ctrl/Cmd key or pinch gesture)
+    const isZoomGesture = e.ctrlKey || e.metaKey;
+
+    if (isZoomGesture) {
+      // Zoom mode
+      // Calculate world position before zoom
+      const worldX = (mouseX - this.camera.x) / this.camera.zoom;
+      const worldY = (mouseY - this.camera.y) / this.camera.zoom;
+
+      // Update zoom
+      const zoomSpeed = 0.01;
+      const delta = -e.deltaY * zoomSpeed;
+      const newZoom = Math.max(
+        0.1,
+        Math.min(5, this.camera.zoom * (1 + delta))
+      );
+
+      // Adjust camera position to zoom towards mouse
+      this.camera.x = mouseX - worldX * newZoom;
+      this.camera.y = mouseY - worldY * newZoom;
+      this.camera.zoom = newZoom;
+    } else {
+      // Pan mode
+      this.camera.x -= e.deltaX;
+      this.camera.y -= e.deltaY;
+    }
+
+    this.render();
   }
 
   buildDependencyGraph() {
@@ -1268,9 +1326,18 @@ class BlueprintSystem {
 
   getMousePos(e) {
     const rect = this.canvas.getBoundingClientRect();
+    // Transform screen coordinates to world coordinates
     return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
+      x: (e.clientX - rect.left - this.camera.x) / this.camera.zoom,
+      y: (e.clientY - rect.top - this.camera.y) / this.camera.zoom,
+    };
+  }
+
+  getScreenPos(worldX, worldY) {
+    // Transform world coordinates to screen coordinates
+    return {
+      x: worldX * this.camera.zoom + this.camera.x,
+      y: worldY * this.camera.zoom + this.camera.y,
     };
   }
 
@@ -1339,6 +1406,19 @@ class BlueprintSystem {
   }
 
   onMouseDown(e) {
+    // Handle middle-click panning
+    if (e.button === 1) {
+      e.preventDefault();
+      this.isPanning = true;
+      const rect = this.canvas.getBoundingClientRect();
+      this.panStart = {
+        x: e.clientX - rect.left - this.camera.x,
+        y: e.clientY - rect.top - this.camera.y,
+      };
+      this.canvas.style.cursor = "grabbing";
+      return;
+    }
+
     const pos = this.getMousePos(e);
     const currentTime = Date.now();
     const isMultiSelect = e.metaKey || e.ctrlKey; // Command on Mac, Ctrl on Windows/Linux
@@ -1519,6 +1599,15 @@ class BlueprintSystem {
   }
 
   onMouseMove(e) {
+    // Handle panning
+    if (this.isPanning) {
+      const rect = this.canvas.getBoundingClientRect();
+      this.camera.x = e.clientX - rect.left - this.panStart.x;
+      this.camera.y = e.clientY - rect.top - this.panStart.y;
+      this.render();
+      return;
+    }
+
     const pos = this.getMousePos(e);
 
     // Update hovered port
@@ -1658,6 +1747,13 @@ class BlueprintSystem {
   }
 
   onMouseUp(e) {
+    // Stop panning
+    if (this.isPanning) {
+      this.isPanning = false;
+      this.canvas.style.cursor = "default";
+      return;
+    }
+
     const pos = this.getMousePos(e);
 
     // Complete wire connection
@@ -1791,21 +1887,31 @@ class BlueprintSystem {
     const gridSize = 20;
 
     ctx.strokeStyle = "#2a2a2a";
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 1 / this.camera.zoom;
+
+    // Calculate visible world bounds
+    const startX =
+      Math.floor(-this.camera.x / this.camera.zoom / gridSize) * gridSize;
+    const startY =
+      Math.floor(-this.camera.y / this.camera.zoom / gridSize) * gridSize;
+    const endX =
+      startX + Math.ceil(this.canvas.width / this.camera.zoom) + gridSize;
+    const endY =
+      startY + Math.ceil(this.canvas.height / this.camera.zoom) + gridSize;
 
     // Vertical lines
-    for (let x = 0; x < this.canvas.width; x += gridSize) {
+    for (let x = startX; x < endX; x += gridSize) {
       ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, this.canvas.height);
+      ctx.moveTo(x, startY);
+      ctx.lineTo(x, endY);
       ctx.stroke();
     }
 
     // Horizontal lines
-    for (let y = 0; y < this.canvas.height; y += gridSize) {
+    for (let y = startY; y < endY; y += gridSize) {
       ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(this.canvas.width, y);
+      ctx.moveTo(startX, y);
+      ctx.lineTo(endX, y);
       ctx.stroke();
     }
   }
@@ -2081,6 +2187,11 @@ class BlueprintSystem {
     // Clear canvas
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
+    // Save context and apply camera transform
+    ctx.save();
+    ctx.translate(this.camera.x, this.camera.y);
+    ctx.scale(this.camera.zoom, this.camera.zoom);
+
     // Draw grid
     this.drawGrid();
 
@@ -2099,8 +2210,8 @@ class BlueprintSystem {
     if (this.isBoxSelecting && this.boxSelectStart && this.boxSelectEnd) {
       ctx.strokeStyle = "#4a90e2";
       ctx.fillStyle = "rgba(74, 144, 226, 0.1)";
-      ctx.lineWidth = 2;
-      ctx.setLineDash([5, 5]);
+      ctx.lineWidth = 2 / this.camera.zoom;
+      ctx.setLineDash([5 / this.camera.zoom, 5 / this.camera.zoom]);
 
       const x = Math.min(this.boxSelectStart.x, this.boxSelectEnd.x);
       const y = Math.min(this.boxSelectStart.y, this.boxSelectEnd.y);
@@ -2111,6 +2222,9 @@ class BlueprintSystem {
       ctx.strokeRect(x, y, width, height);
       ctx.setLineDash([]);
     }
+
+    // Restore context
+    ctx.restore();
   }
 }
 
