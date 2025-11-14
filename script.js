@@ -559,7 +559,199 @@ class BlueprintSystem {
       this.nodes = [];
       this.wires = [];
       this.render();
+      this.updateDependencyList();
     });
+
+    document
+      .getElementById("toggleSidebarBtn")
+      .addEventListener("click", () => {
+        this.toggleSidebar();
+      });
+
+    document.getElementById("closeSidebarBtn").addEventListener("click", () => {
+      this.closeSidebar();
+    });
+  }
+
+  toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    sidebar.classList.toggle("open");
+    if (sidebar.classList.contains("open")) {
+      this.updateDependencyList();
+    }
+  }
+
+  closeSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    sidebar.classList.remove("open");
+  }
+
+  buildDependencyGraph() {
+    // Find the output node
+    const outputNode = this.nodes.find(
+      (node) => node.nodeType === NODE_TYPES.output
+    );
+    if (!outputNode) {
+      return null;
+    }
+
+    // Build a graph of dependencies using BFS
+    const visited = new Set();
+    const dependencies = new Map(); // node -> Set of nodes it depends on
+    const queue = [outputNode];
+    visited.add(outputNode);
+
+    while (queue.length > 0) {
+      const node = queue.shift();
+      const nodeDeps = new Set();
+
+      // Check all input ports
+      for (const port of node.inputPorts) {
+        for (const wire of port.connections) {
+          if (wire.startPort && wire.startPort.node) {
+            const depNode = wire.startPort.node;
+            nodeDeps.add(depNode);
+
+            if (!visited.has(depNode)) {
+              visited.add(depNode);
+              queue.push(depNode);
+            }
+          }
+        }
+      }
+
+      dependencies.set(node, nodeDeps);
+    }
+
+    return { outputNode, dependencies, connectedNodes: visited };
+  }
+
+  topologicalSort(dependencies, connectedNodes) {
+    // Calculate in-degree for each node
+    const inDegree = new Map();
+    const adjList = new Map();
+
+    for (const node of connectedNodes) {
+      inDegree.set(node, 0);
+      adjList.set(node, []);
+    }
+
+    // Build adjacency list and calculate in-degrees
+    for (const [node, deps] of dependencies) {
+      for (const dep of deps) {
+        adjList.get(dep).push(node);
+        inDegree.set(node, inDegree.get(node) + 1);
+      }
+    }
+
+    // Group nodes by levels (execution order)
+    const levels = [];
+    const queue = [];
+
+    // Start with nodes that have no dependencies (in-degree 0)
+    for (const [node, degree] of inDegree) {
+      if (degree === 0) {
+        queue.push(node);
+      }
+    }
+
+    while (queue.length > 0) {
+      const levelSize = queue.length;
+      const currentLevel = [];
+
+      for (let i = 0; i < levelSize; i++) {
+        const node = queue.shift();
+        currentLevel.push(node);
+
+        // Reduce in-degree for dependent nodes
+        for (const dependent of adjList.get(node)) {
+          const newDegree = inDegree.get(dependent) - 1;
+          inDegree.set(dependent, newDegree);
+          if (newDegree === 0) {
+            queue.push(dependent);
+          }
+        }
+      }
+
+      levels.push(currentLevel);
+    }
+
+    return levels;
+  }
+
+  updateDependencyList() {
+    const noOutputMsg = document.getElementById("no-output-msg");
+    const dependencyList = document.getElementById("dependency-list");
+
+    const graph = this.buildDependencyGraph();
+
+    if (!graph) {
+      noOutputMsg.style.display = "block";
+      dependencyList.classList.remove("visible");
+      return;
+    }
+
+    const levels = this.topologicalSort(
+      graph.dependencies,
+      graph.connectedNodes
+    );
+
+    noOutputMsg.style.display = "none";
+    dependencyList.classList.add("visible");
+    dependencyList.innerHTML = "";
+
+    levels.forEach((level, index) => {
+      const groupDiv = document.createElement("div");
+      groupDiv.className = "dependency-group";
+
+      const header = document.createElement("div");
+      header.className = "dependency-group-header";
+      if (index === 0) {
+        header.textContent = "Leaf Nodes (No Dependencies)";
+      } else if (index === levels.length - 1) {
+        header.textContent = "Output";
+      } else {
+        header.textContent = `Level ${index}`;
+      }
+      groupDiv.appendChild(header);
+
+      level.forEach((node) => {
+        const nodeDiv = document.createElement("div");
+        nodeDiv.className = "dependency-node";
+        nodeDiv.style.borderLeftColor = node.headerColor;
+
+        const titleDiv = document.createElement("div");
+        titleDiv.className = "dependency-node-title";
+        titleDiv.textContent = node.title;
+        nodeDiv.appendChild(titleDiv);
+
+        const typeDiv = document.createElement("div");
+        typeDiv.className = "dependency-node-type";
+        typeDiv.textContent = `ID: ${node.id}`;
+        nodeDiv.appendChild(typeDiv);
+
+        // Click to highlight node
+        nodeDiv.addEventListener("click", () => {
+          this.highlightNode(node);
+        });
+
+        groupDiv.appendChild(nodeDiv);
+      });
+
+      dependencyList.appendChild(groupDiv);
+    });
+  }
+
+  highlightNode(node) {
+    // Temporarily highlight the node
+    const originalDragging = node.isDragging;
+    node.isDragging = true;
+    this.render();
+
+    setTimeout(() => {
+      node.isDragging = originalDragging;
+      this.render();
+    }, 500);
   }
 
   getMousePos(e) {
