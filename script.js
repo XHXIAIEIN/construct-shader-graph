@@ -520,41 +520,58 @@ class BlueprintSystem {
       const item = document.createElement("div");
       item.className = "uniform-item";
 
+      // Make item draggable
+      item.draggable = true;
+      item.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("uniformId", uniform.id.toString());
+        e.dataTransfer.effectAllowed = "copy";
+      });
+
       const header = document.createElement("div");
       header.className = "uniform-item-header";
 
-      const nameSpan = document.createElement("span");
-      nameSpan.className = "uniform-item-name";
-      nameSpan.textContent = uniform.name;
+      // Editable name input
+      const nameInput = document.createElement("input");
+      nameInput.type = "text";
+      nameInput.className = "uniform-item-name-input";
+      nameInput.value = uniform.name;
+      nameInput.addEventListener("change", (e) => {
+        const newName = e.target.value.trim();
+        if (newName && newName !== uniform.name) {
+          if (
+            this.uniforms.some((u) => u.id !== uniform.id && u.name === newName)
+          ) {
+            alert("A uniform with this name already exists");
+            nameInput.value = uniform.name;
+            return;
+          }
+          const oldName = uniform.name;
+          uniform.name = newName;
+          this.updateUniformNodeNames(oldName, newName);
+        }
+      });
+      nameInput.addEventListener("click", (e) => e.stopPropagation());
 
       const typeSpan = document.createElement("span");
       typeSpan.className = "uniform-item-type";
       typeSpan.textContent =
         uniform.type === "percent"
-          ? "Percent (Float)"
+          ? "Percent"
           : uniform.type === "color"
-          ? "Color (Vec3)"
+          ? "Color"
           : "Float";
 
       const controls = document.createElement("div");
       controls.className = "uniform-item-controls";
 
-      const createNodeBtn = document.createElement("button");
-      createNodeBtn.className = "uniform-delete-btn";
-      createNodeBtn.style.background = "#4a90e2";
-      createNodeBtn.textContent = "Create Node";
-      createNodeBtn.addEventListener("click", () =>
-        this.createUniformNode(uniform)
-      );
-
       const deleteBtn = document.createElement("button");
       deleteBtn.className = "uniform-delete-btn";
-      deleteBtn.textContent = "Delete";
+      deleteBtn.textContent = "×";
+      deleteBtn.title = "Delete";
       deleteBtn.addEventListener("click", () => this.deleteUniform(uniform.id));
 
-      controls.appendChild(createNodeBtn);
       controls.appendChild(deleteBtn);
-      header.appendChild(nameSpan);
+      header.appendChild(nameInput);
       header.appendChild(typeSpan);
       header.appendChild(controls);
 
@@ -565,14 +582,37 @@ class BlueprintSystem {
       valueControl.className = "uniform-value-control";
 
       if (uniform.type === "float") {
-        const input = document.createElement("input");
-        input.type = "number";
-        input.step = "0.01";
-        input.value = uniform.value;
-        input.addEventListener("input", (e) => {
-          this.updateUniformValue(uniform.id, parseFloat(e.target.value) || 0);
+        const floatDisplay = document.createElement("div");
+        floatDisplay.className = "uniform-float-display";
+
+        const slider = document.createElement("input");
+        slider.type = "range";
+        slider.min = "0";
+        slider.max = "1";
+        slider.step = "0.01";
+        slider.value = Math.min(1, Math.max(0, uniform.value));
+
+        const numberInput = document.createElement("input");
+        numberInput.type = "number";
+        numberInput.step = "0.01";
+        numberInput.value = uniform.value;
+        numberInput.style.width = "60px";
+
+        slider.addEventListener("input", (e) => {
+          const val = parseFloat(e.target.value);
+          this.updateUniformValue(uniform.id, val);
+          numberInput.value = val.toFixed(2);
         });
-        valueControl.appendChild(input);
+
+        numberInput.addEventListener("input", (e) => {
+          const val = parseFloat(e.target.value) || 0;
+          this.updateUniformValue(uniform.id, val);
+          slider.value = Math.min(1, Math.max(0, val));
+        });
+
+        floatDisplay.appendChild(slider);
+        floatDisplay.appendChild(numberInput);
+        valueControl.appendChild(floatDisplay);
       } else if (uniform.type === "percent") {
         const percentDisplay = document.createElement("div");
         percentDisplay.className = "uniform-percent-display";
@@ -627,7 +667,7 @@ class BlueprintSystem {
     });
   }
 
-  createUniformNode(uniform) {
+  createUniformNode(uniform, x, y) {
     // Determine node type based on uniform type
     let nodeType;
     if (uniform.type === "color") {
@@ -637,23 +677,60 @@ class BlueprintSystem {
       nodeType = UniformFloatNode;
     }
 
-    // Create node at center of viewport
-    const centerX = (-this.camera.x + this.canvas.width / 2) / this.camera.zoom;
-    const centerY =
-      (-this.camera.y + this.canvas.height / 2) / this.camera.zoom;
+    // Use provided position or center of viewport
+    const posX =
+      x !== undefined
+        ? x
+        : (-this.camera.x + this.canvas.width / 2) / this.camera.zoom;
+    const posY =
+      y !== undefined
+        ? y
+        : (-this.camera.y + this.canvas.height / 2) / this.camera.zoom;
 
-    const node = new Node(centerX, centerY, this.nodeIdCounter++, nodeType);
+    const node = new Node(posX, posY, this.nodeIdCounter++, nodeType);
     node.uniformName = uniform.name;
     node.uniformId = uniform.id;
+    node.isVariable = true; // Make it look like a variable node
 
     // Update node title to show uniform name
     node.nodeType = {
       ...nodeType,
-      name: `Uniform: ${uniform.name}`,
+      name: uniform.name,
     };
 
     this.nodes.push(node);
     this.render();
+    return node;
+  }
+
+  updateUniformNodeNames(oldName, newName) {
+    // Update all nodes that reference this uniform
+    this.nodes.forEach((node) => {
+      if (node.uniformName === oldName) {
+        node.uniformName = newName;
+        node.nodeType = {
+          ...node.nodeType,
+          name: newName,
+        };
+      }
+    });
+    this.render();
+  }
+
+  getUniformNodeTypes() {
+    // Return uniform nodes for search menu
+    const uniformNodeTypes = {};
+    this.uniforms.forEach((uniform) => {
+      const nodeType =
+        uniform.type === "color" ? UniformColorNode : UniformFloatNode;
+      uniformNodeTypes[`uniform_${uniform.id}`] = {
+        ...nodeType,
+        name: uniform.name,
+        uniformId: uniform.id,
+        uniformName: uniform.name,
+      };
+    });
+    return uniformNodeTypes;
   }
 
   startEditingPort(port) {
@@ -761,6 +838,10 @@ class BlueprintSystem {
   getFilteredNodeTypes() {
     let nodeTypes = Object.entries(NODE_TYPES);
 
+    // Add uniform nodes
+    const uniformNodeTypes = this.getUniformNodeTypes();
+    nodeTypes = [...nodeTypes, ...Object.entries(uniformNodeTypes)];
+
     // Filter out output node if one already exists
     const hasOutputNode = this.nodes.some(
       (node) => node.nodeType === NODE_TYPES.output
@@ -778,19 +859,13 @@ class BlueprintSystem {
       nodeTypes = nodeTypes.filter(([key, nodeType]) => {
         if (this.searchFilterType === "input") {
           // Dragging from an input port - show nodes with compatible output ports
-          return nodeType.outputs.some(
-            (output) =>
-              output.type === portType ||
-              output.type === "any" ||
-              portType === "any"
+          return nodeType.outputs.some((output) =>
+            areTypesCompatible(output.type, portType)
           );
         } else {
           // Dragging from an output port - show nodes with compatible input ports
-          return nodeType.inputs.some(
-            (input) =>
-              input.type === portType ||
-              input.type === "any" ||
-              portType === "any"
+          return nodeType.inputs.some((input) =>
+            areTypesCompatible(portType, input.type)
           );
         }
       });
@@ -872,7 +947,18 @@ class BlueprintSystem {
     const worldX = (screenX - this.camera.x) / this.camera.zoom;
     const worldY = (screenY - this.camera.y) / this.camera.zoom;
 
-    const newNode = this.addNode(worldX, worldY, nodeType);
+    let newNode;
+
+    // Check if this is a uniform node
+    if (key.startsWith("uniform_")) {
+      const uniformId = nodeType.uniformId;
+      const uniform = this.uniforms.find((u) => u.id === uniformId);
+      if (uniform) {
+        newNode = this.createUniformNode(uniform, worldX, worldY);
+      }
+    } else {
+      newNode = this.addNode(worldX, worldY, nodeType);
+    }
 
     // If we were dragging a wire, connect it to the new node
     if (this.searchFilterPort) {
@@ -975,6 +1061,26 @@ class BlueprintSystem {
     this.canvas.addEventListener("contextmenu", (e) => this.onContextMenu(e));
     this.canvas.addEventListener("wheel", (e) => this.onWheel(e), {
       passive: false,
+    });
+
+    // Drag and drop for uniforms
+    this.canvas.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+    });
+
+    this.canvas.addEventListener("drop", (e) => {
+      e.preventDefault();
+      const uniformId = parseInt(e.dataTransfer.getData("uniformId"));
+      if (uniformId) {
+        const uniform = this.uniforms.find((u) => u.id === uniformId);
+        if (uniform) {
+          const rect = this.canvas.getBoundingClientRect();
+          const x = (e.clientX - rect.left - this.camera.x) / this.camera.zoom;
+          const y = (e.clientY - rect.top - this.camera.y) / this.camera.zoom;
+          this.createUniformNode(uniform, x, y);
+        }
+      }
     });
 
     // Keyboard events
