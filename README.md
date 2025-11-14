@@ -1,72 +1,177 @@
-# Blueprint Node System
+# Construct Shader Graph
 
-A blueprint-style node editor with multiple node types, typed ports, and wire connections.
+A visual node-based shader graph editor that generates shaders for WebGL 1, WebGL 2, and WebGPU.
 
 ## Features
 
-- **Multiple Node Types**: Choose from Math, Vector, Color, Texture Sample, and Output nodes
-- **Typed Ports**: Each port has a specific type (Float, Vector, Color, Texture) with color coding
-- **Type Validation**: Connections are validated based on port types - incompatible types cannot be connected
-- **Drag Nodes**: Click and drag the header of any node to move it around
-- **Bidirectional Connections**: Drag from input to output or output to input
-- **Wire Rerouting**: Double-click on a wire to add reroute points for custom wire paths
-- **Wire Pickup**: Click on an input port with an existing connection to pick up and rewire it
-- **Clear Canvas**: Remove all nodes and connections with the "Clear All" button
+- 🎨 Visual node-based shader editing
+- 🔗 Drag-and-drop wire connections
+- 🎯 Multi-target shader export (WebGL 1, WebGL 2, WebGPU)
+- 📦 ZIP export with all shader versions
+- 🔍 Smart search menu with type filtering
+- 🎛️ Editable input values for float/int ports
+- 🖱️ Pan and zoom canvas
+- 📋 Multiple node selection and manipulation
+- 🔄 Reroute nodes for wire path adjustment
 
-## How to Use
+## Getting Started
+
+### Installation
+
+```bash
+npm install
+```
+
+### Development
+
+Run the development server:
+
+```bash
+npm run dev
+```
+
+This will start Vite's development server and open the application in your browser at `http://localhost:3000`.
+
+### Build
+
+Build for production:
+
+```bash
+npm run build
+```
+
+The built files will be in the `dist/` directory.
+
+### Preview Production Build
+
+```bash
+npm run preview
+```
+
+## Usage
 
 ### Creating Nodes
 
-1. Open `index.html` in a web browser
-2. Click any node type button (Math, Vector, Color, etc.) to create that type of node
-3. Each node type has different inputs and outputs with specific types
+- **Right-click** on the canvas to open the search menu
+- Type to filter node types
+- Click a node type or press Enter to create it
 
 ### Connecting Nodes
 
-1. Click on an output port (right side) and drag to an input port (left side)
-2. Or click on an input port and drag to an output port
-3. Wires are color-coded based on their data type
-4. Only compatible types can be connected
+- **Drag** from an output port to an input port
+- **Drag** from an input port to pick up existing connections
+- Compatible port types are highlighted during dragging
 
-### Adjusting Wire Paths
+### Editing Values
 
-1. Double-click on any wire to create a reroute point
-2. Drag the reroute point to adjust the wire's path
-3. Right-click on a reroute point to delete it
+- Click on editable input values (float/int) to edit them directly
+- Values are only editable when no wire is connected
 
-### Rewiring Connections
+### Selection & Manipulation
 
-1. Click on an input port that already has a connection
-2. The existing wire will be picked up
-3. Drag to a different output port to reconnect
+- **Click** a node to select it
+- **Cmd/Ctrl + Click** to multi-select
+- **Click and drag** on empty space for box selection
+- **Delete/Backspace** to delete selected nodes
+- Drag any selected node to move all selected nodes together
 
-## Node Types
+### Camera Controls
 
-- **Math**: Performs mathematical operations (Float inputs/outputs)
-- **Vector**: Creates 3D vectors from X, Y, Z components
-- **Color**: Creates colors from R, G, B components
-- **Texture Sample**: Samples a texture at UV coordinates
-- **Output**: Final output node for the shader graph
+- **Scroll** to pan the canvas
+- **Cmd/Ctrl + Scroll** or **Pinch** to zoom
+- **Middle-click + Drag** to pan
 
-## Port Types
+### Reroute Nodes
 
-- **Float** (Blue): Single numeric values
-- **Vector** (Orange): 3D vectors
-- **Color** (Pink): RGB color values
-- **Texture** (Green): Texture data
-- **Any** (Gray): Accepts any type
+- **Double-click** on a wire to create a reroute node
+- **Right-click** a reroute node to delete it
 
-## Files
+### Exporting Shaders
 
-- `index.html` - Main HTML structure
-- `style.css` - Styling and layout
-- `script.js` - Blueprint system logic and rendering
+1. Click the **Export GLSL** button
+2. A ZIP file will download containing:
+   - `shader-webgl1.frag` - WebGL 1.0 GLSL ES 100
+   - `shader-webgl2.frag` - WebGL 2.0 GLSL ES 300
+   - `shader-webgpu.wgsl` - WebGPU WGSL
 
-## Technical Details
+## Project Structure
 
-- Pure JavaScript with HTML5 Canvas
-- No external dependencies
-- Object-oriented design with NodeType, Node, Port, Wire, and RerouteNode classes
-- Type-safe connection system
-- Real-time rendering with mouse interaction
-- Extensible node type system
+```
+construct-shader-graph/
+├── nodes/               # Node type definitions
+│   ├── NodeType.js     # Base node type class
+│   ├── PortTypes.js    # Port type definitions
+│   ├── MathNode.js     # Math operation node
+│   ├── VectorNode.js   # Vector construction node
+│   ├── ColorNode.js    # Color construction node
+│   ├── TextureNode.js  # Texture sampling node
+│   ├── OutputNode.js   # Output node
+│   ├── *VariableNode.js # Variable nodes
+│   └── index.js        # Node type registry
+├── shaders/            # Shader boilerplate files
+│   ├── boilerplate-webgl1.glsl
+│   ├── boilerplate-webgl2.glsl
+│   └── boilerplate-webgpu.wgsl
+├── index.html          # Main HTML file
+├── script.js           # Main application logic
+├── style.css           # Styles
+├── vite.config.js      # Vite configuration
+└── package.json        # Dependencies and scripts
+```
+
+## Adding Custom Nodes
+
+To add a new node type:
+
+1. Create a new file in `nodes/` (e.g., `MyNode.js`)
+2. Define the node with shader code for all three targets:
+
+```javascript
+import { NodeType } from "./NodeType.js";
+
+export const MyNode = new NodeType(
+  "My Node",
+  [{ name: "Input", type: "float" }],
+  [{ name: "Output", type: "float" }],
+  "#3a3a3a",
+  {
+    webgl1: {
+      dependency: "",
+      execution: (inputs, outputs) =>
+        `    float ${outputs[0]} = ${inputs[0]} * 2.0;`,
+    },
+    webgl2: {
+      dependency: "",
+      execution: (inputs, outputs) =>
+        `    float ${outputs[0]} = ${inputs[0]} * 2.0;`,
+    },
+    webgpu: {
+      dependency: "",
+      execution: (inputs, outputs) =>
+        `    var ${outputs[0]}: f32 = ${inputs[0]} * 2.0;`,
+    },
+  }
+);
+```
+
+3. Export it in `nodes/index.js`:
+
+```javascript
+export { MyNode } from "./MyNode.js";
+
+export const NODE_TYPES = {
+  // ... existing nodes
+  myNode: MyNode,
+};
+```
+
+## Technologies
+
+- **Vite** - Build tool and dev server
+- **JSZip** - ZIP file generation
+- **HTML5 Canvas** - Rendering
+- **Vanilla JavaScript** - No framework dependencies
+
+## License
+
+MIT

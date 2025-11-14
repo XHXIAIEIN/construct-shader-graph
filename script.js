@@ -1,6 +1,11 @@
 // Blueprint Node System
 import { NODE_TYPES, PORT_TYPES } from "./nodes/index.js";
-import JSZip from "https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm";
+import JSZip from "jszip";
+
+// Import boilerplate files as raw text
+import boilerplateWebGL1 from "./shaders/boilerplate-webgl1.glsl?raw";
+import boilerplateWebGL2 from "./shaders/boilerplate-webgl2.glsl?raw";
+import boilerplateWebGPU from "./shaders/boilerplate-webgpu.wgsl?raw";
 
 class Port {
   constructor(node, type, index, portDef) {
@@ -1094,20 +1099,14 @@ class BlueprintSystem {
     return portToVarName;
   }
 
-  async loadBoilerplate(target) {
-    const files = {
-      webgl1: "./shaders/boilerplate-webgl1.glsl",
-      webgl2: "./shaders/boilerplate-webgl2.glsl",
-      webgpu: "./shaders/boilerplate-webgpu.wgsl",
+  getBoilerplate(target) {
+    const boilerplates = {
+      webgl1: boilerplateWebGL1,
+      webgl2: boilerplateWebGL2,
+      webgpu: boilerplateWebGPU,
     };
 
-    try {
-      const response = await fetch(files[target]);
-      return await response.text();
-    } catch (error) {
-      console.error(`Failed to load boilerplate for ${target}:`, error);
-      return "";
-    }
+    return boilerplates[target] || "";
   }
 
   generateShader(target, levels, portToVarName) {
@@ -1190,7 +1189,7 @@ class BlueprintSystem {
     const targets = ["webgl1", "webgl2", "webgpu"];
 
     for (const target of targets) {
-      const boilerplate = await this.loadBoilerplate(target);
+      const boilerplate = this.getBoilerplate(target);
       const shaderCode = this.generateShader(target, levels, portToVarName);
       const fullShader = boilerplate + shaderCode;
 
