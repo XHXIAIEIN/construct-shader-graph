@@ -66,6 +66,10 @@ button:hover {
   background: #6a6a6a;
 }
 
+.variable-btn:hover {
+  filter: brightness(1.2);
+}
+
 #clearBtn {
     background: #e74c3c;
 }

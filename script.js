@@ -69,6 +69,37 @@ const NODE_TYPES = {
     [],
     "#4a3a3a"
   ),
+  // Variable nodes - no inputs, only outputs
+  varFloat: new NodeType(
+    "Float Variable",
+    [],
+    [{ name: "Value", type: "float" }],
+    PORT_TYPES.float.color
+  ),
+  varInt: new NodeType(
+    "Int Variable",
+    [],
+    [{ name: "Value", type: "int" }],
+    PORT_TYPES.int.color
+  ),
+  varVector: new NodeType(
+    "Vector Variable",
+    [],
+    [{ name: "Value", type: "vector" }],
+    PORT_TYPES.vector.color
+  ),
+  varColor: new NodeType(
+    "Color Variable",
+    [],
+    [{ name: "Value", type: "color" }],
+    PORT_TYPES.color.color
+  ),
+  varTexture: new NodeType(
+    "Texture Variable",
+    [],
+    [{ name: "Value", type: "texture" }],
+    PORT_TYPES.texture.color
+  ),
 };
 
 class Port {
@@ -93,6 +124,15 @@ class Port {
 
   getPosition() {
     const node = this.node;
+
+    // For variable nodes, output port is centered in the header
+    if (node.isVariable && this.type === "output") {
+      return {
+        x: node.x + node.width,
+        y: node.y + node.height / 2,
+      };
+    }
+
     const x = this.type === "input" ? node.x : node.x + node.width;
     const spacing = 40;
     const startY = node.y + 50;
@@ -161,10 +201,11 @@ class Node {
     this.id = id;
     this.x = x;
     this.y = y;
-    this.width = 180;
     this.nodeType = nodeType;
     this.title = nodeType.name;
     this.headerColor = nodeType.color;
+    this.isVariable =
+      nodeType.inputs.length === 0 && nodeType.outputs.length > 0;
 
     // Create ports based on node type definition
     this.inputPorts = nodeType.inputs.map(
@@ -174,9 +215,19 @@ class Node {
       (outputDef, index) => new Port(this, "output", index, outputDef)
     );
 
-    // Calculate height based on number of ports
-    const maxPorts = Math.max(this.inputPorts.length, this.outputPorts.length);
-    this.height = 50 + maxPorts * 40 + 10;
+    // Variable nodes are smaller and pill-shaped
+    if (this.isVariable) {
+      this.width = 120;
+      this.height = 35;
+    } else {
+      this.width = 180;
+      // Calculate height based on number of ports
+      const maxPorts = Math.max(
+        this.inputPorts.length,
+        this.outputPorts.length
+      );
+      this.height = 50 + maxPorts * 40 + 10;
+    }
 
     this.isDragging = false;
     this.dragOffsetX = 0;
@@ -193,6 +244,11 @@ class Node {
   }
 
   isPointInHeader(px, py) {
+    // For variable nodes, the entire node is the header
+    if (this.isVariable) {
+      return this.isPointInside(px, py);
+    }
+
     return (
       px >= this.x &&
       px <= this.x + this.width &&
@@ -447,10 +503,48 @@ class BlueprintSystem {
 
     // Setup node type buttons
     const nodeButtonsContainer = document.getElementById("nodeButtons");
+
+    // Separate variables from regular nodes
+    const regularNodes = {};
+    const variableNodes = {};
+
     Object.entries(NODE_TYPES).forEach(([key, nodeType]) => {
+      if (key.startsWith("var")) {
+        variableNodes[key] = nodeType;
+      } else {
+        regularNodes[key] = nodeType;
+      }
+    });
+
+    // Add regular node buttons
+    Object.entries(regularNodes).forEach(([key, nodeType]) => {
       const btn = document.createElement("button");
       btn.textContent = nodeType.name;
       btn.className = "node-type-btn";
+      btn.addEventListener("click", () => {
+        this.addNode(
+          100 + Math.random() * 300,
+          100 + Math.random() * 200,
+          nodeType
+        );
+      });
+      nodeButtonsContainer.appendChild(btn);
+    });
+
+    // Add separator
+    const separator = document.createElement("div");
+    separator.style.width = "2px";
+    separator.style.height = "30px";
+    separator.style.background = "#4a4a4a";
+    separator.style.margin = "0 10px";
+    nodeButtonsContainer.appendChild(separator);
+
+    // Add variable node buttons
+    Object.entries(variableNodes).forEach(([key, nodeType]) => {
+      const btn = document.createElement("button");
+      btn.textContent = nodeType.name;
+      btn.className = "node-type-btn variable-btn";
+      btn.style.background = nodeType.color;
       btn.addEventListener("click", () => {
         this.addNode(
           100 + Math.random() * 300,
@@ -981,33 +1075,113 @@ class BlueprintSystem {
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 4;
 
-    // Node body
-    ctx.fillStyle = "#2d2d2d";
-    ctx.strokeStyle = node.isDragging ? "#4a90e2" : "#4a4a4a";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.roundRect(node.x, node.y, node.width, node.height, 8);
-    ctx.fill();
-    ctx.stroke();
+    if (node.isVariable) {
+      // Variable nodes are pill-shaped with gradient
+      const gradient = ctx.createLinearGradient(
+        node.x,
+        node.y,
+        node.x + node.width,
+        node.y + node.height
+      );
 
-    ctx.shadowColor = "transparent";
-    ctx.shadowBlur = 0;
+      // Create gradient from the base color
+      const baseColor = node.headerColor;
+      gradient.addColorStop(0, baseColor);
+      gradient.addColorStop(1, this.adjustBrightness(baseColor, -20));
 
-    // Header
-    ctx.fillStyle = node.headerColor;
-    ctx.beginPath();
-    ctx.roundRect(node.x, node.y, node.width, 35, [8, 8, 0, 0]);
-    ctx.fill();
+      ctx.fillStyle = gradient;
+      ctx.strokeStyle = node.isDragging
+        ? "#ffffff"
+        : this.adjustBrightness(baseColor, -30);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(node.x, node.y, node.width, node.height, node.height / 2);
+      ctx.fill();
+      ctx.stroke();
 
-    // Title
-    ctx.fillStyle = "#fff";
-    ctx.font = "bold 14px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText(node.title, node.x + node.width / 2, node.y + 22);
+      ctx.shadowColor = "transparent";
+      ctx.shadowBlur = 0;
 
-    // Ports
-    node.inputPorts.forEach((port) => this.drawPort(port));
-    node.outputPorts.forEach((port) => this.drawPort(port));
+      // Title
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 12px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(
+        node.title,
+        node.x + node.width / 2,
+        node.y + node.height / 2 + 4
+      );
+
+      // Draw output port (no label for variable nodes)
+      node.outputPorts.forEach((port) => {
+        const pos = port.getPosition();
+        const portColor = port.getColor();
+
+        // Port circle
+        ctx.fillStyle = port.connections.length > 0 ? portColor : "#2d2d2d";
+        ctx.strokeStyle = this.hoveredPort === port ? "#ffffff" : portColor;
+        ctx.lineWidth = this.hoveredPort === port ? 3 : 2;
+
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, port.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      });
+    } else {
+      // Regular nodes
+      // Node body
+      ctx.fillStyle = "#2d2d2d";
+      ctx.strokeStyle = node.isDragging ? "#4a90e2" : "#4a4a4a";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(node.x, node.y, node.width, node.height, 8);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.shadowColor = "transparent";
+      ctx.shadowBlur = 0;
+
+      // Header
+      ctx.fillStyle = node.headerColor;
+      ctx.beginPath();
+      ctx.roundRect(node.x, node.y, node.width, 35, [8, 8, 0, 0]);
+      ctx.fill();
+
+      // Title
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 14px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(node.title, node.x + node.width / 2, node.y + 22);
+
+      // Ports
+      node.inputPorts.forEach((port) => this.drawPort(port));
+      node.outputPorts.forEach((port) => this.drawPort(port));
+    }
+  }
+
+  adjustBrightness(color, amount) {
+    // Convert hex to RGB
+    const hex = color.replace("#", "");
+    const r = Math.max(
+      0,
+      Math.min(255, parseInt(hex.substr(0, 2), 16) + amount)
+    );
+    const g = Math.max(
+      0,
+      Math.min(255, parseInt(hex.substr(2, 2), 16) + amount)
+    );
+    const b = Math.max(
+      0,
+      Math.min(255, parseInt(hex.substr(4, 2), 16) + amount)
+    );
+
+    // Convert back to hex
+    return (
+      "#" +
+      r.toString(16).padStart(2, "0") +
+      g.toString(16).padStart(2, "0") +
+      b.toString(16).padStart(2, "0")
+    );
   }
 
   render() {
