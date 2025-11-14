@@ -541,8 +541,8 @@ class BlueprintSystem {
 
       item.addEventListener("drop", (e) => {
         e.stopPropagation();
-        const isReorder = e.dataTransfer.getData("reorder");
-        if (isReorder) {
+        const draggedId = e.dataTransfer.getData("uniformId");
+        if (draggedId) {
           // Reorder the uniforms array based on DOM order
           const newOrder = [];
           Array.from(this.uniformList.children).forEach((child) => {
@@ -561,21 +561,20 @@ class BlueprintSystem {
       const dragHandle = document.createElement("div");
       dragHandle.className = "uniform-drag-handle";
       dragHandle.innerHTML = "⋮⋮";
-      dragHandle.title = "Drag to reorder";
+      dragHandle.title = "Drag to reorder or create node";
+
+      // Track if drag started from handle
+      let dragFromHandle = false;
 
       // Make handle draggable
       dragHandle.addEventListener("mousedown", (e) => {
+        dragFromHandle = true;
         item.draggable = true;
-      });
-
-      dragHandle.addEventListener("mouseup", (e) => {
-        item.draggable = false;
       });
 
       // Drag events for the item
       item.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("uniformId", uniform.id.toString());
-        e.dataTransfer.setData("reorder", "true");
         e.dataTransfer.effectAllowed = "copyMove";
         item.classList.add("dragging");
       });
@@ -583,6 +582,7 @@ class BlueprintSystem {
       item.addEventListener("dragend", (e) => {
         item.classList.remove("dragging");
         item.draggable = false;
+        dragFromHandle = false;
       });
 
       // Editable name input
@@ -1142,8 +1142,6 @@ class BlueprintSystem {
 
     this.canvas.addEventListener("drop", (e) => {
       e.preventDefault();
-      const isReorder = e.dataTransfer.getData("reorder");
-      if (isReorder) return; // Don't create node if reordering
 
       const uniformId = parseInt(e.dataTransfer.getData("uniformId"));
       if (uniformId) {
