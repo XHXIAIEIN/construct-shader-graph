@@ -2,18 +2,6 @@
 
 A visual node-based shader graph editor that generates shaders for WebGL 1, WebGL 2, and WebGPU.
 
-## Features
-
-- 🎨 Visual node-based shader editing
-- 🔗 Drag-and-drop wire connections
-- 🎯 Multi-target shader export (WebGL 1, WebGL 2, WebGPU)
-- 📦 ZIP export with all shader versions
-- 🔍 Smart search menu with type filtering
-- 🎛️ Editable input values for float/int ports
-- 🖱️ Pan and zoom canvas
-- 📋 Multiple node selection and manipulation
-- 🔄 Reroute nodes for wire path adjustment
-
 ## Getting Started
 
 ### Installation
