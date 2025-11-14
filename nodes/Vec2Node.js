@@ -1,0 +1,28 @@
+import { NodeType } from "./NodeType.js";
+
+export const Vec2Node = new NodeType(
+  "Vec2",
+  [
+    { name: "X", type: "float" },
+    { name: "Y", type: "float" },
+  ],
+  [{ name: "Vec2", type: "vec2" }],
+  "#4a3a3a",
+  {
+    webgl1: {
+      dependency: "",
+      execution: (inputs, outputs) =>
+        `    vec2 ${outputs[0]} = vec2(${inputs[0]}, ${inputs[1]});`,
+    },
+    webgl2: {
+      dependency: "",
+      execution: (inputs, outputs) =>
+        `    vec2 ${outputs[0]} = vec2(${inputs[0]}, ${inputs[1]});`,
+    },
+    webgpu: {
+      dependency: "",
+      execution: (inputs, outputs) =>
+        `    var ${outputs[0]}: vec2<f32> = vec2<f32>(${inputs[0]}, ${inputs[1]});`,
+    },
+  }
+);

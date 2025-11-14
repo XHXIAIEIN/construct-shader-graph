@@ -1,5 +1,5 @@
 // Blueprint Node System
-import { NODE_TYPES, PORT_TYPES } from "./nodes/index.js";
+import { NODE_TYPES, PORT_TYPES, areTypesCompatible } from "./nodes/index.js";
 import JSZip from "jszip";
 
 // Import boilerplate files as raw text
@@ -95,9 +95,13 @@ class Port {
     if (this.type === otherPort.type) return false;
     // Can't connect to same node
     if (this.node === otherPort.node) return false;
-    // Check type compatibility
-    if (this.portType === "any" || otherPort.portType === "any") return true;
-    return this.portType === otherPort.portType;
+
+    // Determine which is output and which is input
+    const outputPort = this.type === "output" ? this : otherPort;
+    const inputPort = this.type === "input" ? this : otherPort;
+
+    // Check type compatibility using the new system
+    return areTypesCompatible(outputPort.portType, inputPort.portType);
   }
 }
 
@@ -410,6 +414,13 @@ class BlueprintSystem {
 
   startEditingPort(port) {
     if (!port.isEditable || port.connections.length > 0) return;
+
+    // For boolean types, just toggle the value directly
+    if (port.portType === "boolean") {
+      port.value = !port.value;
+      this.render();
+      return;
+    }
 
     this.editingPort = port;
     const bounds = port.getValueBoxBounds(this.ctx);

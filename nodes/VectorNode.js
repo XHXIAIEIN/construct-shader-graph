@@ -7,7 +7,7 @@ export const VectorNode = new NodeType(
     { name: "Y", type: "float" },
     { name: "Z", type: "float" },
   ],
-  [{ name: "Vector", type: "vector" }],
+  [{ name: "Vector", type: "vec3" }],
   "#4a3a3a",
   {
     webgl1: {
