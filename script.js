@@ -516,19 +516,74 @@ class BlueprintSystem {
   renderUniformList() {
     this.uniformList.innerHTML = "";
 
-    this.uniforms.forEach((uniform) => {
+    this.uniforms.forEach((uniform, index) => {
       const item = document.createElement("div");
       item.className = "uniform-item";
+      item.dataset.uniformId = uniform.id;
+      item.dataset.uniformIndex = index;
 
-      // Make item draggable
-      item.draggable = true;
-      item.addEventListener("dragstart", (e) => {
-        e.dataTransfer.setData("uniformId", uniform.id.toString());
-        e.dataTransfer.effectAllowed = "copy";
+      // Item is not draggable by default
+      item.draggable = false;
+
+      item.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        const draggingItem = this.uniformList.querySelector(".dragging");
+        if (draggingItem && draggingItem !== item) {
+          const rect = item.getBoundingClientRect();
+          const midpoint = rect.top + rect.height / 2;
+          if (e.clientY < midpoint) {
+            item.parentNode.insertBefore(draggingItem, item);
+          } else {
+            item.parentNode.insertBefore(draggingItem, item.nextSibling);
+          }
+        }
+      });
+
+      item.addEventListener("drop", (e) => {
+        e.stopPropagation();
+        const isReorder = e.dataTransfer.getData("reorder");
+        if (isReorder) {
+          // Reorder the uniforms array based on DOM order
+          const newOrder = [];
+          Array.from(this.uniformList.children).forEach((child) => {
+            const id = parseInt(child.dataset.uniformId);
+            const uniform = this.uniforms.find((u) => u.id === id);
+            if (uniform) newOrder.push(uniform);
+          });
+          this.uniforms = newOrder;
+        }
       });
 
       const header = document.createElement("div");
       header.className = "uniform-item-header";
+
+      // Drag handle
+      const dragHandle = document.createElement("div");
+      dragHandle.className = "uniform-drag-handle";
+      dragHandle.innerHTML = "⋮⋮";
+      dragHandle.title = "Drag to reorder";
+
+      // Make handle draggable
+      dragHandle.addEventListener("mousedown", (e) => {
+        item.draggable = true;
+      });
+
+      dragHandle.addEventListener("mouseup", (e) => {
+        item.draggable = false;
+      });
+
+      // Drag events for the item
+      item.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("uniformId", uniform.id.toString());
+        e.dataTransfer.setData("reorder", "true");
+        e.dataTransfer.effectAllowed = "copyMove";
+        item.classList.add("dragging");
+      });
+
+      item.addEventListener("dragend", (e) => {
+        item.classList.remove("dragging");
+        item.draggable = false;
+      });
 
       // Editable name input
       const nameInput = document.createElement("input");
@@ -571,6 +626,7 @@ class BlueprintSystem {
       deleteBtn.addEventListener("click", () => this.deleteUniform(uniform.id));
 
       controls.appendChild(deleteBtn);
+      header.appendChild(dragHandle);
       header.appendChild(nameInput);
       header.appendChild(typeSpan);
       header.appendChild(controls);
@@ -604,11 +660,17 @@ class BlueprintSystem {
           numberInput.value = val.toFixed(2);
         });
 
+        slider.addEventListener("mousedown", (e) => e.stopPropagation());
+        slider.addEventListener("pointerdown", (e) => e.stopPropagation());
+
         numberInput.addEventListener("input", (e) => {
           const val = parseFloat(e.target.value) || 0;
           this.updateUniformValue(uniform.id, val);
           slider.value = Math.min(1, Math.max(0, val));
         });
+
+        numberInput.addEventListener("mousedown", (e) => e.stopPropagation());
+        numberInput.addEventListener("click", (e) => e.stopPropagation());
 
         floatDisplay.appendChild(slider);
         floatDisplay.appendChild(numberInput);
@@ -632,6 +694,9 @@ class BlueprintSystem {
           this.updateUniformValue(uniform.id, val);
           percentText.textContent = `${Math.round(val * 100)}%`;
         });
+
+        slider.addEventListener("mousedown", (e) => e.stopPropagation());
+        slider.addEventListener("pointerdown", (e) => e.stopPropagation());
 
         percentDisplay.appendChild(slider);
         percentDisplay.appendChild(percentText);
@@ -659,6 +724,10 @@ class BlueprintSystem {
           const b = parseInt(hex.substr(5, 2), 16) / 255;
           this.updateUniformValue(uniform.id, { r, g, b });
         });
+
+        colorInput.addEventListener("mousedown", (e) => e.stopPropagation());
+        colorInput.addEventListener("click", (e) => e.stopPropagation());
+
         valueControl.appendChild(colorInput);
       }
 
@@ -693,6 +762,7 @@ class BlueprintSystem {
     node.isVariable = true; // Make it look like a variable node
 
     // Update node title to show uniform name
+    node.title = uniform.name;
     node.nodeType = {
       ...nodeType,
       name: uniform.name,
@@ -708,6 +778,7 @@ class BlueprintSystem {
     this.nodes.forEach((node) => {
       if (node.uniformName === oldName) {
         node.uniformName = newName;
+        node.title = newName;
         node.nodeType = {
           ...node.nodeType,
           name: newName,
@@ -1071,6 +1142,9 @@ class BlueprintSystem {
 
     this.canvas.addEventListener("drop", (e) => {
       e.preventDefault();
+      const isReorder = e.dataTransfer.getData("reorder");
+      if (isReorder) return; // Don't create node if reordering
+
       const uniformId = parseInt(e.dataTransfer.getData("uniformId"));
       if (uniformId) {
         const uniform = this.uniforms.find((u) => u.id === uniformId);

@@ -371,7 +371,6 @@ button:hover {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  cursor: grab;
   transition: border-color 0.2s;
 }
 
@@ -379,14 +378,32 @@ button:hover {
   border-color: #4a90e2;
 }
 
-.uniform-item:active {
-  cursor: grabbing;
+.uniform-item.dragging {
+  opacity: 0.5;
 }
 
 .uniform-item-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 8px;
+}
+
+.uniform-drag-handle {
+  color: #666;
+  font-size: 16px;
+  cursor: grab;
+  padding: 4px;
+  user-select: none;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.uniform-drag-handle:hover {
+  color: #4a90e2;
+}
+
+.uniform-drag-handle:active {
+  cursor: grabbing;
 }
 
 .uniform-item-name {
@@ -406,6 +423,7 @@ button:hover {
   border-radius: 3px;
   transition: background 0.2s;
   min-width: 100px;
+  flex: 1;
 }
 
 .uniform-item-name-input:hover {
