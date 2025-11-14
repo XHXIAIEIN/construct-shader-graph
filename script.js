@@ -1334,7 +1334,7 @@ class BlueprintSystem {
 
     const pos = this.getMousePos(e);
     const currentTime = Date.now();
-    const isMultiSelect = e.metaKey || e.ctrlKey; // Command on Mac, Ctrl on Windows/Linux
+    const isMultiSelect = e.shiftKey;
 
     // Check for double-click on wire
     const timeSinceLastClick = currentTime - this.lastClickTime;
