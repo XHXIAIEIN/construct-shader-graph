@@ -1,12 +1,19 @@
 // Export all node types
 export { NodeType } from "./NodeType.js";
-export { PORT_TYPES, areTypesCompatible } from "./PortTypes.js";
+export {
+  PORT_TYPES,
+  areTypesCompatible,
+  isGenericType,
+  getAllowedTypesForGeneric,
+} from "./PortTypes.js";
 
 // Import all node types
 import { MathNode } from "./MathNode.js";
 import { PowerNode } from "./PowerNode.js";
 import { AbsNode } from "./AbsNode.js";
 import { CompareNode } from "./CompareNode.js";
+import { MinNode } from "./MinNode.js";
+import { MaxNode } from "./MaxNode.js";
 import { Vec2Node } from "./Vec2Node.js";
 import { VectorNode } from "./VectorNode.js";
 import { ColorNode } from "./ColorNode.js";
@@ -37,6 +44,8 @@ export const NODE_TYPES = {
   power: PowerNode,
   abs: AbsNode,
   compare: CompareNode,
+  min: MinNode,
+  max: MaxNode,
   vec2: Vec2Node,
   vector: VectorNode,
   color: ColorNode,

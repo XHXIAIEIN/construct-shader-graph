@@ -1,5 +1,11 @@
 // Blueprint Node System
-import { NODE_TYPES, PORT_TYPES, areTypesCompatible } from "./nodes/index.js";
+import {
+  NODE_TYPES,
+  PORT_TYPES,
+  areTypesCompatible,
+  isGenericType,
+  getAllowedTypesForGeneric,
+} from "./nodes/index.js";
 import { UniformFloatNode } from "./nodes/UniformFloatNode.js";
 import { UniformColorNode } from "./nodes/UniformColorNode.js";
 import JSZip from "jszip";
@@ -90,8 +96,17 @@ class Port {
     return Math.sqrt(dx * dx + dy * dy) <= this.radius;
   }
 
+  // Get the actual type of this port (resolved if generic)
+  getResolvedType() {
+    if (isGenericType(this.portType)) {
+      return this.node.resolveGenericType(this.portType) || this.portType;
+    }
+    return this.portType;
+  }
+
   getColor() {
-    return PORT_TYPES[this.portType]?.color || PORT_TYPES.any.color;
+    const resolvedType = this.getResolvedType();
+    return PORT_TYPES[resolvedType]?.color || PORT_TYPES.any.color;
   }
 
   canConnectTo(otherPort) {
@@ -104,8 +119,17 @@ class Port {
     const outputPort = this.type === "output" ? this : otherPort;
     const inputPort = this.type === "input" ? this : otherPort;
 
-    // Check type compatibility using the new system
-    return areTypesCompatible(outputPort.portType, inputPort.portType);
+    // Get resolved types
+    const outputResolvedType = outputPort.getResolvedType();
+    const inputResolvedType = inputPort.getResolvedType();
+
+    // Check type compatibility using the new system with resolved types
+    return areTypesCompatible(
+      outputPort.portType,
+      inputPort.portType,
+      outputResolvedType !== outputPort.portType ? outputResolvedType : null,
+      inputResolvedType !== inputPort.portType ? inputResolvedType : null
+    );
   }
 }
 
@@ -125,6 +149,9 @@ class Node {
     if (nodeType.hasOperation) {
       this.operation = nodeType.operationOptions[0].value;
     }
+
+    // Track resolved generic types (e.g., { T: "float" })
+    this.resolvedGenerics = {};
 
     // Create ports based on node type definition
     this.inputPorts = nodeType.inputs.map(
@@ -180,6 +207,33 @@ class Node {
 
   getAllPorts() {
     return [...this.inputPorts, ...this.outputPorts];
+  }
+
+  // Resolve generic type for a port based on connections
+  resolveGenericType(genericType) {
+    return this.resolvedGenerics[genericType] || null;
+  }
+
+  // Update resolved generic types based on a new connection
+  updateResolvedGenerics(portType, concreteType) {
+    if (isGenericType(portType) && !isGenericType(concreteType)) {
+      // Set the generic to the concrete type
+      this.resolvedGenerics[portType] = concreteType;
+      return true;
+    }
+    return false;
+  }
+
+  // Clear resolved generics when all connections of a generic type are removed
+  clearResolvedGeneric(genericType) {
+    // Check if any ports with this generic type still have connections
+    const hasConnections = this.getAllPorts().some(
+      (port) => port.portType === genericType && port.connections.length > 0
+    );
+
+    if (!hasConnections) {
+      delete this.resolvedGenerics[genericType];
+    }
   }
 
   getOperationDropdownBounds() {
@@ -1029,7 +1083,8 @@ class BlueprintSystem {
 
     // If we're filtering by port type
     if (this.searchFilterPort && this.searchFilterType) {
-      const portType = this.searchFilterPort.portType;
+      // Use resolved type if the port is generic
+      const portType = this.searchFilterPort.getResolvedType();
 
       nodeTypes = nodeTypes.filter(([key, nodeType]) => {
         if (this.searchFilterType === "input") {
@@ -1869,14 +1924,40 @@ class BlueprintSystem {
     if (wire.startPort) {
       const index = wire.startPort.connections.indexOf(wire);
       if (index > -1) wire.startPort.connections.splice(index, 1);
+
+      // Clear resolved generics if needed
+      if (isGenericType(wire.startPort.portType)) {
+        wire.startPort.node.clearResolvedGeneric(wire.startPort.portType);
+      }
     }
     if (wire.endPort) {
       const index = wire.endPort.connections.indexOf(wire);
       if (index > -1) wire.endPort.connections.splice(index, 1);
+
+      // Clear resolved generics if needed
+      if (isGenericType(wire.endPort.portType)) {
+        wire.endPort.node.clearResolvedGeneric(wire.endPort.portType);
+      }
     }
     // Remove from wires array
     const wireIndex = this.wires.indexOf(wire);
     if (wireIndex > -1) this.wires.splice(wireIndex, 1);
+  }
+
+  resolveGenericsForConnection(outputPort, inputPort) {
+    // Resolve generics for both nodes
+    const outputType = outputPort.getResolvedType();
+    const inputType = inputPort.getResolvedType();
+
+    // Update output node's generics
+    if (isGenericType(outputPort.portType)) {
+      outputPort.node.updateResolvedGenerics(outputPort.portType, inputType);
+    }
+
+    // Update input node's generics
+    if (isGenericType(inputPort.portType)) {
+      inputPort.node.updateResolvedGenerics(inputPort.portType, outputType);
+    }
   }
 
   onMouseDown(e) {
@@ -2269,6 +2350,10 @@ class BlueprintSystem {
           }
           port.connections.push(this.activeWire);
           inputPort.connections.push(this.activeWire);
+
+          // Resolve generic types
+          this.resolveGenericsForConnection(port, inputPort);
+
           this.activeWire = null;
         } else {
           // Remove the wire if it was picked up
@@ -2310,6 +2395,10 @@ class BlueprintSystem {
           }
           port.connections.push(this.activeWire);
           this.activeWire.startPort.connections.push(this.activeWire);
+
+          // Resolve generic types
+          this.resolveGenericsForConnection(this.activeWire.startPort, port);
+
           this.activeWire = null;
         } else {
           // Remove the wire if it was picked up

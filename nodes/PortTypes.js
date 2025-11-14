@@ -45,24 +45,67 @@ export const PORT_TYPES = {
       "vector",
     ],
   },
+
+  // Generic types (templates)
+  T: {
+    color: "#c084fc",
+    name: "T",
+    editable: false,
+    isGeneric: true,
+    allowedTypes: ["float", "int", "boolean", "vec2", "vec3", "vec4", "color"],
+  },
 };
 
+// Helper function to check if a type is generic
+export function isGenericType(type) {
+  return PORT_TYPES[type]?.isGeneric === true;
+}
+
+// Helper function to get allowed types for a generic
+export function getAllowedTypesForGeneric(genericType) {
+  return PORT_TYPES[genericType]?.allowedTypes || [];
+}
+
 // Helper function to check if two port types are compatible
-export function areTypesCompatible(outputType, inputType) {
+export function areTypesCompatible(
+  outputType,
+  inputType,
+  resolvedOutputType = null,
+  resolvedInputType = null
+) {
+  // Use resolved types if available (for generics)
+  const actualOutputType = resolvedOutputType || outputType;
+  const actualInputType = resolvedInputType || inputType;
+
   // Exact match
-  if (outputType === inputType) return true;
+  if (actualOutputType === actualInputType) return true;
+
+  // If input is generic, check if output is in allowed types
+  if (isGenericType(inputType) && !resolvedInputType) {
+    const allowedTypes = getAllowedTypesForGeneric(inputType);
+    return allowedTypes.includes(actualOutputType);
+  }
+
+  // If output is generic, check if input is in allowed types
+  if (isGenericType(outputType) && !resolvedOutputType) {
+    const allowedTypes = getAllowedTypesForGeneric(outputType);
+    return allowedTypes.includes(actualInputType);
+  }
 
   // Check if input type is a composite that includes the output type
-  const inputTypeDef = PORT_TYPES[inputType];
-  if (inputTypeDef?.isComposite && inputTypeDef.includes.includes(outputType)) {
+  const inputTypeDef = PORT_TYPES[actualInputType];
+  if (
+    inputTypeDef?.isComposite &&
+    inputTypeDef.includes.includes(actualOutputType)
+  ) {
     return true;
   }
 
   // Check if output type is a composite that includes the input type
-  const outputTypeDef = PORT_TYPES[outputType];
+  const outputTypeDef = PORT_TYPES[actualOutputType];
   if (
     outputTypeDef?.isComposite &&
-    outputTypeDef.includes.includes(inputType)
+    outputTypeDef.includes.includes(actualInputType)
   ) {
     return true;
   }
