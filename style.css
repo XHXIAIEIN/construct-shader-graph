@@ -37,14 +37,7 @@ body {
 
 #toolbar h1 {
   font-size: 20px;
-  margin-right: 20px;
-}
-
-#nodeButtons {
-  display: flex;
-  gap: 8px;
-  flex: 1;
-  flex-wrap: wrap;
+  margin-right: auto;
 }
 
 button {
@@ -61,20 +54,6 @@ button {
 
 button:hover {
   background: #357abd;
-}
-
-.node-type-btn {
-  background: #5a5a5a;
-  padding: 8px 16px;
-  font-size: 13px;
-}
-
-.node-type-btn:hover {
-  background: #6a6a6a;
-}
-
-.variable-btn:hover {
-  filter: brightness(1.2);
 }
 
 #clearBtn {
@@ -239,5 +218,97 @@ button:hover {
 #portValueInput:focus {
   border-color: #6ab0ff;
   box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
+}
+
+/* Search Menu */
+.search-menu {
+  position: fixed;
+  background: #2a2a2a;
+  border: 2px solid #4a4a4a;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  display: none;
+  flex-direction: column;
+  width: 300px;
+  max-height: 400px;
+  z-index: 10001;
+  overflow: hidden;
+}
+
+.search-menu.visible {
+  display: flex;
+}
+
+#searchInput {
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  border-bottom: 2px solid #4a4a4a;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  outline: none;
+}
+
+#searchInput:focus {
+  border-bottom-color: #4a90e2;
+}
+
+.search-results {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2px;
+}
+
+.search-result-item {
+  padding: 4px 6px;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-bottom: 2px;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  outline: none;
+}
+
+.search-result-item:hover,
+.search-result-item:focus {
+  background: #3a3a3a;
+}
+
+.search-result-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.search-result-name {
+  flex: 1;
+  font-size: 13px;
+  color: #fff;
+}
+
+.search-result-type {
+  font-size: 11px;
+  color: #888;
+}
+
+.search-results::-webkit-scrollbar {
+  width: 8px;
+}
+
+.search-results::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.search-results::-webkit-scrollbar-thumb {
+  background: #4a4a4a;
+  border-radius: 4px;
+}
+
+.search-results::-webkit-scrollbar-thumb:hover {
+  background: #5a5a5a;
 }
 

@@ -10,7 +10,6 @@
     <div id="app">
       <div id="toolbar">
         <h1>Blueprint System</h1>
-        <div id="nodeButtons"></div>
         <button id="clearBtn">Clear All</button>
         <button id="toggleSidebarBtn">Dependencies</button>
         <button id="exportBtn">Export GLSL</button>
@@ -30,6 +29,10 @@
           </div>
         </div>
       </div>
+    </div>
+    <div id="searchMenu" class="search-menu">
+      <input type="text" id="searchInput" placeholder="Search nodes..." />
+      <div id="searchResults" class="search-results"></div>
     </div>
     <script src="script.js"></script>
   </body>

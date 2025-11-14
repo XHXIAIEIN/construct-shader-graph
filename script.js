@@ -439,6 +439,7 @@ class BlueprintSystem {
     this.setupCanvas();
     this.setupEventListeners();
     this.setupInputField();
+    this.setupSearchMenu();
     this.render();
   }
 
@@ -476,6 +477,51 @@ class BlueprintSystem {
 
     // Prevent input from interfering with canvas events
     this.inputField.addEventListener("mousedown", (e) => {
+      e.stopPropagation();
+    });
+  }
+
+  setupSearchMenu() {
+    this.searchMenu = document.getElementById("searchMenu");
+    this.searchInput = document.getElementById("searchInput");
+    this.searchResults = document.getElementById("searchResults");
+    this.searchMenuPosition = { x: 0, y: 0 };
+    this.searchFilterPort = null; // Port being dragged (for filtering)
+    this.searchFilterType = null; // 'input' or 'output'
+
+    // Search input handler
+    this.searchInput.addEventListener("input", () => {
+      this.updateSearchResults();
+    });
+
+    // Keyboard navigation
+    this.searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        this.hideSearchMenu();
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        this.focusNextSearchResult();
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        this.focusPrevSearchResult();
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        this.selectFocusedSearchResult();
+      }
+    });
+
+    // Click outside to close
+    document.addEventListener("mousedown", (e) => {
+      if (
+        this.searchMenu.classList.contains("visible") &&
+        !this.searchMenu.contains(e.target)
+      ) {
+        this.hideSearchMenu();
+      }
+    });
+
+    // Prevent search menu clicks from propagating to canvas
+    this.searchMenu.addEventListener("mousedown", (e) => {
       e.stopPropagation();
     });
   }
@@ -536,65 +582,241 @@ class BlueprintSystem {
     this.editingPort = null;
   }
 
+  showSearchMenu(x, y, filterPort = null, filterType = null) {
+    this.searchMenuPosition = { x, y };
+    this.searchFilterPort = filterPort;
+    this.searchFilterType = filterType;
+
+    // Position the menu
+    this.searchMenu.style.left = `${x}px`;
+    this.searchMenu.style.top = `${y}px`;
+
+    // Clear and show
+    this.searchInput.value = "";
+    this.searchMenu.classList.add("visible");
+    this.updateSearchResults();
+
+    // Focus the input
+    setTimeout(() => {
+      this.searchInput.focus();
+    }, 0);
+  }
+
+  hideSearchMenu() {
+    this.searchMenu.classList.remove("visible");
+    this.searchFilterPort = null;
+    this.searchFilterType = null;
+    this.searchInput.value = "";
+
+    // If we were dragging a wire, cancel it
+    if (this.activeWire) {
+      this.activeWire = null;
+      this.render();
+    }
+  }
+
+  getFilteredNodeTypes() {
+    let nodeTypes = Object.entries(NODE_TYPES);
+
+    // If we're filtering by port type
+    if (this.searchFilterPort && this.searchFilterType) {
+      const portType = this.searchFilterPort.portType;
+
+      nodeTypes = nodeTypes.filter(([key, nodeType]) => {
+        if (this.searchFilterType === "input") {
+          // Dragging from an input port - show nodes with compatible output ports
+          return nodeType.outputs.some(
+            (output) =>
+              output.type === portType ||
+              output.type === "any" ||
+              portType === "any"
+          );
+        } else {
+          // Dragging from an output port - show nodes with compatible input ports
+          return nodeType.inputs.some(
+            (input) =>
+              input.type === portType ||
+              input.type === "any" ||
+              portType === "any"
+          );
+        }
+      });
+    }
+
+    return nodeTypes;
+  }
+
+  updateSearchResults() {
+    const query = this.searchInput.value.toLowerCase();
+    const filteredTypes = this.getFilteredNodeTypes();
+
+    // Filter by search query
+    const results = filteredTypes.filter(([key, nodeType]) => {
+      return nodeType.name.toLowerCase().includes(query);
+    });
+
+    // Clear results
+    this.searchResults.innerHTML = "";
+
+    // Add results
+    results.forEach(([key, nodeType]) => {
+      const item = document.createElement("div");
+      item.className = "search-result-item";
+      item.dataset.nodeTypeKey = key;
+      item.tabIndex = 0; // Make focusable
+
+      // Color indicator
+      const colorDiv = document.createElement("div");
+      colorDiv.className = "search-result-color";
+      colorDiv.style.background = nodeType.color;
+      item.appendChild(colorDiv);
+
+      // Name
+      const nameDiv = document.createElement("div");
+      nameDiv.className = "search-result-name";
+      nameDiv.textContent = nodeType.name;
+      item.appendChild(nameDiv);
+
+      // Type info
+      const typeDiv = document.createElement("div");
+      typeDiv.className = "search-result-type";
+      const inputCount = nodeType.inputs.length;
+      const outputCount = nodeType.outputs.length;
+      typeDiv.textContent = `${inputCount}→${outputCount}`;
+      item.appendChild(typeDiv);
+
+      // Click handler
+      item.addEventListener("click", () => {
+        this.selectNodeType(key, nodeType);
+      });
+
+      // Enter key handler
+      item.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          this.selectNodeType(key, nodeType);
+        }
+      });
+
+      this.searchResults.appendChild(item);
+    });
+
+    // If no results
+    if (results.length === 0) {
+      const noResults = document.createElement("div");
+      noResults.style.padding = "20px";
+      noResults.style.textAlign = "center";
+      noResults.style.color = "#888";
+      noResults.textContent = "No nodes found";
+      this.searchResults.appendChild(noResults);
+    }
+  }
+
+  selectNodeType(key, nodeType) {
+    const rect = this.canvas.getBoundingClientRect();
+    const x = this.searchMenuPosition.x - rect.left;
+    const y = this.searchMenuPosition.y - rect.top;
+
+    const newNode = this.addNode(x, y, nodeType);
+
+    // If we were dragging a wire, connect it to the new node
+    if (this.searchFilterPort) {
+      if (this.searchFilterType === "input") {
+        // We were dragging from an input port
+        // Connect to a compatible output port on the new node
+        const compatibleOutput = newNode.outputPorts.find(
+          (port) =>
+            port.portType === this.searchFilterPort.portType ||
+            port.portType === "any" ||
+            this.searchFilterPort.portType === "any"
+        );
+        if (compatibleOutput) {
+          // Create a new wire from the output to the input
+          const wire = new Wire(compatibleOutput, this.searchFilterPort);
+          this.wires.push(wire);
+          compatibleOutput.connections.push(wire);
+          this.searchFilterPort.connections.push(wire);
+        }
+      } else {
+        // We were dragging from an output port
+        // Connect to a compatible input port on the new node
+        const compatibleInput = newNode.inputPorts.find(
+          (port) =>
+            port.portType === this.searchFilterPort.portType ||
+            port.portType === "any" ||
+            this.searchFilterPort.portType === "any"
+        );
+        if (compatibleInput) {
+          // Remove existing connection if any
+          if (compatibleInput.connections.length > 0) {
+            const oldWire = compatibleInput.connections[0];
+            this.wires = this.wires.filter((w) => w !== oldWire);
+            oldWire.startPort.connections =
+              oldWire.startPort.connections.filter((w) => w !== oldWire);
+          }
+          compatibleInput.connections = [];
+
+          // Create a new wire from the output to the input
+          const wire = new Wire(this.searchFilterPort, compatibleInput);
+          this.wires.push(wire);
+          this.searchFilterPort.connections.push(wire);
+          compatibleInput.connections.push(wire);
+        }
+      }
+    }
+
+    // Clear active wire
+    this.activeWire = null;
+
+    this.hideSearchMenu();
+    this.render();
+    this.updateDependencyList();
+  }
+
+  focusNextSearchResult() {
+    const items = this.searchResults.querySelectorAll(".search-result-item");
+    if (items.length === 0) return;
+
+    const focused = document.activeElement;
+    let index = Array.from(items).indexOf(focused);
+    index = (index + 1) % items.length;
+    items[index].focus();
+  }
+
+  focusPrevSearchResult() {
+    const items = this.searchResults.querySelectorAll(".search-result-item");
+    if (items.length === 0) return;
+
+    const focused = document.activeElement;
+    let index = Array.from(items).indexOf(focused);
+    index = (index - 1 + items.length) % items.length;
+    items[index].focus();
+  }
+
+  selectFocusedSearchResult() {
+    const items = this.searchResults.querySelectorAll(".search-result-item");
+    if (items.length === 0) return;
+
+    // If input is focused, select first item
+    if (document.activeElement === this.searchInput) {
+      const key = items[0].dataset.nodeTypeKey;
+      const nodeType = NODE_TYPES[key];
+      this.selectNodeType(key, nodeType);
+    } else {
+      // Select the focused item
+      const focused = document.activeElement;
+      if (focused.classList.contains("search-result-item")) {
+        const key = focused.dataset.nodeTypeKey;
+        const nodeType = NODE_TYPES[key];
+        this.selectNodeType(key, nodeType);
+      }
+    }
+  }
+
   setupEventListeners() {
     this.canvas.addEventListener("mousedown", (e) => this.onMouseDown(e));
     this.canvas.addEventListener("mousemove", (e) => this.onMouseMove(e));
     this.canvas.addEventListener("mouseup", (e) => this.onMouseUp(e));
     this.canvas.addEventListener("contextmenu", (e) => this.onContextMenu(e));
-
-    // Setup node type buttons
-    const nodeButtonsContainer = document.getElementById("nodeButtons");
-
-    // Separate variables from regular nodes
-    const regularNodes = {};
-    const variableNodes = {};
-
-    Object.entries(NODE_TYPES).forEach(([key, nodeType]) => {
-      if (key.startsWith("var")) {
-        variableNodes[key] = nodeType;
-      } else {
-        regularNodes[key] = nodeType;
-      }
-    });
-
-    // Add regular node buttons
-    Object.entries(regularNodes).forEach(([key, nodeType]) => {
-      const btn = document.createElement("button");
-      btn.textContent = nodeType.name;
-      btn.className = "node-type-btn";
-      btn.addEventListener("click", () => {
-        this.addNode(
-          100 + Math.random() * 300,
-          100 + Math.random() * 200,
-          nodeType
-        );
-      });
-      nodeButtonsContainer.appendChild(btn);
-    });
-
-    // Add separator
-    const separator = document.createElement("div");
-    separator.style.width = "2px";
-    separator.style.height = "30px";
-    separator.style.background = "#4a4a4a";
-    separator.style.margin = "0 10px";
-    nodeButtonsContainer.appendChild(separator);
-
-    // Add variable node buttons
-    Object.entries(variableNodes).forEach(([key, nodeType]) => {
-      const btn = document.createElement("button");
-      btn.textContent = nodeType.name;
-      btn.className = "node-type-btn variable-btn";
-      btn.style.background = nodeType.color;
-      btn.addEventListener("click", () => {
-        this.addNode(
-          100 + Math.random() * 300,
-          100 + Math.random() * 200,
-          nodeType
-        );
-      });
-      nodeButtonsContainer.appendChild(btn);
-    });
 
     document.getElementById("clearBtn").addEventListener("click", () => {
       this.nodes = [];
@@ -1086,6 +1308,7 @@ class BlueprintSystem {
         this.activeWire.endPort = null;
         this.activeWire.tempEndX = pos.x;
         this.activeWire.tempEndY = pos.y;
+        this.activeWire.wasPickedUp = true; // Mark as picked up to avoid showing search menu
       }
       // Start creating a wire from output ports
       else if (port.type === "output") {
@@ -1212,11 +1435,25 @@ class BlueprintSystem {
           }
           port.connections.push(this.activeWire);
           inputPort.connections.push(this.activeWire);
+          this.activeWire = null;
         } else {
-          // Invalid connection, remove if it was picked up
+          // Remove the wire if it was picked up
           if (this.wires.includes(this.activeWire)) {
             this.disconnectWire(this.activeWire);
           }
+
+          // Only show search menu if wire wasn't picked up
+          if (!this.activeWire.wasPickedUp) {
+            const startPort = this.activeWire.startPort;
+            const filterType = "input"; // We're dragging from an input, need nodes with outputs
+
+            // Show search menu with filter
+            this.showSearchMenu(e.clientX, e.clientY, startPort, filterType);
+            // Don't set activeWire to null yet - it will be used in selectNodeType
+            return;
+          }
+
+          this.activeWire = null;
         }
       }
       // Normal wire (started from output)
@@ -1239,14 +1476,27 @@ class BlueprintSystem {
           }
           port.connections.push(this.activeWire);
           this.activeWire.startPort.connections.push(this.activeWire);
+          this.activeWire = null;
         } else {
-          // Invalid connection, remove if it was picked up
+          // Remove the wire if it was picked up
           if (this.wires.includes(this.activeWire)) {
             this.disconnectWire(this.activeWire);
           }
+
+          // Only show search menu if wire wasn't picked up
+          if (!this.activeWire.wasPickedUp) {
+            const startPort = this.activeWire.startPort;
+            const filterType = "output"; // We're dragging from an output, need nodes with inputs
+
+            // Show search menu with filter
+            this.showSearchMenu(e.clientX, e.clientY, startPort, filterType);
+            // Don't set activeWire to null yet - it will be used in selectNodeType
+            return;
+          }
+
+          this.activeWire = null;
         }
       }
-      this.activeWire = null;
     }
 
     // Stop dragging reroute node
@@ -1276,6 +1526,9 @@ class BlueprintSystem {
       this.render();
       return;
     }
+
+    // Show search menu at cursor position
+    this.showSearchMenu(e.clientX, e.clientY);
   }
 
   drawGrid() {
