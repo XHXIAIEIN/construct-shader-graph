@@ -736,12 +736,6 @@ class BlueprintSystem {
       this.updateDependencyList();
     });
 
-    document
-      .getElementById("toggleSidebarBtn")
-      .addEventListener("click", () => {
-        this.toggleSidebar();
-      });
-
     document.getElementById("closeSidebarBtn").addEventListener("click", () => {
       this.closeSidebar();
     });
