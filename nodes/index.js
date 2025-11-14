@@ -18,6 +18,22 @@ import { Vec2VariableNode } from "./Vec2VariableNode.js";
 import { VectorVariableNode } from "./VectorVariableNode.js";
 import { ColorVariableNode } from "./ColorVariableNode.js";
 
+// Import built-in parameter nodes
+import { BuiltinSrcStartNode } from "./BuiltinSrcStartNode.js";
+import { BuiltinSrcEndNode } from "./BuiltinSrcEndNode.js";
+import { BuiltinSrcOriginStartNode } from "./BuiltinSrcOriginStartNode.js";
+import { BuiltinSrcOriginEndNode } from "./BuiltinSrcOriginEndNode.js";
+import { BuiltinLayoutStartNode } from "./BuiltinLayoutStartNode.js";
+import { BuiltinLayoutEndNode } from "./BuiltinLayoutEndNode.js";
+import { BuiltinDestStartNode } from "./BuiltinDestStartNode.js";
+import { BuiltinDestEndNode } from "./BuiltinDestEndNode.js";
+import { BuiltinDevicePixelRatioNode } from "./BuiltinDevicePixelRatioNode.js";
+import { BuiltinLayerScaleNode } from "./BuiltinLayerScaleNode.js";
+import { BuiltinLayerAngleNode } from "./BuiltinLayerAngleNode.js";
+import { BuiltinSecondsNode } from "./BuiltinSecondsNode.js";
+import { BuiltinZNearNode } from "./BuiltinZNearNode.js";
+import { BuiltinZFarNode } from "./BuiltinZFarNode.js";
+
 // Export NODE_TYPES object
 export const NODE_TYPES = {
   math: MathNode,
@@ -34,4 +50,20 @@ export const NODE_TYPES = {
   varVec2: Vec2VariableNode,
   varVector: VectorVariableNode,
   varColor: ColorVariableNode,
+
+  // Built-in parameters
+  builtinSrcStart: BuiltinSrcStartNode,
+  builtinSrcEnd: BuiltinSrcEndNode,
+  builtinSrcOriginStart: BuiltinSrcOriginStartNode,
+  builtinSrcOriginEnd: BuiltinSrcOriginEndNode,
+  builtinLayoutStart: BuiltinLayoutStartNode,
+  builtinLayoutEnd: BuiltinLayoutEndNode,
+  builtinDestStart: BuiltinDestStartNode,
+  builtinDestEnd: BuiltinDestEndNode,
+  builtinDevicePixelRatio: BuiltinDevicePixelRatioNode,
+  builtinLayerScale: BuiltinLayerScaleNode,
+  builtinLayerAngle: BuiltinLayerAngleNode,
+  builtinSeconds: BuiltinSecondsNode,
+  builtinZNear: BuiltinZNearNode,
+  builtinZFar: BuiltinZFarNode,
 };
