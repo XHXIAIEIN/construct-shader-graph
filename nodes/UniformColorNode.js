@@ -24,7 +24,7 @@ export const UniformColorNode = new NodeType(
       dependency: "",
       execution: (inputs, outputs, node) => {
         const uniformName = node.uniformName || "uUnknown";
-        return `    var ${outputs[0]}: vec3<f32> = uniforms.${uniformName};`;
+        return `    var ${outputs[0]}: vec3<f32> = shaderParams.${uniformName};`;
       },
     },
   }

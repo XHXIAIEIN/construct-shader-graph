@@ -24,7 +24,7 @@ export const UniformFloatNode = new NodeType(
       dependency: "",
       execution: (inputs, outputs, node) => {
         const uniformName = node.uniformName || "uUnknown";
-        return `    var ${outputs[0]}: f32 = uniforms.${uniformName};`;
+        return `    var ${outputs[0]}: f32 = shaderParams.${uniformName};`;
       },
     },
   }

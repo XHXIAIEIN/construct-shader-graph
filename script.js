@@ -1539,22 +1539,22 @@ class BlueprintSystem {
   generateUniformDeclarations(target) {
     if (this.uniforms.length === 0) return "";
 
-    let declarations = "\n// Uniforms\n";
+    let declarations = "\n// Shader Parameters (Uniforms)\n";
 
     if (target === "webgpu") {
-      // WebGPU uses a uniform block
-      declarations += "struct Uniforms {\n";
+      // WebGPU uses a uniform struct
+      declarations += "struct ShaderParams {\n";
       this.uniforms.forEach((uniform) => {
         if (uniform.type === "color") {
-          declarations += `  ${uniform.name}: vec3<f32>,\n`;
+          declarations += `\t${uniform.name} : vec3<f32>,\n`;
         } else {
           // float and percent are both float
-          declarations += `  ${uniform.name}: f32,\n`;
+          declarations += `\t${uniform.name} : f32,\n`;
         }
       });
-      declarations += "}\n";
+      declarations += "};\n";
       declarations +=
-        "@group(0) @binding(0) var<uniform> uniforms: Uniforms;\n\n";
+        "%%SHADERPARAMS_BINDING%% var<uniform> shaderParams : ShaderParams;\n\n";
     } else {
       // WebGL 1 and 2 use individual uniform declarations
       this.uniforms.forEach((uniform) => {
