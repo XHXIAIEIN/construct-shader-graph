@@ -1,6 +1,8 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
+  base:
+    process.env.NODE_ENV === "production" ? "/construct-shader-graph/" : "/",
   assetsInclude: ["**/*.glsl", "**/*.wgsl"],
   server: {
     port: 3000,
