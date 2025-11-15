@@ -127,6 +127,18 @@
               </div>
             </div>
           </div>
+          <div id="custom-nodes-section" class="collapsible-section">
+            <div class="sidebar-section-header">
+              <h2>Custom Nodes</h2>
+              <button class="collapse-btn">▼</button>
+            </div>
+            <div class="sidebar-section-content">
+              <button id="addCustomNodeBtn" class="add-uniform-btn">
+                + Create Custom Node
+              </button>
+              <div id="custom-nodes-list"></div>
+            </div>
+          </div>
           <div id="uniforms-section" class="collapsible-section">
             <div class="sidebar-section-header">
               <h2>Uniforms</h2>
@@ -158,6 +170,107 @@
     <div id="searchMenu" class="search-menu">
       <input type="text" id="searchInput" placeholder="Search nodes..." />
       <div id="searchResults" class="search-results"></div>
+    </div>
+    <div id="customNodeModal" class="custom-node-modal">
+      <div class="custom-node-modal-content">
+        <h3>Custom Node</h3>
+        <div class="custom-node-form">
+          <label>
+            <span>Node Name</span>
+            <input
+              type="text"
+              id="customNodeName"
+              placeholder="My Custom Node"
+            />
+          </label>
+
+          <label>
+            <span>Node Color</span>
+            <input type="color" id="customNodeColor" value="#9b59b6" />
+          </label>
+
+          <div class="custom-node-section">
+            <h4>Inputs</h4>
+            <div id="customNodeInputs"></div>
+            <button id="addCustomInput" class="add-port-btn">
+              + Add Input
+            </button>
+          </div>
+
+          <div class="custom-node-section">
+            <h4>Outputs</h4>
+            <div id="customNodeOutputs"></div>
+            <button id="addCustomOutput" class="add-port-btn">
+              + Add Output
+            </button>
+          </div>
+
+          <div class="custom-node-section">
+            <h4>WebGL 1 Code</h4>
+            <label>
+              <span>Dependency (functions, outside main)</span>
+              <textarea
+                id="customNodeWebGL1Dep"
+                rows="3"
+                placeholder="// Optional: functions, uniforms, etc."
+              ></textarea>
+            </label>
+            <label>
+              <span>Execution (inside main)</span>
+              <textarea
+                id="customNodeWebGL1Exec"
+                rows="4"
+                placeholder="// Use {input0}, {input1}, etc. for inputs&#10;// Use {output0}, {output1}, etc. for outputs&#10;float {output0} = {input0} + {input1};"
+              ></textarea>
+            </label>
+          </div>
+
+          <div class="custom-node-section">
+            <h4>WebGL 2 Code</h4>
+            <label>
+              <span>Dependency</span>
+              <textarea
+                id="customNodeWebGL2Dep"
+                rows="3"
+                placeholder="// Optional: functions, uniforms, etc."
+              ></textarea>
+            </label>
+            <label>
+              <span>Execution</span>
+              <textarea
+                id="customNodeWebGL2Exec"
+                rows="4"
+                placeholder="float {output0} = {input0} + {input1};"
+              ></textarea>
+            </label>
+          </div>
+
+          <div class="custom-node-section">
+            <h4>WebGPU Code</h4>
+            <label>
+              <span>Dependency</span>
+              <textarea
+                id="customNodeWebGPUDep"
+                rows="3"
+                placeholder="// Optional: functions, etc."
+              ></textarea>
+            </label>
+            <label>
+              <span>Execution</span>
+              <textarea
+                id="customNodeWebGPUExec"
+                rows="4"
+                placeholder="var {output0}: f32 = {input0} + {input1};"
+              ></textarea>
+            </label>
+          </div>
+
+          <div class="custom-node-modal-buttons">
+            <button id="saveCustomNode" class="primary-btn">Save</button>
+            <button id="cancelCustomNode" class="secondary-btn">Cancel</button>
+          </div>
+        </div>
+      </div>
     </div>
     <div id="uniformModal" class="uniform-modal">
       <div class="uniform-modal-content">

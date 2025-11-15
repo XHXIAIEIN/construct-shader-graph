@@ -427,11 +427,17 @@ class BlueprintSystem {
     this.uniforms = [];
     this.uniformIdCounter = 1;
 
+    // Custom Nodes
+    this.customNodes = [];
+    this.customNodeIdCounter = 1;
+    this.editingCustomNode = null;
+
     this.setupEventListeners();
     this.setupInputField();
     this.setupSearchMenu();
     this.setupShaderSettings();
     this.setupUniformSidebar();
+    this.setupCustomNodeModal();
     this.render();
   }
 
@@ -799,6 +805,422 @@ class BlueprintSystem {
     if (uniform) {
       uniform.value = value;
     }
+  }
+
+  setupCustomNodeModal() {
+    this.customNodeModal = document.getElementById("customNodeModal");
+    this.customNodeNameInput = document.getElementById("customNodeName");
+    this.customNodeColorInput = document.getElementById("customNodeColor");
+    this.customNodeInputsContainer =
+      document.getElementById("customNodeInputs");
+    this.customNodeOutputsContainer =
+      document.getElementById("customNodeOutputs");
+    this.customNodesList = document.getElementById("custom-nodes-list");
+
+    // Code inputs
+    this.customNodeWebGL1Dep = document.getElementById("customNodeWebGL1Dep");
+    this.customNodeWebGL1Exec = document.getElementById("customNodeWebGL1Exec");
+    this.customNodeWebGL2Dep = document.getElementById("customNodeWebGL2Dep");
+    this.customNodeWebGL2Exec = document.getElementById("customNodeWebGL2Exec");
+    this.customNodeWebGPUDep = document.getElementById("customNodeWebGPUDep");
+    this.customNodeWebGPUExec = document.getElementById("customNodeWebGPUExec");
+
+    // Buttons
+    document.getElementById("addCustomInput").addEventListener("click", () => {
+      this.addCustomPortItem(this.customNodeInputsContainer, "input");
+    });
+
+    document.getElementById("addCustomOutput").addEventListener("click", () => {
+      this.addCustomPortItem(this.customNodeOutputsContainer, "output");
+    });
+
+    document.getElementById("saveCustomNode").addEventListener("click", () => {
+      this.saveCustomNode();
+    });
+
+    document
+      .getElementById("cancelCustomNode")
+      .addEventListener("click", () => {
+        this.hideCustomNodeModal();
+      });
+
+    // Close on background click
+    this.customNodeModal.addEventListener("click", (e) => {
+      if (e.target === this.customNodeModal) {
+        this.hideCustomNodeModal();
+      }
+    });
+
+    // Add custom node button in sidebar
+    document
+      .getElementById("addCustomNodeBtn")
+      .addEventListener("click", () => {
+        this.showCustomNodeModal();
+      });
+  }
+
+  showCustomNodeModal(customNode = null) {
+    this.editingCustomNode = customNode;
+
+    // Clear form
+    this.customNodeNameInput.value = "";
+    this.customNodeColorInput.value = "#9b59b6";
+    this.customNodeInputsContainer.innerHTML = "";
+    this.customNodeOutputsContainer.innerHTML = "";
+    this.customNodeWebGL1Dep.value = "";
+    this.customNodeWebGL1Exec.value = "";
+    this.customNodeWebGL2Dep.value = "";
+    this.customNodeWebGL2Exec.value = "";
+    this.customNodeWebGPUDep.value = "";
+    this.customNodeWebGPUExec.value = "";
+
+    // If editing, populate form
+    if (customNode) {
+      this.customNodeNameInput.value = customNode.name;
+      this.customNodeColorInput.value = customNode.color || "#9b59b6";
+
+      customNode.inputs.forEach((input) => {
+        this.addCustomPortItem(
+          this.customNodeInputsContainer,
+          "input",
+          input.name,
+          input.type
+        );
+      });
+
+      customNode.outputs.forEach((output) => {
+        this.addCustomPortItem(
+          this.customNodeOutputsContainer,
+          "output",
+          output.name,
+          output.type
+        );
+      });
+
+      this.customNodeWebGL1Dep.value = customNode.code.webgl1.dependency;
+      this.customNodeWebGL1Exec.value = customNode.code.webgl1.execution;
+      this.customNodeWebGL2Dep.value = customNode.code.webgl2.dependency;
+      this.customNodeWebGL2Exec.value = customNode.code.webgl2.execution;
+      this.customNodeWebGPUDep.value = customNode.code.webgpu.dependency;
+      this.customNodeWebGPUExec.value = customNode.code.webgpu.execution;
+    }
+
+    this.customNodeModal.classList.add("visible");
+  }
+
+  hideCustomNodeModal() {
+    this.customNodeModal.classList.remove("visible");
+    this.editingCustomNode = null;
+  }
+
+  addCustomPortItem(container, portType, name = "", type = "float") {
+    const item = document.createElement("div");
+    item.className = "custom-port-item";
+
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.placeholder = `${portType === "input" ? "Input" : "Output"} name`;
+    nameInput.value = name;
+
+    const typeSelect = document.createElement("select");
+    const types = [
+      "float",
+      "int",
+      "boolean",
+      "vec2",
+      "vec3",
+      "vec4",
+      "color",
+      "texture",
+    ];
+    types.forEach((t) => {
+      const option = document.createElement("option");
+      option.value = t;
+      option.textContent = t;
+      if (t === type) option.selected = true;
+      typeSelect.appendChild(option);
+    });
+
+    const removeBtn = document.createElement("button");
+    removeBtn.textContent = "×";
+    removeBtn.addEventListener("click", () => {
+      item.remove();
+    });
+
+    item.appendChild(nameInput);
+    item.appendChild(typeSelect);
+    item.appendChild(removeBtn);
+    container.appendChild(item);
+  }
+
+  saveCustomNode() {
+    const name = this.customNodeNameInput.value.trim();
+    if (!name) {
+      alert("Please enter a node name");
+      return;
+    }
+
+    // Collect inputs
+    const inputs = [];
+    this.customNodeInputsContainer
+      .querySelectorAll(".custom-port-item")
+      .forEach((item) => {
+        const nameInput = item.querySelector("input");
+        const typeSelect = item.querySelector("select");
+        if (nameInput.value.trim()) {
+          inputs.push({
+            name: nameInput.value.trim(),
+            type: typeSelect.value,
+          });
+        }
+      });
+
+    // Collect outputs
+    const outputs = [];
+    this.customNodeOutputsContainer
+      .querySelectorAll(".custom-port-item")
+      .forEach((item) => {
+        const nameInput = item.querySelector("input");
+        const typeSelect = item.querySelector("select");
+        if (nameInput.value.trim()) {
+          outputs.push({
+            name: nameInput.value.trim(),
+            type: typeSelect.value,
+          });
+        }
+      });
+
+    if (outputs.length === 0) {
+      alert("Please add at least one output");
+      return;
+    }
+
+    // Create custom node definition
+    const customNode = {
+      id: this.editingCustomNode
+        ? this.editingCustomNode.id
+        : this.customNodeIdCounter++,
+      name: name,
+      color: this.customNodeColorInput.value,
+      inputs: inputs,
+      outputs: outputs,
+      code: {
+        webgl1: {
+          dependency: this.customNodeWebGL1Dep.value,
+          execution: this.customNodeWebGL1Exec.value,
+        },
+        webgl2: {
+          dependency: this.customNodeWebGL2Dep.value,
+          execution: this.customNodeWebGL2Exec.value,
+        },
+        webgpu: {
+          dependency: this.customNodeWebGPUDep.value,
+          execution: this.customNodeWebGPUExec.value,
+        },
+      },
+    };
+
+    if (this.editingCustomNode) {
+      // Update existing
+      const index = this.customNodes.findIndex(
+        (n) => n.id === this.editingCustomNode.id
+      );
+      if (index !== -1) {
+        this.customNodes[index] = customNode;
+        // Update all nodes in the graph that use this custom node
+        this.updateCustomNodeInstances(customNode);
+      }
+    } else {
+      // Add new
+      this.customNodes.push(customNode);
+    }
+
+    this.renderCustomNodesList();
+    this.hideCustomNodeModal();
+    console.log("Custom node saved:", customNode);
+  }
+
+  updateCustomNodeInstances(customNode) {
+    // Find all nodes in the graph that use this custom node
+    const customNodeKey = `custom_${customNode.id}`;
+    const affectedNodes = this.nodes.filter((node) => {
+      const nodeTypeKey = this.getNodeTypeKey(node.nodeType);
+      return nodeTypeKey === customNodeKey;
+    });
+
+    affectedNodes.forEach((node) => {
+      // Store old port counts
+      const oldInputCount = node.inputPorts.length;
+      const oldOutputCount = node.outputPorts.length;
+
+      // Update the node type
+      node.nodeType = this.createNodeTypeFromCustomNode(customNode);
+      node.title = customNode.name;
+      node.headerColor = customNode.color;
+
+      // Recreate ports
+      const oldInputPorts = [...node.inputPorts];
+      const oldOutputPorts = [...node.outputPorts];
+
+      node.inputPorts = customNode.inputs.map((input, index) => {
+        const oldPort = oldInputPorts[index];
+        const port = new Port(node, input.name, input.type, "input", index);
+        // Preserve value if port still exists and type matches
+        if (oldPort && oldPort.portType === input.type) {
+          port.value = oldPort.value;
+          // Preserve connections if type matches
+          port.connections = oldPort.connections.filter((wire) => {
+            const outputType = wire.startPort.portType;
+            if (areTypesCompatible(outputType, input.type)) {
+              wire.endPort = port;
+              return true;
+            } else {
+              // Disconnect incompatible wire
+              this.disconnectWire(wire);
+              return false;
+            }
+          });
+        }
+        return port;
+      });
+
+      node.outputPorts = customNode.outputs.map((output, index) => {
+        const oldPort = oldOutputPorts[index];
+        const port = new Port(node, output.name, output.type, "output", index);
+        // Preserve connections if port still exists and type matches
+        if (oldPort && oldPort.portType === output.type) {
+          port.connections = oldPort.connections.filter((wire) => {
+            const inputType = wire.endPort.portType;
+            if (areTypesCompatible(output.type, inputType)) {
+              wire.startPort = port;
+              return true;
+            } else {
+              // Disconnect incompatible wire
+              this.disconnectWire(wire);
+              return false;
+            }
+          });
+        }
+        return port;
+      });
+
+      // Disconnect wires from removed ports
+      for (let i = customNode.inputs.length; i < oldInputCount; i++) {
+        const oldPort = oldInputPorts[i];
+        if (oldPort) {
+          [...oldPort.connections].forEach((wire) => this.disconnectWire(wire));
+        }
+      }
+
+      for (let i = customNode.outputs.length; i < oldOutputCount; i++) {
+        const oldPort = oldOutputPorts[i];
+        if (oldPort) {
+          [...oldPort.connections].forEach((wire) => this.disconnectWire(wire));
+        }
+      }
+
+      // Recalculate node height
+      const maxPorts = Math.max(
+        node.inputPorts.length,
+        node.outputPorts.length
+      );
+      node.height = 50 + maxPorts * 40 + 10;
+    });
+
+    this.render();
+    this.updateDependencyList();
+  }
+
+  renderCustomNodesList() {
+    this.customNodesList.innerHTML = "";
+
+    this.customNodes.forEach((customNode) => {
+      const item = document.createElement("div");
+      item.className = "uniform-item";
+      item.style.borderLeft = `4px solid ${customNode.color}`;
+
+      const header = document.createElement("div");
+      header.className = "uniform-item-header";
+      header.style.cursor = "pointer";
+
+      const nameSpan = document.createElement("span");
+      nameSpan.textContent = customNode.name;
+      nameSpan.style.fontWeight = "bold";
+      nameSpan.style.color = "#4a90e2";
+
+      const infoSpan = document.createElement("span");
+      infoSpan.textContent = `${customNode.inputs.length}→${customNode.outputs.length}`;
+      infoSpan.style.fontSize = "11px";
+      infoSpan.style.color = "#888";
+      infoSpan.style.marginLeft = "8px";
+
+      const controls = document.createElement("div");
+      controls.className = "uniform-item-controls";
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "uniform-delete-btn";
+      editBtn.textContent = "✎";
+      editBtn.title = "Edit";
+      editBtn.style.background = "#4a90e2";
+      editBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.showCustomNodeModal(customNode);
+      });
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "uniform-delete-btn";
+      deleteBtn.textContent = "×";
+      deleteBtn.title = "Delete";
+      deleteBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.deleteCustomNode(customNode.id);
+      });
+
+      controls.appendChild(editBtn);
+      controls.appendChild(deleteBtn);
+      header.appendChild(nameSpan);
+      header.appendChild(infoSpan);
+      header.appendChild(controls);
+      item.appendChild(header);
+
+      this.customNodesList.appendChild(item);
+    });
+  }
+
+  deleteCustomNode(id) {
+    // Check if any nodes in the graph use this custom node
+    const customNodeKey = `custom_${id}`;
+    const hasInstances = this.nodes.some((node) => {
+      const nodeTypeKey = this.getNodeTypeKey(node.nodeType);
+      return nodeTypeKey === customNodeKey;
+    });
+
+    if (hasInstances) {
+      if (
+        !confirm(
+          "This custom node is being used in the graph. Delete anyway? All instances will be removed."
+        )
+      ) {
+        return;
+      }
+      // Remove all instances
+      this.nodes = this.nodes.filter((node) => {
+        const nodeTypeKey = this.getNodeTypeKey(node.nodeType);
+        if (nodeTypeKey === customNodeKey) {
+          // Disconnect all wires
+          node.getAllPorts().forEach((port) => {
+            [...port.connections].forEach((wire) => this.disconnectWire(wire));
+          });
+          return false;
+        }
+        return true;
+      });
+      this.render();
+      this.updateDependencyList();
+    }
+
+    this.customNodes = this.customNodes.filter((n) => n.id !== id);
+    this.renderCustomNodesList();
   }
 
   renderUniformList() {
@@ -1365,6 +1787,10 @@ class BlueprintSystem {
     const uniformNodeTypes = this.getUniformNodeTypes();
     nodeTypes = [...nodeTypes, ...Object.entries(uniformNodeTypes)];
 
+    // Add custom nodes
+    const customNodeTypes = this.getCustomNodeTypes();
+    nodeTypes = [...nodeTypes, ...Object.entries(customNodeTypes)];
+
     // Filter out output node if one already exists
     const hasOutputNode = this.nodes.some(
       (node) => node.nodeType === NODE_TYPES.output
@@ -1398,6 +1824,42 @@ class BlueprintSystem {
     return nodeTypes;
   }
 
+  getCustomNodeTypes() {
+    const customNodeTypes = {};
+    this.customNodes.forEach((customNode) => {
+      const key = `custom_${customNode.id}`;
+      customNodeTypes[key] = this.createNodeTypeFromCustomNode(customNode);
+    });
+    return customNodeTypes;
+  }
+
+  createNodeTypeFromCustomNode(customNode) {
+    return {
+      name: customNode.name,
+      inputs: customNode.inputs,
+      outputs: customNode.outputs,
+      color: customNode.color || "#9b59b6",
+      isCustom: true,
+      customNodeId: customNode.id,
+      getDependency: (target) => {
+        return customNode.code[target]?.dependency || "";
+      },
+      getExecution: (target) => {
+        return (inputs, outputs) => {
+          let code = customNode.code[target]?.execution || "";
+          // Replace placeholders
+          inputs.forEach((input, i) => {
+            code = code.replace(new RegExp(`\\{input${i}\\}`, "g"), input);
+          });
+          outputs.forEach((output, i) => {
+            code = code.replace(new RegExp(`\\{output${i}\\}`, "g"), output);
+          });
+          return code;
+        };
+      },
+    };
+  }
+
   updateSearchResults() {
     const query = this.searchInput.value.toLowerCase();
     const filteredTypes = this.getFilteredNodeTypes();
@@ -1409,6 +1871,44 @@ class BlueprintSystem {
 
     // Clear results
     this.searchResults.innerHTML = "";
+
+    // Add "Create Custom Node" button at the top (only when not filtering by port)
+    if (!this.searchFilterPort && query === "") {
+      const createCustomBtn = document.createElement("div");
+      createCustomBtn.className = "search-result-item create-custom-node-btn";
+      createCustomBtn.tabIndex = 0;
+
+      const iconDiv = document.createElement("div");
+      iconDiv.className = "search-result-color";
+      iconDiv.style.background = "#9b59b6";
+      iconDiv.textContent = "+";
+      iconDiv.style.color = "white";
+      iconDiv.style.fontWeight = "bold";
+      iconDiv.style.display = "flex";
+      iconDiv.style.alignItems = "center";
+      iconDiv.style.justifyContent = "center";
+      createCustomBtn.appendChild(iconDiv);
+
+      const nameDiv = document.createElement("div");
+      nameDiv.className = "search-result-name";
+      nameDiv.textContent = "Create Custom Node";
+      nameDiv.style.fontWeight = "bold";
+      createCustomBtn.appendChild(nameDiv);
+
+      createCustomBtn.addEventListener("click", () => {
+        this.hideSearchMenu();
+        this.showCustomNodeModal();
+      });
+
+      createCustomBtn.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          this.hideSearchMenu();
+          this.showCustomNodeModal();
+        }
+      });
+
+      this.searchResults.appendChild(createCustomBtn);
+    }
 
     // Add results
     results.forEach(([key, nodeType]) => {
@@ -2290,6 +2790,7 @@ class BlueprintSystem {
       version: "1.0.0",
       shaderSettings: this.shaderSettings,
       uniforms: this.uniforms,
+      customNodes: this.customNodes,
       camera: {
         x: this.camera.x,
         y: this.camera.y,
@@ -2329,6 +2830,7 @@ class BlueprintSystem {
       })),
       nodeIdCounter: this.nodeIdCounter,
       uniformIdCounter: this.uniformIdCounter,
+      customNodeIdCounter: this.customNodeIdCounter,
     };
 
     const json = JSON.stringify(data, null, 2);
@@ -2379,6 +2881,14 @@ class BlueprintSystem {
         this.uniformIdCounter =
           data.uniformIdCounter || this.uniforms.length + 1;
         this.renderUniformList();
+      }
+
+      // Restore custom nodes
+      if (data.customNodes) {
+        this.customNodes = data.customNodes;
+        this.customNodeIdCounter =
+          data.customNodeIdCounter || this.customNodes.length + 1;
+        this.renderCustomNodesList();
       }
 
       // Restore camera
@@ -2485,6 +2995,22 @@ class BlueprintSystem {
   }
 
   getNodeTypeFromKey(key) {
+    // Check if it's a custom node
+    if (key.startsWith("custom_")) {
+      const customNodeId = parseInt(key.replace("custom_", ""));
+      const customNode = this.customNodes.find((n) => n.id === customNodeId);
+      if (customNode) {
+        return this.createNodeTypeFromCustomNode(customNode);
+      }
+    }
+
+    // Check uniform nodes
+    const uniformNodeTypes = this.getUniformNodeTypes();
+    if (uniformNodeTypes[key]) {
+      return uniformNodeTypes[key];
+    }
+
+    // Check built-in nodes
     return NODE_TYPES[key] || null;
   }
 

@@ -883,3 +883,170 @@ button:hover {
   background: #357abd;
 }
 
+/* Custom Node Modal */
+.custom-node-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+  overflow-y: auto;
+}
+
+.custom-node-modal.visible {
+  display: flex;
+}
+
+.custom-node-modal-content {
+  background: #2a2a2a;
+  border: 2px solid #4a4a4a;
+  border-radius: 8px;
+  padding: 25px;
+  min-width: 600px;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  margin: 20px;
+}
+
+.custom-node-modal-content h3 {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  color: #fff;
+}
+
+.custom-node-modal-content h4 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: #4a90e2;
+  font-weight: bold;
+}
+
+.custom-node-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.custom-node-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: #aaa;
+}
+
+.custom-node-form input,
+.custom-node-form select,
+.custom-node-form textarea {
+  background: #1a1a1a;
+  border: 1px solid #4a4a4a;
+  color: #fff;
+  padding: 8px;
+  border-radius: 5px;
+  font-size: 13px;
+  font-family: 'Courier New', monospace;
+}
+
+.custom-node-form textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.custom-node-section {
+  border: 1px solid #3a3a3a;
+  border-radius: 5px;
+  padding: 15px;
+  background: #252525;
+}
+
+.custom-port-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 8px;
+  background: #1a1a1a;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.custom-port-item input {
+  flex: 1;
+  min-width: 0;
+}
+
+.custom-port-item select {
+  width: 120px;
+}
+
+.custom-port-item button {
+  background: #e24a4a;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.custom-port-item button:hover {
+  background: #c93a3a;
+}
+
+.add-port-btn {
+  background: #4a4a4a;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 13px;
+  width: 100%;
+  transition: background 0.2s;
+}
+
+.add-port-btn:hover {
+  background: #5a5a5a;
+}
+
+.custom-node-modal-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 10px;
+  padding-top: 15px;
+  border-top: 1px solid #3a3a3a;
+}
+
+.custom-node-modal-buttons button {
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.primary-btn {
+  background: #4a90e2;
+  color: #fff;
+}
+
+.primary-btn:hover {
+  background: #357abd;
+}
+
+.secondary-btn {
+  background: #4a4a4a;
+  color: #fff;
+}
+
+.secondary-btn:hover {
+  background: #5a5a5a;
+}
+
