@@ -50918,6 +50918,7 @@ THE SOFTWARE.
         (this._layer = null);
     }
     Init(t) {
+      debugger;
       if (
         ((enableUpdateRendererStateGroup = !1),
         this.SetXY(t[0], t[1]),
@@ -50931,7 +50932,16 @@ THE SOFTWARE.
         this.SetOriginY(t[9]),
         this.SetBlendMode(t[10]),
         this._instanceEffectList &&
-          this._instanceEffectList._LoadEffectParameters(t[12]),
+          this._instanceEffectList._LoadEffectParameters([
+            [
+              true,
+              ...self["C3_Shaders"]["skymen_Placeholdereffect"].parameters.map(
+                (p) => {
+                  return p[2] === "color" ? [1, 1, 1] : 1;
+                }
+              ),
+            ],
+          ]),
         t[14] &&
           sceneGraphExportDataMap.set(this, {
             childrenData: t[14][1],
@@ -58313,6 +58323,16 @@ THE SOFTWARE.
   }
   if (queryParams.shader_animated !== undefined) {
     shaderData.animated = queryParams.shader_animated === "true";
+  }
+
+  // Parse parameters from JSON string
+  if (queryParams.shader_parameters) {
+    try {
+      shaderData.parameters = JSON.parse(queryParams.shader_parameters);
+    } catch (e) {
+      console.warn("Failed to parse shader_parameters:", e);
+      shaderData.parameters = [];
+    }
   }
 
   // Assign the final shader data

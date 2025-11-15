@@ -934,14 +934,20 @@ class BlueprintSystem {
     const previewWindow = document.getElementById("preview-window");
     const previewHeader = document.getElementById("preview-header");
     const closePreviewBtn = document.getElementById("closePreviewBtn");
+    this.shaderErrorsContainer = document.getElementById(
+      "shader-errors-container"
+    );
+    this.shaderErrors = new Map(); // Track unique errors
 
     // Make preview window draggable
     let isDragging = false;
     let dragOffsetX = 0;
     let dragOffsetY = 0;
 
+    const reloadPreviewBtn = document.getElementById("reloadPreviewBtn");
+
     previewHeader.addEventListener("mousedown", (e) => {
-      if (e.target === closePreviewBtn) return;
+      if (e.target === closePreviewBtn || e.target === reloadPreviewBtn) return;
       isDragging = true;
       const rect = previewWindow.getBoundingClientRect();
       dragOffsetX = e.clientX - rect.left;
@@ -961,6 +967,11 @@ class BlueprintSystem {
       isDragging = false;
     });
 
+    // Reload button
+    reloadPreviewBtn.addEventListener("click", () => {
+      this.updatePreview();
+    });
+
     // Close button
     closePreviewBtn.addEventListener("click", () => {
       previewWindow.style.display = "none";
@@ -970,7 +981,10 @@ class BlueprintSystem {
     window.addEventListener("message", (event) => {
       if (event.data && event.data.type === "projectReady") {
         this.previewReady = true;
+        this.clearShaderErrors(); // Clear errors on new load
         this.sendUniformValuesToPreview();
+      } else if (event.data && event.data.type === "shaderError") {
+        this.displayShaderError(event.data.message, event.data.severity);
       }
     });
 
@@ -979,11 +993,22 @@ class BlueprintSystem {
   }
 
   updatePreview() {
+    console.log("updatePreview");
     if (!this.previewIframe) return;
+
+    // Clear previous errors
+    this.clearShaderErrors();
 
     // Generate shader code
     const shaders = this.generateAllShaders();
-    if (!shaders) return;
+    if (!shaders) {
+      // Display error if shader generation failed
+      this.displayShaderError(
+        "Failed to generate shader. Make sure you have an Output node and all required connections are made.",
+        "error"
+      );
+      return;
+    }
 
     // Build query parameters
     const params = new URLSearchParams();
@@ -1000,6 +1025,33 @@ class BlueprintSystem {
     params.set("shader_extendBoxHorizontal", this.shaderSettings.extendBoxH);
     params.set("shader_extendBoxVertical", this.shaderSettings.extendBoxV);
 
+    // Generate parameters array
+    const parameters = this.uniforms.map((uniform) => {
+      let value = uniform.value;
+      // Convert color values to array format [r, g, b]
+      if (
+        uniform.type === "color" &&
+        typeof value === "object" &&
+        value.r !== undefined
+      ) {
+        value = [value.r, value.g, value.b];
+      }
+      return [
+        uniform.variableName,
+        0,
+        uniform.type === "color"
+          ? "color"
+          : uniform.isPercent
+          ? "percent"
+          : "float",
+      ];
+    });
+
+    // Add parameters as JSON string
+    if (parameters.length > 0) {
+      params.set("shader_parameters", JSON.stringify(parameters));
+    }
+
     // Reload iframe with new parameters
     this.previewReady = false;
     this.previewIframe.src = `preview/index.html?${params.toString()}`;
@@ -1009,11 +1061,21 @@ class BlueprintSystem {
     if (!this.previewReady || !this.previewIframe) return;
 
     this.uniforms.forEach((uniform, index) => {
+      // Convert color values to array format [r, g, b]
+      let value = uniform.value;
+      if (
+        uniform.type === "color" &&
+        typeof value === "object" &&
+        value.r !== undefined
+      ) {
+        value = [value.r, value.g, value.b];
+      }
+
       this.previewIframe.contentWindow.postMessage(
         {
           type: "updateParam",
           index: index,
-          value: uniform.value,
+          value: value,
         },
         "*"
       );
@@ -1022,9 +1084,36 @@ class BlueprintSystem {
 
   generateAllShaders() {
     try {
-      const webgl1 = this.generateShader("webgl1");
-      const webgl2 = this.generateShader("webgl2");
-      const webgpu = this.generateShader("webgpu");
+      // Build dependency graph
+      const graph = this.buildDependencyGraph();
+
+      if (!graph) {
+        console.warn("No output node found. Cannot generate shader.");
+        return null;
+      }
+
+      const levels = this.topologicalSort(
+        graph.dependencies,
+        graph.connectedNodes
+      );
+      const portToVarName = this.generateVariableNames(levels);
+
+      // Generate shaders for all targets
+      const webgl1Boilerplate = this.getBoilerplate("webgl1");
+      const webgl1Uniforms = this.generateUniformDeclarations("webgl1");
+      const webgl1Code = this.generateShader("webgl1", levels, portToVarName);
+      const webgl1 = webgl1Boilerplate + webgl1Uniforms + webgl1Code;
+
+      const webgl2Boilerplate = this.getBoilerplate("webgl2");
+      const webgl2Uniforms = this.generateUniformDeclarations("webgl2");
+      const webgl2Code = this.generateShader("webgl2", levels, portToVarName);
+      const webgl2 = webgl2Boilerplate + webgl2Uniforms + webgl2Code;
+
+      const webgpuBoilerplate = this.getBoilerplate("webgpu");
+      const webgpuUniforms = this.generateUniformDeclarations("webgpu");
+      const webgpuCode = this.generateShader("webgpu", levels, portToVarName);
+      const webgpu = webgpuBoilerplate + webgpuUniforms + webgpuCode;
+
       return { webgl1, webgl2, webgpu };
     } catch (error) {
       console.error("Error generating shaders:", error);
@@ -1040,6 +1129,47 @@ class BlueprintSystem {
   onUniformValueChanged() {
     // Called whenever a uniform value changes
     this.sendUniformValuesToPreview();
+  }
+
+  displayShaderError(message, severity) {
+    // Use message as key to avoid duplicates
+    const errorKey = `${severity}:${message}`;
+
+    // Don't add duplicate errors
+    if (this.shaderErrors.has(errorKey)) {
+      return;
+    }
+
+    const errorItem = document.createElement("div");
+    errorItem.className = `shader-error-item ${severity}`;
+
+    const icon = document.createElement("div");
+    icon.className = "shader-error-icon";
+    icon.textContent = severity === "error" ? "⚠" : "⚠";
+
+    const messageDiv = document.createElement("div");
+    messageDiv.className = "shader-error-message";
+    messageDiv.textContent = message;
+
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "shader-error-close";
+    closeBtn.textContent = "×";
+    closeBtn.addEventListener("click", () => {
+      errorItem.remove();
+      this.shaderErrors.delete(errorKey);
+    });
+
+    errorItem.appendChild(icon);
+    errorItem.appendChild(messageDiv);
+    errorItem.appendChild(closeBtn);
+
+    this.shaderErrorsContainer.appendChild(errorItem);
+    this.shaderErrors.set(errorKey, errorItem);
+  }
+
+  clearShaderErrors() {
+    this.shaderErrorsContainer.innerHTML = "";
+    this.shaderErrors.clear();
   }
 
   addCustomPortItem(container, portType, name = "", type = "float") {
@@ -1785,6 +1915,7 @@ class BlueprintSystem {
     if (port.portType === "boolean") {
       port.value = !port.value;
       this.render();
+      this.onShaderChanged();
       return;
     }
 
@@ -1833,6 +1964,7 @@ class BlueprintSystem {
 
     this.hideInputField();
     this.render();
+    this.onShaderChanged();
   }
 
   cancelEditingPort() {
@@ -1937,6 +2069,7 @@ class BlueprintSystem {
         node.operation = op.value;
         document.body.removeChild(menu);
         this.render();
+        this.onShaderChanged();
       });
 
       menu.appendChild(option);
@@ -2223,6 +2356,7 @@ class BlueprintSystem {
     this.hideSearchMenu();
     this.render();
     this.updateDependencyList();
+    this.onShaderChanged();
   }
 
   focusNextSearchResult() {
@@ -2747,9 +2881,21 @@ class BlueprintSystem {
     const dependencies = new Set();
     for (const level of levels) {
       for (const node of level) {
-        const dep = node.nodeType.getDependency(target);
-        if (dep) {
-          dependencies.add(dep);
+        // Check if getDependency exists (some dynamically created nodes might not have it)
+        if (typeof node.nodeType.getDependency === "function") {
+          const dep = node.nodeType.getDependency(target);
+          if (dep) {
+            dependencies.add(dep);
+          }
+        } else if (
+          node.nodeType.shaderCode &&
+          node.nodeType.shaderCode[target]
+        ) {
+          // Fallback for nodes without getDependency method
+          const dep = node.nodeType.shaderCode[target].dependency;
+          if (dep) {
+            dependencies.add(dep);
+          }
         }
       }
     }
@@ -2775,7 +2921,19 @@ class BlueprintSystem {
 
     for (const level of levels) {
       for (const node of level) {
-        const execution = node.nodeType.getExecution(target);
+        let execution = null;
+
+        // Check if getExecution exists (some dynamically created nodes might not have it)
+        if (typeof node.nodeType.getExecution === "function") {
+          execution = node.nodeType.getExecution(target);
+        } else if (
+          node.nodeType.shaderCode &&
+          node.nodeType.shaderCode[target]
+        ) {
+          // Fallback for nodes without getExecution method
+          execution = node.nodeType.shaderCode[target].execution;
+        }
+
         if (execution) {
           // Get input variable names
           const inputVars = node.inputPorts.map(
@@ -3201,8 +3359,10 @@ class BlueprintSystem {
 
       console.log("Blueprint loaded successfully");
 
-      // Refresh preview with loaded shader
-      this.onShaderChanged();
+      // Refresh preview with loaded shader (delay to ensure render is complete)
+      setTimeout(() => {
+        this.onShaderChanged();
+      }, 100);
     } catch (error) {
       console.error("Failed to load blueprint:", error);
       alert(`Failed to load blueprint: ${error.message}`);
@@ -3390,6 +3550,7 @@ class BlueprintSystem {
     // Remove from wires array
     const wireIndex = this.wires.indexOf(wire);
     if (wireIndex > -1) this.wires.splice(wireIndex, 1);
+    this.onShaderChanged();
   }
 
   reevaluateGenericType(node, genericType, visited = new Set()) {
@@ -3994,10 +4155,12 @@ class BlueprintSystem {
           this.resolveGenericsForConnection(port, inputPort);
 
           this.activeWire = null;
+          this.onShaderChanged();
         } else {
           // Remove the wire if it was picked up
           if (this.wires.includes(this.activeWire)) {
             this.disconnectWire(this.activeWire);
+            this.onShaderChanged();
           }
 
           // Only show search menu if wire wasn't picked up
@@ -4039,6 +4202,7 @@ class BlueprintSystem {
           this.resolveGenericsForConnection(this.activeWire.startPort, port);
 
           this.activeWire = null;
+          this.onShaderChanged();
         } else {
           // Remove the wire if it was picked up
           if (this.wires.includes(this.activeWire)) {

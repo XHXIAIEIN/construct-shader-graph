@@ -22,10 +22,14 @@
         style="display: none"
       />
       <div id="main-content">
+        <div id="shader-errors-container"></div>
         <div id="preview-window">
           <div id="preview-header">
             <span>Preview</span>
-            <button id="closePreviewBtn">×</button>
+            <div class="preview-header-buttons">
+              <button id="reloadPreviewBtn" title="Reload Preview">⟳</button>
+              <button id="closePreviewBtn">×</button>
+            </div>
           </div>
           <iframe id="preview-iframe" src="preview/index.html"></iframe>
         </div>
