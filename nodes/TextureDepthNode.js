@@ -7,12 +7,12 @@ export const TextureDepthNode = new NodeType(
   "#3a4a4a",
   {
     webgl1: {
-      dependency: "",
+      dependency: "uniform lowp sampler2D samplerDepth;",
       execution: (inputs, outputs) =>
         `    float ${outputs[0]} = texture2D(samplerDepth, ${inputs[0]}.xy).r;`,
     },
     webgl2: {
-      dependency: "",
+      dependency: "uniform lowp sampler2D samplerDepth;",
       execution: (inputs, outputs) =>
         `    float ${outputs[0]} = texture(samplerDepth, ${inputs[0]}.xy).r;`,
     },

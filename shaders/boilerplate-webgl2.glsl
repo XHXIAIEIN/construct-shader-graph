@@ -7,10 +7,6 @@
 #endif
 
 precision lowp float;
-
-uniform lowp sampler2D samplerFront;
-uniform lowp sampler2D samplerBack;
-uniform lowp sampler2D samplerDepth;
 uniform mediump vec2 pixelSize;
 
 in mediump vec2 vTex;

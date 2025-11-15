@@ -7,7 +7,4 @@
 precision lowp float;
 
 varying mediump vec2 vTex;
-uniform lowp sampler2D samplerFront;
-uniform lowp sampler2D samplerBack;
-uniform lowp sampler2D samplerDepth;
 uniform mediump vec2 pixelSize;
