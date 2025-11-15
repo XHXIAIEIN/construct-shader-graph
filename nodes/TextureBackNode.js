@@ -2,7 +2,7 @@ import { NodeType } from "./NodeType.js";
 
 export const TextureBackNode = new NodeType(
   "Back Texture",
-  [{ name: "UV", type: "vector" }],
+  [{ name: "UV", type: "vec2" }],
   [
     { name: "RGBA", type: "vec4" },
     { name: "Color", type: "vec3" },

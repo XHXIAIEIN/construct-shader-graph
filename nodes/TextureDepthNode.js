@@ -2,7 +2,7 @@ import { NodeType } from "./NodeType.js";
 
 export const TextureDepthNode = new NodeType(
   "Depth Texture",
-  [{ name: "UV", type: "vector" }],
+  [{ name: "UV", type: "vec2" }],
   [{ name: "Depth", type: "float" }],
   "#3a4a4a",
   {

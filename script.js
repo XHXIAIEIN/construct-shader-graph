@@ -66,7 +66,7 @@ class Port {
     let height = 20;
 
     if (resolvedType === "vec2") {
-      width = 90; // Column layout with labels
+      width = 71; // Two boxes side by side (2 * 35 + 1)
       height = 20;
     } else if (resolvedType === "vec3") {
       // Check if values are in range to determine if showing color or text
@@ -74,16 +74,16 @@ class Port {
         this.value &&
         Array.isArray(this.value) &&
         this.value.every((v) => v >= 0 && v <= 1);
-      width = inRange ? 50 : 110; // Color swatch or raw values
-      height = 20;
+      width = inRange ? 50 : 71; // Color swatch or 2x2 grid
+      height = inRange ? 20 : 41; // Color swatch or 2 rows (2 * 20 + 1)
     } else if (resolvedType === "vec4") {
       // Check if values are in range to determine if showing color or text
       const inRange =
         this.value &&
         Array.isArray(this.value) &&
         this.value.every((v) => v >= 0 && v <= 1);
-      width = inRange ? 50 : 140; // Color swatch or raw values
-      height = 20;
+      width = inRange ? 50 : 71; // Color swatch or 2x2 grid
+      height = inRange ? 20 : 41; // Color swatch or 2 rows (2 * 20 + 1)
     }
 
     // Measure the actual label width
@@ -160,7 +160,6 @@ class Port {
   // Update editability based on resolved type (for generic types)
   updateEditability() {
     if (this.type !== "input") return;
-
     const resolvedType = this.getResolvedType();
     const portTypeInfo = PORT_TYPES[resolvedType];
 
@@ -2210,6 +2209,8 @@ class BlueprintSystem {
       this.vec2Editor.style.left = `${rect.left + window.scrollX + screenX}px`;
       this.vec2Editor.style.top = `${rect.top + window.scrollY + screenY}px`;
       this.vec2Editor.style.display = "flex";
+      this.vec2Editor.style.transform = `scale(${this.camera.zoom})`;
+      this.vec2Editor.style.transformOrigin = "top left";
 
       const vec2X = document.getElementById("vec2X");
       const vec2Y = document.getElementById("vec2Y");
@@ -2221,6 +2222,8 @@ class BlueprintSystem {
       this.vec3Editor.style.left = `${rect.left + window.scrollX + screenX}px`;
       this.vec3Editor.style.top = `${rect.top + window.scrollY + screenY}px`;
       this.vec3Editor.style.display = "flex";
+      this.vec3Editor.style.transform = `scale(${this.camera.zoom})`;
+      this.vec3Editor.style.transformOrigin = "top left";
 
       const vec3Color = document.getElementById("vec3Color");
       const vec3R = document.getElementById("vec3R");
@@ -2242,6 +2245,8 @@ class BlueprintSystem {
       this.vec4Editor.style.left = `${rect.left + window.scrollX + screenX}px`;
       this.vec4Editor.style.top = `${rect.top + window.scrollY + screenY}px`;
       this.vec4Editor.style.display = "flex";
+      this.vec4Editor.style.transform = `scale(${this.camera.zoom})`;
+      this.vec4Editor.style.transformOrigin = "top left";
 
       const vec4Color = document.getElementById("vec4Color");
       const vec4R = document.getElementById("vec4R");
@@ -2272,6 +2277,8 @@ class BlueprintSystem {
       this.inputField.style.visibility = "visible";
       this.inputField.style.opacity = "1";
       this.inputField.style.pointerEvents = "auto";
+      this.inputField.style.transform = `scale(${this.camera.zoom})`;
+      this.inputField.style.transformOrigin = "top left";
 
       setTimeout(() => {
         this.inputField.focus();
@@ -3912,6 +3919,11 @@ class BlueprintSystem {
 
       // Update editability after disconnection
       wire.startPort.updateEditability();
+
+      // Update editability for all input ports on the same node
+      wire.startPort.node.inputPorts.forEach((port) => {
+        port.updateEditability();
+      });
     }
     if (wire.endPort) {
       const index = wire.endPort.connections.indexOf(wire);
@@ -3924,6 +3936,11 @@ class BlueprintSystem {
 
       // Update editability after disconnection
       wire.endPort.updateEditability();
+
+      // Update editability for all input ports on the same node
+      wire.endPort.node.inputPorts.forEach((port) => {
+        port.updateEditability();
+      });
     }
     // Remove from wires array
     const wireIndex = this.wires.indexOf(wire);
@@ -3994,6 +4011,11 @@ class BlueprintSystem {
       if (oldResolution) {
         delete node.resolvedGenerics[genericType];
         resolutionChanged = true;
+
+        // Update editability for all ports with this generic type
+        genericPorts.forEach((port) => {
+          port.updateEditability();
+        });
       }
     }
     // If exactly one concrete type, use it
@@ -4006,6 +4028,11 @@ class BlueprintSystem {
 
         // Propagate new resolution
         this.propagateGenericResolution(node, genericType, concreteType);
+
+        // Update editability for all ports with this generic type
+        genericPorts.forEach((port) => {
+          port.updateEditability();
+        });
       }
     }
     // If multiple concrete types, this is an error state (shouldn't happen)
@@ -4078,6 +4105,11 @@ class BlueprintSystem {
 
       // Update editability after connection
       outputPort.updateEditability();
+
+      // Update editability for all input ports on the same node
+      outputPort.node.inputPorts.forEach((port) => {
+        port.updateEditability();
+      });
     }
 
     // Update input node's generics with the concrete type
@@ -4098,6 +4130,23 @@ class BlueprintSystem {
 
       // Update editability after connection
       inputPort.updateEditability();
+
+      // Update editability for all input ports on the same node
+      inputPort.node.inputPorts.forEach((port) => {
+        port.updateEditability();
+      });
+    }
+
+    // Also update editability for non-generic ports that might have been affected
+    if (!isGenericType(outputPort.portType)) {
+      outputPort.node.inputPorts.forEach((port) => {
+        port.updateEditability();
+      });
+    }
+    if (!isGenericType(inputPort.portType)) {
+      inputPort.node.inputPorts.forEach((port) => {
+        port.updateEditability();
+      });
     }
   }
 
@@ -4789,8 +4838,33 @@ class BlueprintSystem {
         if (resolvedType === "float") {
           valueStr = port.value.toFixed(2);
         } else if (resolvedType === "vec2") {
-          // Show compact vec2 format
-          valueStr = `${port.value[0].toFixed(1)},${port.value[1].toFixed(1)}`;
+          // Show vec2 as two boxes side by side
+          const values = [port.value[0].toFixed(1), port.value[1].toFixed(1)];
+          const boxWidth = 35;
+          const boxHeight = 20;
+          const gap = 1;
+
+          values.forEach((value, i) => {
+            const boxX = bounds.x + i * (boxWidth + gap);
+            const boxY = bounds.y;
+
+            // Draw value box background
+            ctx.fillStyle = "#1a1a1a";
+            ctx.strokeStyle = "#4a4a4a";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 3);
+            ctx.fill();
+            ctx.stroke();
+
+            // Draw value text
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "12px monospace";
+            ctx.textAlign = "center";
+            ctx.fillText(value, boxX + boxWidth / 2, boxY + boxHeight / 2 + 4);
+          });
+
+          valueStr = null; // Already drawn
         } else if (resolvedType === "vec3") {
           // Check if all values are in 0-1 range
           const inRange = port.value.every((v) => v >= 0 && v <= 1);
@@ -4813,10 +4887,63 @@ class BlueprintSystem {
             // Skip text rendering for vec3
             valueStr = null;
           } else {
-            // Show raw values if out of range
-            valueStr = `${port.value[0].toFixed(1)},${port.value[1].toFixed(
-              1
-            )},${port.value[2].toFixed(1)}`;
+            // Show raw values as 2x2 grid (3 values: top-left, top-right, bottom-left)
+            const values = [
+              port.value[0].toFixed(1),
+              port.value[1].toFixed(1),
+              port.value[2].toFixed(1),
+            ];
+            const boxWidth = 35;
+            const boxHeight = 20;
+            const gap = 1;
+
+            // Draw first two values in top row
+            for (let i = 0; i < 2; i++) {
+              const boxX = bounds.x + i * (boxWidth + gap);
+              const boxY = bounds.y;
+
+              // Draw value box background
+              ctx.fillStyle = "#1a1a1a";
+              ctx.strokeStyle = "#4a4a4a";
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 3);
+              ctx.fill();
+              ctx.stroke();
+
+              // Draw value text
+              ctx.fillStyle = "#ffffff";
+              ctx.font = "12px monospace";
+              ctx.textAlign = "center";
+              ctx.fillText(
+                values[i],
+                boxX + boxWidth / 2,
+                boxY + boxHeight / 2 + 4
+              );
+            }
+
+            // Draw third value in bottom-left
+            const boxX = bounds.x;
+            const boxY = bounds.y + boxHeight + gap;
+
+            ctx.fillStyle = "#1a1a1a";
+            ctx.strokeStyle = "#4a4a4a";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 3);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "12px monospace";
+            ctx.textAlign = "center";
+            ctx.fillText(
+              values[2],
+              boxX + boxWidth / 2,
+              boxY + boxHeight / 2 + 4
+            );
+
+            valueStr = null; // Already drawn
           }
         } else if (resolvedType === "vec4") {
           // Check if all values are in 0-1 range
@@ -4856,16 +4983,52 @@ class BlueprintSystem {
             // Skip text rendering for vec4
             valueStr = null;
           } else {
-            // Show raw values if out of range
-            valueStr = `${port.value[0].toFixed(1)},${port.value[1].toFixed(
-              1
-            )},${port.value[2].toFixed(1)},${port.value[3].toFixed(1)}`;
+            // Show raw values as 2x2 grid
+            const values = [
+              port.value[0].toFixed(1),
+              port.value[1].toFixed(1),
+              port.value[2].toFixed(1),
+              port.value[3].toFixed(1),
+            ];
+            const boxWidth = 35;
+            const boxHeight = 20;
+            const gap = 1;
+
+            // Draw 2x2 grid
+            for (let row = 0; row < 2; row++) {
+              for (let col = 0; col < 2; col++) {
+                const index = row * 2 + col;
+                const boxX = bounds.x + col * (boxWidth + gap);
+                const boxY = bounds.y + row * (boxHeight + gap);
+
+                // Draw value box background
+                ctx.fillStyle = "#1a1a1a";
+                ctx.strokeStyle = "#4a4a4a";
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 3);
+                ctx.fill();
+                ctx.stroke();
+
+                // Draw value text
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "12px monospace";
+                ctx.textAlign = "center";
+                ctx.fillText(
+                  values[index],
+                  boxX + boxWidth / 2,
+                  boxY + boxHeight / 2 + 4
+                );
+              }
+            }
+
+            valueStr = null; // Already drawn
           }
         } else {
           valueStr = port.value.toString();
         }
 
-        // Draw value box background and text for non-color types
+        // Draw value box background and text for non-color types (float, int, boolean)
         if (valueStr !== null) {
           ctx.fillStyle = "#1a1a1a";
           ctx.strokeStyle = "#4a4a4a";
