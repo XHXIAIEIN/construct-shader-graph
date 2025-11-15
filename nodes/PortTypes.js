@@ -1,5 +1,13 @@
 // Port type definitions with colors
 // Basic port types
+const genType = {
+  color: "#c084fc",
+  name: "genType",
+  editable: false,
+  isGeneric: true,
+  allowedTypes: ["float", "vec2", "vec3", "vec4"],
+};
+
 export const PORT_TYPES = {
   // Scalar types
   float: {
@@ -103,13 +111,8 @@ export const PORT_TYPES = {
   },
 
   // Generic types (templates)
-  genType: {
-    color: "#c084fc",
-    name: "genType",
-    editable: false,
-    isGeneric: true,
-    allowedTypes: ["float", "vec2", "vec3", "vec4"],
-  },
+  genType,
+  genType2: { ...genType }, // copy for when I want 2 separately handled genTypes in a node (like mix)
   // genDType: {
   //   color: "#c084fc",
   //   name: "genDType",

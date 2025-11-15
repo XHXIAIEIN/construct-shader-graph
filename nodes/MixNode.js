@@ -6,7 +6,7 @@ export const MixNode = new NodeType(
   [
     { name: "A", type: "genType" },
     { name: "B", type: "genType" },
-    { name: "T", type: "float" },
+    { name: "T", type: "genType2" },
   ],
   [{ name: "Result", type: "genType" }],
   PORT_TYPES.T.color,

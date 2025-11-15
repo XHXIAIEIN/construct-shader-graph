@@ -12,6 +12,7 @@ export {
 import { MathNode } from "./MathNode.js";
 import { PowerNode } from "./PowerNode.js";
 import { AbsNode } from "./AbsNode.js";
+import { RoundNode } from "./RoundNode.js";
 import { CompareNode } from "./CompareNode.js";
 import { MinNode } from "./MinNode.js";
 import { MaxNode } from "./MaxNode.js";
@@ -22,6 +23,9 @@ import { SmoothstepNode } from "./SmoothstepNode.js";
 import { CosNode } from "./CosNode.js";
 import { SinNode } from "./SinNode.js";
 import { TanNode } from "./TanNode.js";
+import { DotNode } from "./DotNode.js";
+import { NormalizeNode } from "./NormalizeNode.js";
+import { LengthNode } from "./LengthNode.js";
 import { Vec2Node } from "./Vec2Node.js";
 import { Vec3Node } from "./Vec3Node.js";
 import { Vec4Node } from "./Vec4Node.js";
@@ -57,6 +61,7 @@ export const NODE_TYPES = {
   math: MathNode,
   power: PowerNode,
   abs: AbsNode,
+  round: RoundNode,
   compare: CompareNode,
   min: MinNode,
   max: MaxNode,
@@ -67,6 +72,9 @@ export const NODE_TYPES = {
   cos: CosNode,
   sin: SinNode,
   tan: TanNode,
+  dot: DotNode,
+  normalize: NormalizeNode,
+  length: LengthNode,
   vec2: Vec2Node,
   vec3: Vec3Node,
   vec4: Vec4Node,

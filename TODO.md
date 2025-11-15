@@ -25,7 +25,7 @@
 - [ ] Fract (fractional part of a number)
 - [ ] Floor (round down)
 - [ ] Ceil (round up)
-- [ ] Round (round to nearest integer)
+- [x] Round (round to nearest integer)
 - [ ] Sign (returns -1, 0, or 1)
 - [ ] Mod/Fmod (modulo operation)
 - [ ] Sqrt (square root)
@@ -48,11 +48,11 @@
 
 ### Vector Operations
 
-- [ ] Dot (dot product)
+- [x] Dot (dot product)
 - [ ] Cross (cross product)
-- [ ] Length (vector length/magnitude)
+- [x] Length (vector length/magnitude)
 - [ ] Distance (distance between two points)
-- [ ] Normalize (normalize vector to unit length)
+- [x] Normalize (normalize vector to unit length)
 - [ ] Reflect (reflect vector)
 - [ ] Refract (refract vector)
 - [ ] FaceForward (orient vector to face forward)

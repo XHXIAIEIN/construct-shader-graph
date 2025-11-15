@@ -5140,7 +5140,7 @@ class BlueprintSystem {
     }
 
     // Draw tooltip for hovered port
-    if (isHovered && !port.isEditable) {
+    if (isHovered) {
       // Show tooltip if: no connections OR is a generic type
       const shouldShowTooltip =
         port.connections.length === 0 || isGenericType(port.portType);
