@@ -417,6 +417,7 @@ class BlueprintSystem {
       crossSampling: false,
       preservesOpaqueness: false,
       animated: false,
+      isDeprecated: false,
       extendBoxH: 0,
       extendBoxV: 0,
     };
@@ -565,6 +566,7 @@ class BlueprintSystem {
       "settingPreservesOpaqueness"
     );
     const animatedCheckbox = document.getElementById("settingAnimated");
+    const isDeprecatedCheckbox = document.getElementById("settingIsDeprecated");
     const extendBoxHInput = document.getElementById("settingExtendBoxH");
     const extendBoxVInput = document.getElementById("settingExtendBoxV");
 
@@ -580,6 +582,7 @@ class BlueprintSystem {
     preservesOpaquenessCheckbox.checked =
       this.shaderSettings.preservesOpaqueness;
     animatedCheckbox.checked = this.shaderSettings.animated;
+    isDeprecatedCheckbox.checked = this.shaderSettings.isDeprecated;
     extendBoxHInput.value = this.shaderSettings.extendBoxH;
     extendBoxVInput.value = this.shaderSettings.extendBoxV;
 
@@ -648,6 +651,10 @@ class BlueprintSystem {
       this.shaderSettings.animated = animatedCheckbox.checked;
     });
 
+    isDeprecatedCheckbox.addEventListener("change", () => {
+      this.shaderSettings.isDeprecated = isDeprecatedCheckbox.checked;
+    });
+
     // Extend box inputs
     extendBoxHInput.addEventListener("input", () => {
       this.shaderSettings.extendBoxH = parseFloat(extendBoxHInput.value) || 0;
@@ -658,9 +665,35 @@ class BlueprintSystem {
     });
   }
 
+  // Helper function to sanitize variable names
+  sanitizeVariableName(name) {
+    // Remove invalid characters and ensure it starts with a letter or underscore
+    let sanitized = name.replace(/[^a-zA-Z0-9_]/g, "");
+
+    // If starts with a number, prepend underscore
+    if (/^[0-9]/.test(sanitized)) {
+      sanitized = "_" + sanitized;
+    }
+
+    // If empty after sanitization, return a default
+    if (!sanitized) {
+      sanitized = "uniform";
+    }
+
+    return sanitized;
+  }
+
+  // Helper function to validate variable names
+  isValidVariableName(name) {
+    return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name);
+  }
+
   setupUniformSidebar() {
     this.uniformModal = document.getElementById("uniformModal");
     this.uniformNameInput = document.getElementById("uniformNameInput");
+    this.uniformDescriptionInput = document.getElementById(
+      "uniformDescriptionInput"
+    );
     this.uniformTypeSelect = document.getElementById("uniformTypeSelect");
     this.uniformList = document.getElementById("uniform-list");
 
@@ -699,6 +732,7 @@ class BlueprintSystem {
 
   showUniformModal() {
     this.uniformNameInput.value = "";
+    this.uniformDescriptionInput.value = "";
     this.uniformTypeSelect.value = "float";
     this.uniformModal.classList.add("visible");
     setTimeout(() => this.uniformNameInput.focus(), 0);
@@ -710,6 +744,7 @@ class BlueprintSystem {
 
   addUniform() {
     const name = this.uniformNameInput.value.trim();
+    const description = this.uniformDescriptionInput.value.trim();
     const type = this.uniformTypeSelect.value;
 
     if (!name) {
@@ -717,22 +752,28 @@ class BlueprintSystem {
       return;
     }
 
-    // Check for duplicate names
-    if (this.uniforms.some((u) => u.name === name)) {
-      alert("A uniform with this name already exists");
-      return;
+    // Generate variable name (sanitized version)
+    let variableName = this.sanitizeVariableName(name);
+
+    // Ensure variable name is unique (check both name and variableName)
+    let counter = 1;
+    const baseVariableName = variableName;
+    while (
+      this.uniforms.some((u) => u.variableName === variableName) ||
+      this.uniforms.some((u) => u.name === variableName)
+    ) {
+      variableName = `${baseVariableName}_${counter}`;
+      counter++;
     }
 
     const uniform = {
       id: this.uniformIdCounter++,
-      name: name,
-      type: type, // 'float', 'percent', or 'color'
-      value:
-        type === "color"
-          ? { r: 1, g: 1, b: 1 }
-          : type === "percent"
-          ? 0.5
-          : 0.0,
+      name: name, // Display name (can be anything)
+      variableName: variableName, // Sanitized name for shader code
+      description: description,
+      type: type, // 'float' or 'color'
+      value: type === "color" ? { r: 1, g: 1, b: 1 } : 0.0,
+      isPercent: false, // Only for float type
     };
 
     this.uniforms.push(uniform);
@@ -832,28 +873,52 @@ class BlueprintSystem {
       nameInput.addEventListener("change", (e) => {
         const newName = e.target.value.trim();
         if (newName && newName !== uniform.name) {
-          if (
-            this.uniforms.some((u) => u.id !== uniform.id && u.name === newName)
-          ) {
-            alert("A uniform with this name already exists");
-            nameInput.value = uniform.name;
-            return;
-          }
           const oldName = uniform.name;
+          const oldVariableName = uniform.variableName;
           uniform.name = newName;
-          this.updateUniformNodeNames(oldName, newName);
+
+          // Regenerate variable name
+          let newVariableName = this.sanitizeVariableName(newName);
+          let counter = 1;
+          const baseVariableName = newVariableName;
+          while (
+            this.uniforms.some(
+              (u) => u.id !== uniform.id && u.variableName === newVariableName
+            ) ||
+            this.uniforms.some(
+              (u) => u.id !== uniform.id && u.name === newVariableName
+            )
+          ) {
+            newVariableName = `${baseVariableName}_${counter}`;
+            counter++;
+          }
+          uniform.variableName = newVariableName;
+
+          this.updateUniformNodeNames(oldVariableName, newVariableName);
+          this.renderUniformList(); // Re-render to show new variable name
         }
       });
       nameInput.addEventListener("click", (e) => e.stopPropagation());
 
+      // Show variable name if different from display name
+      const variableNameHint = document.createElement("small");
+      variableNameHint.className = "uniform-variable-name";
+      variableNameHint.style.color = "#888";
+      variableNameHint.style.fontSize = "11px";
+      variableNameHint.style.marginLeft = "8px";
+      if (uniform.variableName !== uniform.name) {
+        variableNameHint.textContent = `(${uniform.variableName})`;
+        variableNameHint.title = "Variable name used in shader code";
+      }
+
       const typeSpan = document.createElement("span");
       typeSpan.className = "uniform-item-type";
-      typeSpan.textContent =
-        uniform.type === "percent"
-          ? "Percent"
-          : uniform.type === "color"
-          ? "Color"
-          : "Float";
+      typeSpan.textContent = uniform.type === "color" ? "Color" : "Float";
+
+      // Show description as tooltip if it exists
+      if (uniform.description) {
+        typeSpan.title = uniform.description;
+      }
 
       const controls = document.createElement("div");
       controls.className = "uniform-item-controls";
@@ -867,6 +932,7 @@ class BlueprintSystem {
       controls.appendChild(deleteBtn);
       header.appendChild(dragHandle);
       header.appendChild(nameInput);
+      header.appendChild(variableNameHint);
       header.appendChild(typeSpan);
       header.appendChild(controls);
 
@@ -877,8 +943,59 @@ class BlueprintSystem {
       valueControl.className = "uniform-value-control";
 
       if (uniform.type === "float") {
-        const floatDisplay = document.createElement("div");
-        floatDisplay.className = "uniform-float-display";
+        // Number input (always shown)
+        const numberInput = document.createElement("input");
+        numberInput.type = "number";
+        numberInput.step = "0.01";
+        numberInput.value = uniform.value;
+        numberInput.style.width = "100%";
+        numberInput.style.marginBottom = "8px";
+
+        numberInput.addEventListener("input", (e) => {
+          const val = parseFloat(e.target.value) || 0;
+          this.updateUniformValue(uniform.id, val);
+          if (uniform.isPercent && slider) {
+            slider.value = Math.min(1, Math.max(0, val));
+          }
+        });
+
+        numberInput.addEventListener("mousedown", (e) => e.stopPropagation());
+        numberInput.addEventListener("click", (e) => e.stopPropagation());
+
+        valueControl.appendChild(numberInput);
+
+        // Is Percent checkbox
+        const percentCheckbox = document.createElement("label");
+        percentCheckbox.className = "checkbox-label";
+        percentCheckbox.style.marginBottom = "8px";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = uniform.isPercent || false;
+
+        const checkboxLabel = document.createElement("span");
+        checkboxLabel.textContent = "Is Percent";
+
+        checkbox.addEventListener("change", (e) => {
+          uniform.isPercent = checkbox.checked;
+          // Toggle slider visibility
+          if (uniform.isPercent) {
+            percentSliderContainer.style.display = "flex";
+          } else {
+            percentSliderContainer.style.display = "none";
+          }
+        });
+
+        percentCheckbox.appendChild(checkbox);
+        percentCheckbox.appendChild(checkboxLabel);
+        valueControl.appendChild(percentCheckbox);
+
+        // Percent slider (shown only if isPercent is true)
+        const percentSliderContainer = document.createElement("div");
+        percentSliderContainer.className = "uniform-percent-display";
+        percentSliderContainer.style.display = uniform.isPercent
+          ? "flex"
+          : "none";
 
         const slider = document.createElement("input");
         slider.type = "range";
@@ -887,59 +1004,22 @@ class BlueprintSystem {
         slider.step = "0.01";
         slider.value = Math.min(1, Math.max(0, uniform.value));
 
-        const numberInput = document.createElement("input");
-        numberInput.type = "number";
-        numberInput.step = "0.01";
-        numberInput.value = uniform.value;
-        numberInput.style.width = "60px";
-
-        slider.addEventListener("input", (e) => {
-          const val = parseFloat(e.target.value);
-          this.updateUniformValue(uniform.id, val);
-          numberInput.value = val.toFixed(2);
-        });
-
-        slider.addEventListener("mousedown", (e) => e.stopPropagation());
-        slider.addEventListener("pointerdown", (e) => e.stopPropagation());
-
-        numberInput.addEventListener("input", (e) => {
-          const val = parseFloat(e.target.value) || 0;
-          this.updateUniformValue(uniform.id, val);
-          slider.value = Math.min(1, Math.max(0, val));
-        });
-
-        numberInput.addEventListener("mousedown", (e) => e.stopPropagation());
-        numberInput.addEventListener("click", (e) => e.stopPropagation());
-
-        floatDisplay.appendChild(slider);
-        floatDisplay.appendChild(numberInput);
-        valueControl.appendChild(floatDisplay);
-      } else if (uniform.type === "percent") {
-        const percentDisplay = document.createElement("div");
-        percentDisplay.className = "uniform-percent-display";
-
-        const slider = document.createElement("input");
-        slider.type = "range";
-        slider.min = "0";
-        slider.max = "1";
-        slider.step = "0.01";
-        slider.value = uniform.value;
-
         const percentText = document.createElement("span");
         percentText.textContent = `${Math.round(uniform.value * 100)}%`;
 
         slider.addEventListener("input", (e) => {
           const val = parseFloat(e.target.value);
           this.updateUniformValue(uniform.id, val);
+          numberInput.value = val.toFixed(2);
           percentText.textContent = `${Math.round(val * 100)}%`;
         });
 
         slider.addEventListener("mousedown", (e) => e.stopPropagation());
         slider.addEventListener("pointerdown", (e) => e.stopPropagation());
 
-        percentDisplay.appendChild(slider);
-        percentDisplay.appendChild(percentText);
-        valueControl.appendChild(percentDisplay);
+        percentSliderContainer.appendChild(slider);
+        percentSliderContainer.appendChild(percentText);
+        valueControl.appendChild(percentSliderContainer);
       } else if (uniform.type === "color") {
         const colorInput = document.createElement("input");
         colorInput.type = "color";
@@ -981,7 +1061,7 @@ class BlueprintSystem {
     if (uniform.type === "color") {
       nodeType = UniformColorNode;
     } else {
-      // Both 'float' and 'percent' use UniformFloatNode
+      // Float type uses UniformFloatNode
       nodeType = UniformFloatNode;
     }
 
@@ -996,15 +1076,15 @@ class BlueprintSystem {
         : (-this.camera.y + this.canvas.height / 2) / this.camera.zoom;
 
     const node = new Node(posX, posY, this.nodeIdCounter++, nodeType);
-    node.uniformName = uniform.name;
+    node.uniformName = uniform.variableName; // Use variable name for shader code
     node.uniformId = uniform.id;
     node.isVariable = true; // Make it look like a variable node
 
-    // Update node title to show uniform name
+    // Update node title to show display name
     node.title = uniform.name;
     node.nodeType = {
       ...nodeType,
-      name: uniform.name,
+      name: uniform.name, // Display name for the node
     };
 
     this.nodes.push(node);
@@ -1871,10 +1951,10 @@ class BlueprintSystem {
       declarations += "struct ShaderParams {\n";
       this.uniforms.forEach((uniform) => {
         if (uniform.type === "color") {
-          declarations += `\t${uniform.name} : vec3<f32>,\n`;
+          declarations += `\t${uniform.variableName} : vec3<f32>,\n`;
         } else {
-          // float and percent are both float
-          declarations += `\t${uniform.name} : f32,\n`;
+          // float type
+          declarations += `\t${uniform.variableName} : f32,\n`;
         }
       });
       declarations += "};\n";
@@ -1884,9 +1964,9 @@ class BlueprintSystem {
       // WebGL 1 and 2 use individual uniform declarations
       this.uniforms.forEach((uniform) => {
         if (uniform.type === "color") {
-          declarations += `uniform vec3 ${uniform.name};\n`;
+          declarations += `uniform vec3 ${uniform.variableName};\n`;
         } else {
-          declarations += `uniform float ${uniform.name};\n`;
+          declarations += `uniform float ${uniform.variableName};\n`;
         }
       });
       declarations += "\n";

@@ -91,6 +91,10 @@
                   <input type="checkbox" id="settingAnimated" />
                   <span>Animated</span>
                 </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" id="settingIsDeprecated" />
+                  <span>Is Deprecated</span>
+                </label>
                 <label>
                   <span>Extend Box</span>
                   <div class="extend-box-inputs">
@@ -148,13 +152,20 @@
         <h3>Add Uniform</h3>
         <label>
           Name:
-          <input type="text" id="uniformNameInput" placeholder="myUniform" />
+          <input type="text" id="uniformNameInput" placeholder="My Uniform" />
+        </label>
+        <label>
+          Description:
+          <input
+            type="text"
+            id="uniformDescriptionInput"
+            placeholder="Optional description"
+          />
         </label>
         <label>
           Type:
           <select id="uniformTypeSelect">
             <option value="float">Float</option>
-            <option value="percent">Percent</option>
             <option value="color">Color (Vec3)</option>
           </select>
         </label>

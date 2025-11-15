@@ -454,10 +454,13 @@ button:hover {
 .extend-box-inputs {
   display: flex;
   gap: 8px;
+  width: 100%;
 }
 
 .extend-box-inputs input {
   flex: 1;
+  min-width: 0; /* Allow flex items to shrink below content size */
+  width: 0; /* Force equal width distribution */
 }
 
 /* Uniforms Section - no additional styling needed */
