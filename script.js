@@ -2765,7 +2765,7 @@ class BlueprintSystem {
       author: author,
       website: settings.website || "https://www.construct.net",
       documentation: settings.documentation || "https://www.construct.net",
-      description: settings.description || "",
+      description: settings.description || "no description",
       "file-list": [
         "lang/en-US.json",
         "addon.json",
@@ -2828,7 +2828,7 @@ class BlueprintSystem {
         effects: {
           [addonId]: {
             name: name,
-            description: settings.description || "",
+            description: settings.description || "No description",
           },
         },
       },
