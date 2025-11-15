@@ -65,8 +65,8 @@ class Port {
     let height = 20;
 
     if (resolvedType === "vec2") {
-      width = 130; // Two number inputs side by side
-      height = 24;
+      width = 90; // Column layout with labels
+      height = 20;
     } else if (resolvedType === "vec3") {
       width = 50; // Color swatch
       height = 20;
@@ -520,7 +520,7 @@ class BlueprintSystem {
       e.stopPropagation();
     });
 
-    // Create vec2 editor (two number inputs side by side)
+    // Create vec2 editor (two number inputs in a column)
     this.vec2Editor = document.createElement("div");
     this.vec2Editor.id = "vec2Editor";
     this.vec2Editor.style.position = "fixed";
@@ -528,26 +528,22 @@ class BlueprintSystem {
     this.vec2Editor.style.background = "#1a1a1a";
     this.vec2Editor.style.border = "1px solid #4a4a4a";
     this.vec2Editor.style.borderRadius = "3px";
-    this.vec2Editor.style.padding = "4px";
+    this.vec2Editor.style.padding = "6px";
     this.vec2Editor.style.gap = "4px";
-    this.vec2Editor.style.flexDirection = "row";
-    this.vec2Editor.style.alignItems = "center";
+    this.vec2Editor.style.flexDirection = "column";
     this.vec2Editor.innerHTML = `
-      <input type="number" id="vec2X" step="0.01" style="width: 60px; background: #2a2a2a; border: 1px solid #3a3a3a; color: white; padding: 2px 4px; border-radius: 2px;">
-      <input type="number" id="vec2Y" step="0.01" style="width: 60px; background: #2a2a2a; border: 1px solid #3a3a3a; color: white; padding: 2px 4px; border-radius: 2px;">
+      <div style="display: flex; align-items: center; gap: 4px;">
+        <label style="color: white; font-size: 11px; width: 12px;">X</label>
+        <input type="number" id="vec2X" step="0.01" style="width: 70px; background: #2a2a2a; border: 1px solid #3a3a3a; color: white; padding: 2px 4px; border-radius: 2px; font-size: 11px;">
+      </div>
+      <div style="display: flex; align-items: center; gap: 4px;">
+        <label style="color: white; font-size: 11px; width: 12px;">Y</label>
+        <input type="number" id="vec2Y" step="0.01" style="width: 70px; background: #2a2a2a; border: 1px solid #3a3a3a; color: white; padding: 2px 4px; border-radius: 2px; font-size: 11px;">
+      </div>
     `;
     document.body.appendChild(this.vec2Editor);
 
     this.vec2Editor.addEventListener("mousedown", (e) => e.stopPropagation());
-    this.vec2Editor.addEventListener(
-      "blur",
-      (e) => {
-        if (!this.vec2Editor.contains(e.relatedTarget)) {
-          this.finishEditingPort();
-        }
-      },
-      true
-    );
 
     // Add keydown listeners for vec2 inputs
     const setupVec2Listeners = () => {
@@ -564,37 +560,90 @@ class BlueprintSystem {
 
       vec2X.addEventListener("keydown", handleVec2Keydown);
       vec2Y.addEventListener("keydown", handleVec2Keydown);
+      vec2X.addEventListener("mousedown", (e) => e.stopPropagation());
+      vec2Y.addEventListener("mousedown", (e) => e.stopPropagation());
     };
     setupVec2Listeners();
 
-    // Create vec3 editor (color picker)
+    // Create vec3 editor (color picker + individual inputs)
     this.vec3Editor = document.createElement("div");
     this.vec3Editor.id = "vec3Editor";
     this.vec3Editor.style.position = "fixed";
     this.vec3Editor.style.display = "none";
+    this.vec3Editor.style.background = "#1a1a1a";
+    this.vec3Editor.style.border = "1px solid #4a4a4a";
+    this.vec3Editor.style.borderRadius = "3px";
+    this.vec3Editor.style.padding = "6px";
+    this.vec3Editor.style.gap = "4px";
+    this.vec3Editor.style.flexDirection = "column";
     this.vec3Editor.innerHTML = `
-      <input type="color" id="vec3Color" style="width: 100px; height: 30px; border: 1px solid #4a4a4a; border-radius: 3px; cursor: pointer;">
+      <input type="color" id="vec3Color" style="width: 100px; height: 24px; border: 1px solid #3a3a3a; border-radius: 2px; cursor: pointer;">
+      <div style="display: flex; align-items: center; gap: 4px;">
+        <label style="color: white; font-size: 11px; width: 12px;">R</label>
+        <input type="number" id="vec3R" min="0" max="1" step="0.01" style="width: 70px; background: #2a2a2a; border: 1px solid #3a3a3a; color: white; padding: 2px 4px; border-radius: 2px; font-size: 11px;">
+      </div>
+      <div style="display: flex; align-items: center; gap: 4px;">
+        <label style="color: white; font-size: 11px; width: 12px;">G</label>
+        <input type="number" id="vec3G" min="0" max="1" step="0.01" style="width: 70px; background: #2a2a2a; border: 1px solid #3a3a3a; color: white; padding: 2px 4px; border-radius: 2px; font-size: 11px;">
+      </div>
+      <div style="display: flex; align-items: center; gap: 4px;">
+        <label style="color: white; font-size: 11px; width: 12px;">B</label>
+        <input type="number" id="vec3B" min="0" max="1" step="0.01" style="width: 70px; background: #2a2a2a; border: 1px solid #3a3a3a; color: white; padding: 2px 4px; border-radius: 2px; font-size: 11px;">
+      </div>
     `;
     document.body.appendChild(this.vec3Editor);
 
     this.vec3Editor.addEventListener("mousedown", (e) => e.stopPropagation());
-    this.vec3Editor.addEventListener(
-      "blur",
-      (e) => {
-        if (!this.vec3Editor.contains(e.relatedTarget)) {
+
+    // Add listeners for vec3 editor
+    const setupVec3Listeners = () => {
+      const vec3Color = document.getElementById("vec3Color");
+      const vec3R = document.getElementById("vec3R");
+      const vec3G = document.getElementById("vec3G");
+      const vec3B = document.getElementById("vec3B");
+
+      // Update number inputs when color changes
+      vec3Color.addEventListener("input", () => {
+        const hex = vec3Color.value;
+        vec3R.value = (parseInt(hex.substr(1, 2), 16) / 255).toFixed(2);
+        vec3G.value = (parseInt(hex.substr(3, 2), 16) / 255).toFixed(2);
+        vec3B.value = (parseInt(hex.substr(5, 2), 16) / 255).toFixed(2);
+      });
+
+      // Update color picker when number inputs change
+      const updateColorFromInputs = () => {
+        const r = Math.round(parseFloat(vec3R.value || 0) * 255);
+        const g = Math.round(parseFloat(vec3G.value || 0) * 255);
+        const b = Math.round(parseFloat(vec3B.value || 0) * 255);
+        vec3Color.value = `#${r.toString(16).padStart(2, "0")}${g
+          .toString(16)
+          .padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+      };
+
+      vec3R.addEventListener("input", updateColorFromInputs);
+      vec3G.addEventListener("input", updateColorFromInputs);
+      vec3B.addEventListener("input", updateColorFromInputs);
+
+      const handleVec3Keydown = (e) => {
+        if (e.key === "Enter") {
           this.finishEditingPort();
+        } else if (e.key === "Escape") {
+          this.cancelEditingPort();
         }
-      },
-      true
-    );
+      };
 
-    // Add change listener for vec3 color picker
-    const vec3Color = document.getElementById("vec3Color");
-    vec3Color.addEventListener("change", () => {
-      this.finishEditingPort();
-    });
+      vec3R.addEventListener("keydown", handleVec3Keydown);
+      vec3G.addEventListener("keydown", handleVec3Keydown);
+      vec3B.addEventListener("keydown", handleVec3Keydown);
 
-    // Create vec4 editor (color picker with alpha)
+      vec3Color.addEventListener("mousedown", (e) => e.stopPropagation());
+      vec3R.addEventListener("mousedown", (e) => e.stopPropagation());
+      vec3G.addEventListener("mousedown", (e) => e.stopPropagation());
+      vec3B.addEventListener("mousedown", (e) => e.stopPropagation());
+    };
+    setupVec3Listeners();
+
+    // Create vec4 editor (color picker + individual inputs with alpha)
     this.vec4Editor = document.createElement("div");
     this.vec4Editor.id = "vec4Editor";
     this.vec4Editor.style.position = "fixed";
@@ -602,46 +651,82 @@ class BlueprintSystem {
     this.vec4Editor.style.background = "#1a1a1a";
     this.vec4Editor.style.border = "1px solid #4a4a4a";
     this.vec4Editor.style.borderRadius = "3px";
-    this.vec4Editor.style.padding = "4px";
+    this.vec4Editor.style.padding = "6px";
     this.vec4Editor.style.gap = "4px";
     this.vec4Editor.style.flexDirection = "column";
     this.vec4Editor.innerHTML = `
-      <input type="color" id="vec4Color" style="width: 100px; height: 30px; border: 1px solid #3a3a3a; border-radius: 3px; cursor: pointer;">
+      <input type="color" id="vec4Color" style="width: 100px; height: 24px; border: 1px solid #3a3a3a; border-radius: 2px; cursor: pointer;">
       <div style="display: flex; align-items: center; gap: 4px;">
-        <label style="color: white; font-size: 11px;">Alpha:</label>
-        <input type="range" id="vec4Alpha" min="0" max="1" step="0.01" value="1" style="flex: 1;">
-        <span id="vec4AlphaValue" style="color: white; font-size: 11px; min-width: 30px;">1.00</span>
+        <label style="color: white; font-size: 11px; width: 12px;">R</label>
+        <input type="number" id="vec4R" min="0" max="1" step="0.01" style="width: 70px; background: #2a2a2a; border: 1px solid #3a3a3a; color: white; padding: 2px 4px; border-radius: 2px; font-size: 11px;">
+      </div>
+      <div style="display: flex; align-items: center; gap: 4px;">
+        <label style="color: white; font-size: 11px; width: 12px;">G</label>
+        <input type="number" id="vec4G" min="0" max="1" step="0.01" style="width: 70px; background: #2a2a2a; border: 1px solid #3a3a3a; color: white; padding: 2px 4px; border-radius: 2px; font-size: 11px;">
+      </div>
+      <div style="display: flex; align-items: center; gap: 4px;">
+        <label style="color: white; font-size: 11px; width: 12px;">B</label>
+        <input type="number" id="vec4B" min="0" max="1" step="0.01" style="width: 70px; background: #2a2a2a; border: 1px solid #3a3a3a; color: white; padding: 2px 4px; border-radius: 2px; font-size: 11px;">
+      </div>
+      <div style="display: flex; align-items: center; gap: 4px;">
+        <label style="color: white; font-size: 11px; width: 12px;">A</label>
+        <input type="number" id="vec4A" min="0" max="1" step="0.01" style="width: 70px; background: #2a2a2a; border: 1px solid #3a3a3a; color: white; padding: 2px 4px; border-radius: 2px; font-size: 11px;">
       </div>
     `;
     document.body.appendChild(this.vec4Editor);
 
     this.vec4Editor.addEventListener("mousedown", (e) => e.stopPropagation());
-    this.vec4Editor.addEventListener(
-      "blur",
-      (e) => {
-        if (!this.vec4Editor.contains(e.relatedTarget)) {
+
+    // Add listeners for vec4 editor
+    const setupVec4Listeners = () => {
+      const vec4Color = document.getElementById("vec4Color");
+      const vec4R = document.getElementById("vec4R");
+      const vec4G = document.getElementById("vec4G");
+      const vec4B = document.getElementById("vec4B");
+      const vec4A = document.getElementById("vec4A");
+
+      // Update number inputs when color changes
+      vec4Color.addEventListener("input", () => {
+        const hex = vec4Color.value;
+        vec4R.value = (parseInt(hex.substr(1, 2), 16) / 255).toFixed(2);
+        vec4G.value = (parseInt(hex.substr(3, 2), 16) / 255).toFixed(2);
+        vec4B.value = (parseInt(hex.substr(5, 2), 16) / 255).toFixed(2);
+      });
+
+      // Update color picker when number inputs change
+      const updateColorFromInputs = () => {
+        const r = Math.round(parseFloat(vec4R.value || 0) * 255);
+        const g = Math.round(parseFloat(vec4G.value || 0) * 255);
+        const b = Math.round(parseFloat(vec4B.value || 0) * 255);
+        vec4Color.value = `#${r.toString(16).padStart(2, "0")}${g
+          .toString(16)
+          .padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+      };
+
+      vec4R.addEventListener("input", updateColorFromInputs);
+      vec4G.addEventListener("input", updateColorFromInputs);
+      vec4B.addEventListener("input", updateColorFromInputs);
+
+      const handleVec4Keydown = (e) => {
+        if (e.key === "Enter") {
           this.finishEditingPort();
+        } else if (e.key === "Escape") {
+          this.cancelEditingPort();
         }
-      },
-      true
-    );
+      };
 
-    // Update alpha value display and add change listener for vec4
-    const alphaSlider = document.getElementById("vec4Alpha");
-    const alphaValue = document.getElementById("vec4AlphaValue");
-    const vec4Color = document.getElementById("vec4Color");
+      vec4R.addEventListener("keydown", handleVec4Keydown);
+      vec4G.addEventListener("keydown", handleVec4Keydown);
+      vec4B.addEventListener("keydown", handleVec4Keydown);
+      vec4A.addEventListener("keydown", handleVec4Keydown);
 
-    alphaSlider.addEventListener("input", () => {
-      alphaValue.textContent = parseFloat(alphaSlider.value).toFixed(2);
-    });
-
-    vec4Color.addEventListener("change", () => {
-      this.finishEditingPort();
-    });
-
-    alphaSlider.addEventListener("change", () => {
-      this.finishEditingPort();
-    });
+      vec4Color.addEventListener("mousedown", (e) => e.stopPropagation());
+      vec4R.addEventListener("mousedown", (e) => e.stopPropagation());
+      vec4G.addEventListener("mousedown", (e) => e.stopPropagation());
+      vec4B.addEventListener("mousedown", (e) => e.stopPropagation());
+      vec4A.addEventListener("mousedown", (e) => e.stopPropagation());
+    };
+    setupVec4Listeners();
   }
 
   setupSearchMenu() {
@@ -2105,25 +2190,34 @@ class BlueprintSystem {
     } else if (resolvedType === "vec3") {
       this.vec3Editor.style.left = `${rect.left + window.scrollX + screenX}px`;
       this.vec3Editor.style.top = `${rect.top + window.scrollY + screenY}px`;
-      this.vec3Editor.style.display = "block";
+      this.vec3Editor.style.display = "flex";
 
       const vec3Color = document.getElementById("vec3Color");
+      const vec3R = document.getElementById("vec3R");
+      const vec3G = document.getElementById("vec3G");
+      const vec3B = document.getElementById("vec3B");
+
       const r = Math.round(port.value[0] * 255);
       const g = Math.round(port.value[1] * 255);
       const b = Math.round(port.value[2] * 255);
       vec3Color.value = `#${r.toString(16).padStart(2, "0")}${g
         .toString(16)
         .padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+      vec3R.value = port.value[0].toFixed(2);
+      vec3G.value = port.value[1].toFixed(2);
+      vec3B.value = port.value[2].toFixed(2);
 
-      setTimeout(() => vec3Color.click(), 0);
+      setTimeout(() => vec3R.focus(), 0);
     } else if (resolvedType === "vec4") {
       this.vec4Editor.style.left = `${rect.left + window.scrollX + screenX}px`;
       this.vec4Editor.style.top = `${rect.top + window.scrollY + screenY}px`;
       this.vec4Editor.style.display = "flex";
 
       const vec4Color = document.getElementById("vec4Color");
-      const vec4Alpha = document.getElementById("vec4Alpha");
-      const vec4AlphaValue = document.getElementById("vec4AlphaValue");
+      const vec4R = document.getElementById("vec4R");
+      const vec4G = document.getElementById("vec4G");
+      const vec4B = document.getElementById("vec4B");
+      const vec4A = document.getElementById("vec4A");
 
       const r = Math.round(port.value[0] * 255);
       const g = Math.round(port.value[1] * 255);
@@ -2131,10 +2225,12 @@ class BlueprintSystem {
       vec4Color.value = `#${r.toString(16).padStart(2, "0")}${g
         .toString(16)
         .padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
-      vec4Alpha.value = port.value[3];
-      vec4AlphaValue.textContent = port.value[3].toFixed(2);
+      vec4R.value = port.value[0].toFixed(2);
+      vec4G.value = port.value[1].toFixed(2);
+      vec4B.value = port.value[2].toFixed(2);
+      vec4A.value = port.value[3].toFixed(2);
 
-      setTimeout(() => vec4Color.click(), 0);
+      setTimeout(() => vec4R.focus(), 0);
     } else {
       // Default text input for float, int
       this.inputField.value = port.value.toString();
@@ -2168,21 +2264,27 @@ class BlueprintSystem {
         this.editingPort.value = [x, y];
       }
     } else if (resolvedType === "vec3") {
-      const vec3Color = document.getElementById("vec3Color");
-      const hex = vec3Color.value;
-      const r = parseInt(hex.substr(1, 2), 16) / 255;
-      const g = parseInt(hex.substr(3, 2), 16) / 255;
-      const b = parseInt(hex.substr(5, 2), 16) / 255;
-      this.editingPort.value = [r, g, b];
+      const vec3R = document.getElementById("vec3R");
+      const vec3G = document.getElementById("vec3G");
+      const vec3B = document.getElementById("vec3B");
+      const r = parseFloat(vec3R.value);
+      const g = parseFloat(vec3G.value);
+      const b = parseFloat(vec3B.value);
+      if (!isNaN(r) && !isNaN(g) && !isNaN(b)) {
+        this.editingPort.value = [r, g, b];
+      }
     } else if (resolvedType === "vec4") {
-      const vec4Color = document.getElementById("vec4Color");
-      const vec4Alpha = document.getElementById("vec4Alpha");
-      const hex = vec4Color.value;
-      const r = parseInt(hex.substr(1, 2), 16) / 255;
-      const g = parseInt(hex.substr(3, 2), 16) / 255;
-      const b = parseInt(hex.substr(5, 2), 16) / 255;
-      const a = parseFloat(vec4Alpha.value);
-      this.editingPort.value = [r, g, b, a];
+      const vec4R = document.getElementById("vec4R");
+      const vec4G = document.getElementById("vec4G");
+      const vec4B = document.getElementById("vec4B");
+      const vec4A = document.getElementById("vec4A");
+      const r = parseFloat(vec4R.value);
+      const g = parseFloat(vec4G.value);
+      const b = parseFloat(vec4B.value);
+      const a = parseFloat(vec4A.value);
+      if (!isNaN(r) && !isNaN(g) && !isNaN(b) && !isNaN(a)) {
+        this.editingPort.value = [r, g, b, a];
+      }
     } else {
       const value = this.inputField.value;
       if (resolvedType === "int") {
@@ -4012,6 +4114,20 @@ class BlueprintSystem {
   }
 
   onMouseDown(e) {
+    // Close any open editors if clicking outside of them
+    if (this.editingPort) {
+      const pos = this.getMousePos(e);
+      const bounds = this.editingPort.getValueBoxBounds(this.ctx);
+
+      // Check if clicking outside the value box
+      if (
+        bounds &&
+        !this.editingPort.isPointInValueBox(pos.x, pos.y, this.ctx)
+      ) {
+        this.finishEditingPort();
+      }
+    }
+
     // Handle middle-click panning
     if (e.button === 1) {
       e.preventDefault();
@@ -4642,7 +4758,8 @@ class BlueprintSystem {
         if (resolvedType === "float") {
           valueStr = port.value.toFixed(2);
         } else if (resolvedType === "vec2") {
-          valueStr = `${port.value[0].toFixed(2)}, ${port.value[1].toFixed(2)}`;
+          // Show compact vec2 format
+          valueStr = `${port.value[0].toFixed(1)},${port.value[1].toFixed(1)}`;
         } else if (resolvedType === "vec3") {
           // Show as color swatch
           const r = Math.round(port.value[0] * 255);
