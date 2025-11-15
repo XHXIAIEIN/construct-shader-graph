@@ -15,8 +15,11 @@ import { CompareNode } from "./CompareNode.js";
 import { MinNode } from "./MinNode.js";
 import { MaxNode } from "./MaxNode.js";
 import { Vec2Node } from "./Vec2Node.js";
-import { VectorNode } from "./VectorNode.js";
-import { ColorNode } from "./ColorNode.js";
+import { Vec3Node } from "./Vec3Node.js";
+import { Vec4Node } from "./Vec4Node.js";
+import { Vec2DecomposeNode } from "./Vec2DecomposeNode.js";
+import { Vec3DecomposeNode } from "./Vec3DecomposeNode.js";
+import { Vec4DecomposeNode } from "./Vec4DecomposeNode.js";
 import { TextureFrontNode } from "./TextureFrontNode.js";
 import { TextureBackNode } from "./TextureBackNode.js";
 import { TextureDepthNode } from "./TextureDepthNode.js";
@@ -50,8 +53,11 @@ export const NODE_TYPES = {
   min: MinNode,
   max: MaxNode,
   vec2: Vec2Node,
-  vector: VectorNode,
-  color: ColorNode,
+  vec3: Vec3Node,
+  vec4: Vec4Node,
+  vec2Decompose: Vec2DecomposeNode,
+  vec3Decompose: Vec3DecomposeNode,
+  vec4Decompose: Vec4DecomposeNode,
   textureFront: TextureFrontNode,
   textureBack: TextureBackNode,
   textureDepth: TextureDepthNode,

@@ -22023,12 +22023,10 @@ THE SOFTWARE.
         (this._arrayBuffer = new ArrayBuffer(this._byteSize)),
         (this._f32arr = new Float32Array(this._arrayBuffer)),
         (this._isChanged = !1),
-        (this._buffer = r
-          ._GetDevice()
-          ["createBuffer"]({
-            size: this._byteSize,
-            usage: GPUBufferUsage["UNIFORM"] | GPUBufferUsage["COPY_DST"],
-          })),
+        (this._buffer = r._GetDevice()["createBuffer"]({
+          size: this._byteSize,
+          usage: GPUBufferUsage["UNIFORM"] | GPUBufferUsage["COPY_DST"],
+        })),
         (this._bufferBindGroup = r._CreateBufferBindGroup(this._buffer));
     }
     Release() {
@@ -53085,15 +53083,13 @@ THE SOFTWARE.
       return this._effectList.GetAllEffectTypes();
     }
     _SaveToJson() {
-      return this._effectList
-        .GetAllEffectTypes()
-        .map((e) => ({
-          name: e.GetName(),
-          active: this._activeEffectFlags[e.GetIndex()],
-          params: C3.EffectList.SaveFxParamsToJson(
-            this._effectParams[e.GetIndex()]
-          ),
-        }));
+      return this._effectList.GetAllEffectTypes().map((e) => ({
+        name: e.GetName(),
+        active: this._activeEffectFlags[e.GetIndex()],
+        params: C3.EffectList.SaveFxParamsToJson(
+          this._effectParams[e.GetIndex()]
+        ),
+      }));
     }
     _LoadFromJson(e) {
       for (const t of e) {
@@ -55956,7 +55952,7 @@ THE SOFTWARE.
         (this._usesAnyCrossSampling = t[42]),
         (this._usesAnyDepthSampling = t[17]),
         (this._usesLoaderLayout = !!t[18]),
-        (this._loaderStyle = t[19]),
+        (this._loaderStyle = 0),
         (this._nextUid = t[21]),
         (this._pauseOnBlur = t[22]),
         (this._constructVersionCode = t[51]);
@@ -58240,6 +58236,7 @@ THE SOFTWARE.
 
 // scripts/shaders.js
 {
+  // THIS IS WHERE YOU NEED TO LOOK
   // Query parameter parsing function
   self.getQueryParams = function () {
     const urlParams = new URLSearchParams(self.location.search);

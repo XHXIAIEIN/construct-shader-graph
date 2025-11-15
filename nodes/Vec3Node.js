@@ -1,14 +1,14 @@
 import { NodeType } from "./NodeType.js";
 
-export const ColorNode = new NodeType(
-  "Vector3",
+export const Vec3Node = new NodeType(
+  "Vec3",
   [
-    { name: "R", type: "float" },
-    { name: "G", type: "float" },
-    { name: "B", type: "float" },
+    { name: "X", type: "float" },
+    { name: "Y", type: "float" },
+    { name: "Z", type: "float" },
   ],
-  [{ name: "Vector3", type: "vec3" }],
-  "#3a3a4a",
+  [{ name: "Vec3", type: "vec3" }],
+  "#4a3a3a",
   {
     webgl1: {
       dependency: "",

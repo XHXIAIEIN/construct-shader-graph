@@ -432,12 +432,18 @@ class BlueprintSystem {
     this.customNodeIdCounter = 1;
     this.editingCustomNode = null;
 
+    // Preview
+    this.previewIframe = null;
+    this.previewReady = false;
+    this.previewNeedsUpdate = true;
+
     this.setupEventListeners();
     this.setupInputField();
     this.setupSearchMenu();
     this.setupShaderSettings();
     this.setupUniformSidebar();
     this.setupCustomNodeModal();
+    this.setupPreview();
     this.render();
   }
 
@@ -650,32 +656,39 @@ class BlueprintSystem {
     // Checkboxes
     blendsBackgroundCheckbox.addEventListener("change", () => {
       this.shaderSettings.blendsBackground = blendsBackgroundCheckbox.checked;
+      this.onShaderChanged();
     });
 
     crossSamplingCheckbox.addEventListener("change", () => {
       this.shaderSettings.crossSampling = crossSamplingCheckbox.checked;
+      this.onShaderChanged();
     });
 
     preservesOpaquenessCheckbox.addEventListener("change", () => {
       this.shaderSettings.preservesOpaqueness =
         preservesOpaquenessCheckbox.checked;
+      this.onShaderChanged();
     });
 
     animatedCheckbox.addEventListener("change", () => {
       this.shaderSettings.animated = animatedCheckbox.checked;
+      this.onShaderChanged();
     });
 
     isDeprecatedCheckbox.addEventListener("change", () => {
       this.shaderSettings.isDeprecated = isDeprecatedCheckbox.checked;
+      this.onShaderChanged();
     });
 
     // Extend box inputs
     extendBoxHInput.addEventListener("input", () => {
       this.shaderSettings.extendBoxH = parseFloat(extendBoxHInput.value) || 0;
+      this.onShaderChanged();
     });
 
     extendBoxVInput.addEventListener("input", () => {
       this.shaderSettings.extendBoxV = parseFloat(extendBoxVInput.value) || 0;
+      this.onShaderChanged();
     });
   }
 
@@ -793,17 +806,20 @@ class BlueprintSystem {
     this.uniforms.push(uniform);
     this.hideUniformModal();
     this.renderUniformList();
+    this.onShaderChanged();
   }
 
   deleteUniform(id) {
     this.uniforms = this.uniforms.filter((u) => u.id !== id);
     this.renderUniformList();
+    this.onShaderChanged();
   }
 
   updateUniformValue(id, value) {
     const uniform = this.uniforms.find((u) => u.id === id);
     if (uniform) {
       uniform.value = value;
+      this.onUniformValueChanged();
     }
   }
 
@@ -911,6 +927,119 @@ class BlueprintSystem {
   hideCustomNodeModal() {
     this.customNodeModal.classList.remove("visible");
     this.editingCustomNode = null;
+  }
+
+  setupPreview() {
+    this.previewIframe = document.getElementById("preview-iframe");
+    const previewWindow = document.getElementById("preview-window");
+    const previewHeader = document.getElementById("preview-header");
+    const closePreviewBtn = document.getElementById("closePreviewBtn");
+
+    // Make preview window draggable
+    let isDragging = false;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+
+    previewHeader.addEventListener("mousedown", (e) => {
+      if (e.target === closePreviewBtn) return;
+      isDragging = true;
+      const rect = previewWindow.getBoundingClientRect();
+      dragOffsetX = e.clientX - rect.left;
+      dragOffsetY = e.clientY - rect.top;
+      e.preventDefault();
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      if (isDragging) {
+        previewWindow.style.left = `${e.clientX - dragOffsetX}px`;
+        previewWindow.style.top = `${e.clientY - dragOffsetY}px`;
+        previewWindow.style.bottom = "auto";
+      }
+    });
+
+    document.addEventListener("mouseup", () => {
+      isDragging = false;
+    });
+
+    // Close button
+    closePreviewBtn.addEventListener("click", () => {
+      previewWindow.style.display = "none";
+    });
+
+    // Listen for messages from preview iframe
+    window.addEventListener("message", (event) => {
+      if (event.data && event.data.type === "projectReady") {
+        this.previewReady = true;
+        this.sendUniformValuesToPreview();
+      }
+    });
+
+    // Initial preview update
+    this.updatePreview();
+  }
+
+  updatePreview() {
+    if (!this.previewIframe) return;
+
+    // Generate shader code
+    const shaders = this.generateAllShaders();
+    if (!shaders) return;
+
+    // Build query parameters
+    const params = new URLSearchParams();
+    params.set("shader_glsl", encodeURIComponent(shaders.webgl1));
+    params.set("shader_glslWebGL2", encodeURIComponent(shaders.webgl2));
+    params.set("shader_wgsl", encodeURIComponent(shaders.webgpu));
+    params.set("shader_blendsBackground", this.shaderSettings.blendsBackground);
+    params.set("shader_crossSampling", this.shaderSettings.crossSampling);
+    params.set(
+      "shader_preservesOpaqueness",
+      this.shaderSettings.preservesOpaqueness
+    );
+    params.set("shader_animated", this.shaderSettings.animated);
+    params.set("shader_extendBoxHorizontal", this.shaderSettings.extendBoxH);
+    params.set("shader_extendBoxVertical", this.shaderSettings.extendBoxV);
+
+    // Reload iframe with new parameters
+    this.previewReady = false;
+    this.previewIframe.src = `preview/index.html?${params.toString()}`;
+  }
+
+  sendUniformValuesToPreview() {
+    if (!this.previewReady || !this.previewIframe) return;
+
+    this.uniforms.forEach((uniform, index) => {
+      this.previewIframe.contentWindow.postMessage(
+        {
+          type: "updateParam",
+          index: index,
+          value: uniform.value,
+        },
+        "*"
+      );
+    });
+  }
+
+  generateAllShaders() {
+    try {
+      const webgl1 = this.generateShader("webgl1");
+      const webgl2 = this.generateShader("webgl2");
+      const webgpu = this.generateShader("webgpu");
+      return { webgl1, webgl2, webgpu };
+    } catch (error) {
+      console.error("Error generating shaders:", error);
+      return null;
+    }
+  }
+
+  onShaderChanged() {
+    // Called whenever the shader structure changes (not just uniform values)
+    this.updatePreview();
+  }
+
+  onUniformValueChanged() {
+    // Called whenever a uniform value changes
+    this.sendUniformValuesToPreview();
   }
 
   addCustomPortItem(container, portType, name = "", type = "float") {
@@ -1605,6 +1734,7 @@ class BlueprintSystem {
 
     this.nodes.push(node);
     this.render();
+    this.onShaderChanged();
     return node;
   }
 
@@ -3070,6 +3200,9 @@ class BlueprintSystem {
       this.updateDependencyList();
 
       console.log("Blueprint loaded successfully");
+
+      // Refresh preview with loaded shader
+      this.onShaderChanged();
     } catch (error) {
       console.error("Failed to load blueprint:", error);
       alert(`Failed to load blueprint: ${error.message}`);
