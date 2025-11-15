@@ -48,12 +48,51 @@ class Port {
     }
 
     const x = this.type === "input" ? node.x : node.x + node.width;
-    const spacing = 40;
+
     // Add extra offset if node has operation dropdown
     const dropdownOffset = node.nodeType.hasOperation ? 30 : 0;
     const startY = node.y + 50 + dropdownOffset;
-    const y = startY + this.index * spacing;
+
+    // Calculate cumulative Y position based on actual port heights
+    let y = startY;
+    const ports = this.type === "input" ? node.inputPorts : node.outputPorts;
+
+    for (let i = 0; i < this.index; i++) {
+      const port = ports[i];
+      // Get the extra height needed for this port's value box
+      const extraHeight = port.getExtraHeight();
+      y += 40 + extraHeight; // Base spacing + extra height
+    }
+
     return { x, y };
+  }
+
+  // Get extra height needed for this port's value box (beyond the standard 20px)
+  getExtraHeight() {
+    if (
+      !this.isEditable ||
+      this.type !== "input" ||
+      this.connections.length > 0
+    ) {
+      return 0;
+    }
+
+    const resolvedType = this.getResolvedType();
+
+    // Vec3 and vec4 need extra height when showing raw values (2 rows instead of 1)
+    if (resolvedType === "vec3" || resolvedType === "vec4") {
+      const inRange =
+        this.value &&
+        Array.isArray(this.value) &&
+        this.value.every((v) => v >= 0 && v <= 1);
+
+      // If showing raw values (not color swatch), we need extra height
+      // Height is 41px (2 rows of 20px + 1px gap), standard port spacing accounts for 20px
+      // So we need 21px extra
+      return inRange ? 0 : 21;
+    }
+
+    return 0;
   }
 
   getValueBoxBounds(ctx) {
@@ -64,6 +103,9 @@ class Port {
     // Determine width and height based on type
     let width = 50;
     let height = 20;
+
+    let offsetX = 0;
+    let offsetY = 0;
 
     if (resolvedType === "vec2") {
       width = 71; // Two boxes side by side (2 * 35 + 1)
@@ -76,6 +118,7 @@ class Port {
         this.value.every((v) => v >= 0 && v <= 1);
       width = inRange ? 50 : 71; // Color swatch or 2x2 grid
       height = inRange ? 20 : 41; // Color swatch or 2 rows (2 * 20 + 1)
+      offsetY = inRange ? 0 : 11;
     } else if (resolvedType === "vec4") {
       // Check if values are in range to determine if showing color or text
       const inRange =
@@ -84,6 +127,7 @@ class Port {
         this.value.every((v) => v >= 0 && v <= 1);
       width = inRange ? 50 : 71; // Color swatch or 2x2 grid
       height = inRange ? 20 : 41; // Color swatch or 2 rows (2 * 20 + 1)
+      offsetY = inRange ? 0 : 11;
     }
 
     // Measure the actual label width
@@ -96,8 +140,8 @@ class Port {
     }
 
     return {
-      x: pos.x + 15 + labelWidth,
-      y: pos.y - height / 2,
+      x: pos.x + 15 + labelWidth + offsetX,
+      y: pos.y - height / 2 + offsetY,
       width,
       height,
     };
@@ -217,14 +261,21 @@ class Node {
       this.height = 35;
     } else {
       this.width = 180;
-      // Calculate height based on number of ports
+      // Calculate height based on number of ports and their extra heights
       const maxPorts = Math.max(
         this.inputPorts.length,
         this.outputPorts.length
       );
+
+      // Calculate extra height from input ports' value boxes
+      let extraHeight = 0;
+      this.inputPorts.forEach((port) => {
+        extraHeight += port.getExtraHeight();
+      });
+
       // Add extra space for operation dropdown if node has operations
       const dropdownSpace = nodeType.hasOperation ? 30 : 0;
-      this.height = 50 + dropdownSpace + maxPorts * 40 + 10;
+      this.height = 50 + dropdownSpace + maxPorts * 40 + extraHeight + 10;
     }
 
     this.isDragging = false;
@@ -257,6 +308,23 @@ class Node {
 
   getAllPorts() {
     return [...this.inputPorts, ...this.outputPorts];
+  }
+
+  // Recalculate node height based on current port states
+  recalculateHeight() {
+    if (this.isVariable) return; // Variable nodes have fixed height
+
+    const maxPorts = Math.max(this.inputPorts.length, this.outputPorts.length);
+
+    // Calculate extra height from input ports' value boxes
+    let extraHeight = 0;
+    this.inputPorts.forEach((port) => {
+      extraHeight += port.getExtraHeight();
+    });
+
+    // Add extra space for operation dropdown if node has operations
+    const dropdownSpace = this.nodeType.hasOperation ? 30 : 0;
+    this.height = 50 + dropdownSpace + maxPorts * 40 + extraHeight + 10;
   }
 
   // Resolve generic type for a port based on connections
@@ -2337,6 +2405,11 @@ class BlueprintSystem {
       }
     }
 
+    // Recalculate node height in case vec3/vec4 values changed from in-range to out-of-range or vice versa
+    if (this.editingPort) {
+      this.editingPort.node.recalculateHeight();
+    }
+
     this.hideInputField();
     this.render();
     this.onShaderChanged();
@@ -3924,6 +3997,9 @@ class BlueprintSystem {
       wire.startPort.node.inputPorts.forEach((port) => {
         port.updateEditability();
       });
+
+      // Recalculate node height
+      wire.startPort.node.recalculateHeight();
     }
     if (wire.endPort) {
       const index = wire.endPort.connections.indexOf(wire);
@@ -3941,6 +4017,9 @@ class BlueprintSystem {
       wire.endPort.node.inputPorts.forEach((port) => {
         port.updateEditability();
       });
+
+      // Recalculate node height
+      wire.endPort.node.recalculateHeight();
     }
     // Remove from wires array
     const wireIndex = this.wires.indexOf(wire);
@@ -4110,6 +4189,9 @@ class BlueprintSystem {
       outputPort.node.inputPorts.forEach((port) => {
         port.updateEditability();
       });
+
+      // Recalculate node height
+      outputPort.node.recalculateHeight();
     }
 
     // Update input node's generics with the concrete type
@@ -4135,6 +4217,9 @@ class BlueprintSystem {
       inputPort.node.inputPorts.forEach((port) => {
         port.updateEditability();
       });
+
+      // Recalculate node height
+      inputPort.node.recalculateHeight();
     }
 
     // Also update editability for non-generic ports that might have been affected
