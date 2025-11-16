@@ -41,8 +41,19 @@ import { Atan2Node } from "./Atan2Node.js";
 import { ToDegreesNode } from "./ToDegreesNode.js";
 import { ToRadiansNode } from "./ToRadiansNode.js";
 import { DotNode } from "./DotNode.js";
+import { CrossNode } from "./CrossNode.js";
 import { NormalizeNode } from "./NormalizeNode.js";
 import { LengthNode } from "./LengthNode.js";
+import { DistanceNode } from "./DistanceNode.js";
+import { Hash11Node } from "./Hash11Node.js";
+import { Hash21Node } from "./Hash21Node.js";
+import { Hash22Node } from "./Hash22Node.js";
+import { Hash33Node } from "./Hash33Node.js";
+import { ValueNoiseNode } from "./ValueNoiseNode.js";
+import { PerlinNoiseNode } from "./PerlinNoiseNode.js";
+import { SimplexNoiseNode } from "./SimplexNoiseNode.js";
+import { VoronoiNoiseNode } from "./VoronoiNoiseNode.js";
+import { FBMNode } from "./FBMNode.js";
 import { Vec2Node } from "./Vec2Node.js";
 import { Vec3Node } from "./Vec3Node.js";
 import { Vec4Node } from "./Vec4Node.js";
@@ -83,7 +94,6 @@ export const NODE_TYPES = {
   floor: FloorNode,
   ceil: CeilNode,
   mod: ModNode,
-  fmod: FmodNode,
   sqrt: SqrtNode,
   exp: ExpNode,
   ln: LnNode,
@@ -108,8 +118,19 @@ export const NODE_TYPES = {
   toDegrees: ToDegreesNode,
   toRadians: ToRadiansNode,
   dot: DotNode,
+  cross: CrossNode,
   normalize: NormalizeNode,
   length: LengthNode,
+  distance: DistanceNode,
+  hash11: Hash11Node,
+  hash21: Hash21Node,
+  hash22: Hash22Node,
+  hash33: Hash33Node,
+  valueNoise: ValueNoiseNode,
+  perlinNoise: PerlinNoiseNode,
+  simplexNoise: SimplexNoiseNode,
+  voronoiNoise: VoronoiNoiseNode,
+  fbm: FBMNode,
   vec2: Vec2Node,
   vec3: Vec3Node,
   vec4: Vec4Node,
