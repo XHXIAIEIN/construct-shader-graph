@@ -26,5 +26,14 @@ export const DepthUVNode = new NodeType(
     },
   },
   "UV",
-  ["uv", "coordinates", "texcoord", "depth"]
+  [
+    "uv",
+    "coordinates",
+    "texcoord",
+    "depth",
+    "vTex",
+    "input.fragPos",
+    "fragPos",
+    "textureDepth",
+  ]
 );

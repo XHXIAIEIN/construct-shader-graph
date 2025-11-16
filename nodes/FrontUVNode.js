@@ -22,5 +22,14 @@ export const FrontUVNode = new NodeType(
     },
   },
   "UV",
-  ["uv", "coordinates", "texcoord", "front"]
+  [
+    "uv",
+    "coordinates",
+    "texcoord",
+    "front",
+    "vTex",
+    "fragUV",
+    "input.fragUV",
+    "textureFront",
+  ]
 );

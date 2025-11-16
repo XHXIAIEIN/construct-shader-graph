@@ -26,5 +26,15 @@ export const BackUVNode = new NodeType(
     },
   },
   "UV",
-  ["uv", "coordinates", "texcoord", "back", "background"]
+  [
+    "uv",
+    "coordinates",
+    "texcoord",
+    "back",
+    "background",
+    "vTex",
+    "input.fragPos",
+    "fragPos",
+    "textureBack",
+  ]
 );
