@@ -41,6 +41,13 @@ let dragStartHeight = 0;
 let lastDragTime = 0;
 let resumeRotationTimeout = null;
 
+// 2D camera state
+let scrollX = 120;
+let scrollY = 120;
+let zoomLevel = 1;
+let dragStartScrollX = 0;
+let dragStartScrollY = 0;
+
 // Promise that waits for shader data from parent window
 function waitForShaderData() {
   return new Promise((resolve) => {
@@ -97,6 +104,7 @@ async function OnBeforeProjectStart(rt) {
   camera = runtime.objects.camera;
   layout = runtime.layout;
   layer = piggy.layer;
+  layout.isUnboundedScrolling = true;
 
   // Setup camera controls
   setupCameraControls();
@@ -169,13 +177,20 @@ function setCameraMode(mode) {
   if (mode === "2d") {
     // Reset to 2D mode
     cam.restore2DCamera();
-    layout.scrollTo(120, 120);
+    scrollX = 120;
+    scrollY = 120;
+    zoomLevel = 1;
+    layout.scrollTo(scrollX, scrollY);
+    layout.scale = zoomLevel;
+    runtime.mouse.setCursorStyle("grab");
   } else if (mode === "perspective") {
     layout.projection = "perspective";
     cam.fieldOfView = 45;
+    runtime.mouse.setCursorStyle("grab");
   } else if (mode === "orthographic") {
     layout.projection = "orthographic";
     cam.orthographicScale = 1;
+    runtime.mouse.setCursorStyle("grab");
   }
 }
 
@@ -210,37 +225,53 @@ function handlePreviewCommand(command, value) {
 
 function setupCameraControls() {
   runtime.addEventListener("mousedown", (e) => {
-    if (cameraMode === "2d") return;
-
     isDragging = true;
     dragStartX = e.clientX;
     dragStartY = e.clientY;
-    dragStartAngle = cameraAngle;
-    dragStartHeight = cameraHeight;
-    lastDragTime = Date.now();
 
-    // Stop auto rotation
-    if (resumeRotationTimeout) {
-      clearTimeout(resumeRotationTimeout);
-      resumeRotationTimeout = null;
+    if (cameraMode === "2d") {
+      // Store current scroll position for 2D dragging
+      dragStartScrollX = scrollX;
+      dragStartScrollY = scrollY;
+    } else {
+      // Store camera state for 3D dragging
+      dragStartAngle = cameraAngle;
+      dragStartHeight = cameraHeight;
+      lastDragTime = Date.now();
+
+      // Stop auto rotation
+      if (resumeRotationTimeout) {
+        clearTimeout(resumeRotationTimeout);
+        resumeRotationTimeout = null;
+      }
     }
 
     runtime.mouse.setCursorStyle("grabbing");
   });
 
   runtime.addEventListener("mousemove", (e) => {
-    if (!isDragging || cameraMode === "2d") return;
+    if (!isDragging) return;
 
     const deltaX = e.clientX - dragStartX;
     const deltaY = e.clientY - dragStartY;
 
-    // Update camera angle based on horizontal drag
-    cameraAngle = dragStartAngle + deltaX * 0.005;
+    if (cameraMode === "2d") {
+      // Pan the 2D view
+      scrollX = dragStartScrollX - deltaX / zoomLevel;
+      scrollY = dragStartScrollY - deltaY / zoomLevel;
+      layout.scrollTo(scrollX, scrollY);
+    } else {
+      // Update camera angle based on horizontal drag
+      cameraAngle = dragStartAngle + deltaX * 0.005;
 
-    // Update camera height based on vertical drag
-    cameraHeight = Math.max(50, Math.min(300, dragStartHeight - deltaY * 0.5));
+      // Update camera height based on vertical drag
+      cameraHeight = Math.max(
+        50,
+        Math.min(300, dragStartHeight - deltaY * 0.5)
+      );
 
-    lastDragTime = Date.now();
+      lastDragTime = Date.now();
+    }
   });
 
   runtime.addEventListener("mouseup", () => {
@@ -264,10 +295,24 @@ function setupCameraControls() {
     }
   });
 
+  // Mouse wheel zoom for both 2D and 3D
+  runtime.addEventListener("wheel", (e) => {
+    e.preventDefault();
+
+    if (cameraMode === "2d") {
+      // Zoom 2D view
+      const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+      zoomLevel = Math.max(0.1, Math.min(5, zoomLevel * zoomFactor));
+      layout.scale = zoomLevel;
+    } else {
+      // Zoom 3D camera by adjusting distance
+      const zoomFactor = e.deltaY > 0 ? 1.1 : 0.9;
+      cameraDistance = Math.max(50, Math.min(500, cameraDistance * zoomFactor));
+    }
+  });
+
   // Set initial cursor
-  if (cameraMode !== "2d") {
-    runtime.mouse.setCursorStyle("grab");
-  }
+  runtime.mouse.setCursorStyle("grab");
 }
 
 function updateCamera() {
