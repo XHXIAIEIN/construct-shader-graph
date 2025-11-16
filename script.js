@@ -1591,6 +1591,7 @@ class BlueprintSystem {
     const previewWindow = document.getElementById("preview-window");
     const previewHeader = document.getElementById("preview-header");
     const closePreviewBtn = document.getElementById("closePreviewBtn");
+    const openPreviewBtn = document.getElementById("openPreviewBtn");
     this.shaderErrorsContainer = document.getElementById(
       "shader-errors-container"
     );
@@ -1634,9 +1635,11 @@ class BlueprintSystem {
       if (previewControls.classList.contains("preview-controls-visible")) {
         previewControls.classList.remove("preview-controls-visible");
         previewControls.classList.add("preview-controls-hidden");
+        togglePreviewSettingsBtn.classList.remove("active");
       } else {
         previewControls.classList.remove("preview-controls-hidden");
         previewControls.classList.add("preview-controls-visible");
+        togglePreviewSettingsBtn.classList.add("active");
       }
     });
 
@@ -1648,6 +1651,19 @@ class BlueprintSystem {
     // Close button
     closePreviewBtn.addEventListener("click", () => {
       previewWindow.style.display = "none";
+      openPreviewBtn.style.display = "flex";
+    });
+
+    // Open preview button
+    openPreviewBtn.addEventListener("click", () => {
+      previewWindow.style.display = "flex";
+      openPreviewBtn.style.display = "none";
+
+      // Reset position to bottom right
+      previewWindow.style.left = "";
+      previewWindow.style.top = "";
+      previewWindow.style.bottom = "20px";
+      previewWindow.style.right = "20px";
     });
 
     // Preview controls

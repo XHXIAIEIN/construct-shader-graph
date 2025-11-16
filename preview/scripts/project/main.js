@@ -29,15 +29,15 @@ let runtime;
 // Camera state
 let cameraMode = "2d";
 let autoRotate = true;
-let cameraAngle = 0;
-let cameraDistance = 240;
-let cameraHeight = 240;
+let cameraAzimuth = 0; // Horizontal angle (around Z axis)
+let cameraPolar = Math.PI / 4; // Vertical angle from Z axis (45 degrees)
+let cameraDistance = 300;
 let targetPosition = { x: 120, y: 120, z: 60 };
 let isDragging = false;
 let dragStartX = 0;
 let dragStartY = 0;
-let dragStartAngle = 0;
-let dragStartHeight = 0;
+let dragStartAzimuth = 0;
+let dragStartPolar = 0;
 let lastDragTime = 0;
 let resumeRotationTimeout = null;
 
@@ -173,9 +173,15 @@ function setCameraMode(mode) {
   cameraMode = mode;
   const cam = camera;
 
+  //   background.isVisible = mode === "2d";
+  //   background3d.isVisible = mode !== "2d";
+  background.isVisible = false;
+  background3d.isVisible = true;
+
   if (mode === "2d") {
     // Reset to 2D mode
     cam.restore2DCamera();
+    layout.projection = "perspective";
     scrollX = 120;
     scrollY = 120;
     zoomLevel = 1;
@@ -233,9 +239,9 @@ function setupCameraControls() {
       dragStartScrollX = scrollX;
       dragStartScrollY = scrollY;
     } else {
-      // Store camera state for 3D dragging
-      dragStartAngle = cameraAngle;
-      dragStartHeight = cameraHeight;
+      // Store camera spherical coordinates for 3D dragging
+      dragStartAzimuth = cameraAzimuth;
+      dragStartPolar = cameraPolar;
       lastDragTime = Date.now();
 
       // Stop auto rotation
@@ -260,13 +266,15 @@ function setupCameraControls() {
       scrollY = dragStartScrollY - deltaY / zoomLevel;
       layout.scrollTo(scrollX, scrollY);
     } else {
-      // Update camera angle based on horizontal drag
-      cameraAngle = dragStartAngle + deltaX * 0.005;
+      // Update spherical coordinates based on drag
+      // Horizontal drag controls azimuth (rotation around Z axis)
+      cameraAzimuth = dragStartAzimuth + deltaX * 0.005;
 
-      // Update camera height based on vertical drag
-      cameraHeight = Math.max(
-        50,
-        Math.min(300, dragStartHeight - deltaY * 0.5)
+      // Vertical drag controls polar angle (elevation)
+      // Clamp polar angle to prevent flipping (0.1 to PI - 0.1)
+      cameraPolar = Math.max(
+        0.1,
+        Math.min(Math.PI - 0.1, dragStartPolar - deltaY * 0.005)
       );
 
       lastDragTime = Date.now();
@@ -304,9 +312,9 @@ function setupCameraControls() {
       zoomLevel = Math.max(0.1, Math.min(5, zoomLevel * zoomFactor));
       layout.scale = zoomLevel;
     } else {
-      // Zoom 3D camera by adjusting distance
+      // Zoom 3D camera by adjusting distance from target
       const zoomFactor = e.deltaY > 0 ? 1.1 : 0.9;
-      cameraDistance = Math.max(50, Math.min(500, cameraDistance * zoomFactor));
+      cameraDistance = Math.max(50, Math.min(800, cameraDistance * zoomFactor));
     }
   });
 
@@ -321,20 +329,29 @@ function updateCamera() {
 
   // Auto rotate if enabled and not dragging
   if (autoRotate && !isDragging && resumeRotationTimeout === null) {
-    cameraAngle += runtime.dt * 0.3; // Slow rotation
+    cameraAzimuth -= runtime.dt * 0.5; // Slow rotation around Z axis
   }
 
-  // Calculate camera position in a circle around the target
-  let x = targetPosition.x + Math.cos(cameraAngle) * cameraDistance;
-  let y = targetPosition.y + Math.sin(cameraAngle) * cameraDistance;
-  let z = cameraHeight;
+  // Convert spherical coordinates to Cartesian coordinates
+  // Spherical to Cartesian:
+  // x = r * sin(polar) * cos(azimuth)
+  // y = r * sin(polar) * sin(azimuth)
+  // z = r * cos(polar)
+  const sinPolar = Math.sin(cameraPolar);
+  const cosPolar = Math.cos(cameraPolar);
+
+  let x =
+    targetPosition.x + cameraDistance * sinPolar * Math.cos(cameraAzimuth);
+  let y =
+    targetPosition.y + cameraDistance * sinPolar * Math.sin(cameraAzimuth);
+  let z = targetPosition.z + cameraDistance * cosPolar;
 
   // Smoothly interpolate camera position
   const camPos = cam.getCameraPosition();
   const lerpFactor = 1 - Math.pow(0.001, runtime.dt);
-  x += (x - camPos[0]) * lerpFactor;
-  y += (y - camPos[1]) * lerpFactor;
-  z += (z - camPos[2]) * lerpFactor;
+  x = camPos[0] + (x - camPos[0]) * lerpFactor;
+  y = camPos[1] + (y - camPos[1]) * lerpFactor;
+  z = camPos[2] + (z - camPos[2]) * lerpFactor;
 
   // Look at the target position
   cam.lookAtPosition(
