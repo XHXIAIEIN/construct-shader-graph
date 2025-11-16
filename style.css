@@ -193,6 +193,21 @@ button:hover {
     cursor: default;
 }
 
+/* Minimap */
+#minimap {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 200px;
+    height: 150px;
+    background: rgba(42, 42, 42, 0.9);
+    border: 2px solid #4a4a4a;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    z-index: 1000;
+}
+
 /* Node styles are drawn on canvas, but we'll use these colors in JS */
 :root {
   --node-bg: #2d2d2d;

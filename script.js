@@ -707,6 +707,7 @@ class BlueprintSystem {
     this.setupUniformSidebar();
     this.setupCustomNodeModal();
     this.setupPreview();
+    this.setupMinimap();
     this.render();
   }
 
@@ -719,6 +720,25 @@ class BlueprintSystem {
     };
     resize();
     window.addEventListener("resize", resize);
+  }
+
+  setupMinimap() {
+    this.minimapCanvas = document.getElementById("minimap");
+    this.minimapCtx = this.minimapCanvas.getContext("2d");
+    
+    // Set minimap dimensions
+    const minimapWidth = 200;
+    const minimapHeight = 150;
+    this.minimapCanvas.width = minimapWidth;
+    this.minimapCanvas.height = minimapHeight;
+    
+    // Handle minimap clicks
+    this.minimapCanvas.addEventListener("click", (e) => {
+      const rect = this.minimapCanvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+      this.handleMinimapClick(clickX, clickY);
+    });
   }
 
   setupInputField() {
@@ -6064,6 +6084,133 @@ class BlueprintSystem {
 
     // Restore context
     ctx.restore();
+    
+    // Render minimap
+    this.renderMinimap();
+  }
+
+  getNodesBounds() {
+    if (this.nodes.length === 0) {
+      return { x: 0, y: 0, width: 800, height: 600 };
+    }
+    
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    
+    this.nodes.forEach(node => {
+      minX = Math.min(minX, node.x);
+      minY = Math.min(minY, node.y);
+      maxX = Math.max(maxX, node.x + node.width);
+      maxY = Math.max(maxY, node.y + node.height);
+    });
+    
+    // Add padding around nodes
+    const padding = 100;
+    minX -= padding;
+    minY -= padding;
+    maxX += padding;
+    maxY += padding;
+    
+    return {
+      x: minX,
+      y: minY,
+      width: maxX - minX,
+      height: maxY - minY
+    };
+  }
+
+  renderMinimap() {
+    if (!this.minimapCanvas || !this.minimapCtx) {
+      return;
+    }
+    
+    const ctx = this.minimapCtx;
+    const width = this.minimapCanvas.width;
+    const height = this.minimapCanvas.height;
+    
+    // Clear minimap
+    ctx.clearRect(0, 0, width, height);
+    
+    // Draw background
+    ctx.fillStyle = "rgba(26, 26, 26, 0.95)";
+    ctx.fillRect(0, 0, width, height);
+    
+    // Get bounds of all nodes
+    const bounds = this.getNodesBounds();
+    
+    // Calculate scale to fit all nodes in minimap
+    const scaleX = width / bounds.width;
+    const scaleY = height / bounds.height;
+    const scale = Math.min(scaleX, scaleY) * 0.9; // 0.9 for some margin
+    
+    // Calculate offset to center the view
+    const offsetX = (width - bounds.width * scale) / 2;
+    const offsetY = (height - bounds.height * scale) / 2;
+    
+    // Draw nodes
+    ctx.save();
+    this.nodes.forEach(node => {
+      const x = (node.x - bounds.x) * scale + offsetX;
+      const y = (node.y - bounds.y) * scale + offsetY;
+      const w = node.width * scale;
+      const h = node.height * scale;
+      
+      // Draw node as a small rectangle
+      ctx.fillStyle = node.headerColor;
+      ctx.fillRect(x, y, w, h);
+    });
+    ctx.restore();
+    
+    // Draw camera viewport
+    const viewportWidth = this.canvas.width / this.camera.zoom;
+    const viewportHeight = this.canvas.height / this.camera.zoom;
+    const viewportX = -this.camera.x / this.camera.zoom;
+    const viewportY = -this.camera.y / this.camera.zoom;
+    
+    const vx = (viewportX - bounds.x) * scale + offsetX;
+    const vy = (viewportY - bounds.y) * scale + offsetY;
+    const vw = viewportWidth * scale;
+    const vh = viewportHeight * scale;
+    
+    ctx.strokeStyle = "#4a90e2";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(vx, vy, vw, vh);
+    
+    // Fill viewport with semi-transparent overlay
+    ctx.fillStyle = "rgba(74, 144, 226, 0.2)";
+    ctx.fillRect(vx, vy, vw, vh);
+  }
+
+  handleMinimapClick(clickX, clickY) {
+    const width = this.minimapCanvas.width;
+    const height = this.minimapCanvas.height;
+    
+    // Get bounds of all nodes
+    const bounds = this.getNodesBounds();
+    
+    // Calculate scale
+    const scaleX = width / bounds.width;
+    const scaleY = height / bounds.height;
+    const scale = Math.min(scaleX, scaleY) * 0.9;
+    
+    // Calculate offset
+    const offsetX = (width - bounds.width * scale) / 2;
+    const offsetY = (height - bounds.height * scale) / 2;
+    
+    // Convert click position to world coordinates
+    const worldX = (clickX - offsetX) / scale + bounds.x;
+    const worldY = (clickY - offsetY) / scale + bounds.y;
+    
+    // Center camera on clicked position
+    const viewportWidth = this.canvas.width / this.camera.zoom;
+    const viewportHeight = this.canvas.height / this.camera.zoom;
+    
+    this.camera.x = -(worldX - viewportWidth / 2) * this.camera.zoom;
+    this.camera.y = -(worldY - viewportHeight / 2) * this.camera.zoom;
+    
+    this.render();
   }
 }
 
