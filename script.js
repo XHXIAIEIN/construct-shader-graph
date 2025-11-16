@@ -1634,6 +1634,65 @@ class BlueprintSystem {
       previewWindow.style.display = "none";
     });
 
+    // Preview controls
+    const effectTargetSelect = document.getElementById("effectTargetSelect");
+    const objectSelect = document.getElementById("objectSelect");
+    const cameraModeSelect = document.getElementById("cameraModeSelect");
+    const autoRotateCheckbox = document.getElementById("autoRotateCheckbox");
+    const autoRotateGroup = document.getElementById("autoRotateGroup");
+
+    effectTargetSelect.addEventListener("change", (e) => {
+      const target = e.target.value;
+      this.sendPreviewCommand("setEffectTarget", target);
+
+      // Auto-sync object selection
+      if (target === "sprite") {
+        objectSelect.value = "sprite";
+        this.sendPreviewCommand("setObject", "sprite");
+      } else if (target === "shape3D") {
+        // Set to box if currently on sprite, otherwise keep current 3D shape
+        if (objectSelect.value === "sprite") {
+          objectSelect.value = "box";
+        }
+        this.sendPreviewCommand("setObject", objectSelect.value);
+      }
+    });
+
+    objectSelect.addEventListener("change", (e) => {
+      const object = e.target.value;
+      this.sendPreviewCommand("setObject", object);
+
+      // Auto-sync effect target selection
+      if (
+        object === "sprite" &&
+        effectTargetSelect.value !== "sprite" &&
+        effectTargetSelect.value !== "layout" &&
+        effectTargetSelect.value !== "layer"
+      ) {
+        effectTargetSelect.value = "sprite";
+        this.sendPreviewCommand("setEffectTarget", "sprite");
+      } else if (object !== "sprite" && effectTargetSelect.value === "sprite") {
+        effectTargetSelect.value = "shape3D";
+        this.sendPreviewCommand("setEffectTarget", "shape3D");
+      }
+    });
+
+    cameraModeSelect.addEventListener("change", (e) => {
+      const mode = e.target.value;
+      this.sendPreviewCommand("setCameraMode", mode);
+
+      // Show/hide auto rotate option based on camera mode
+      if (mode === "2d") {
+        autoRotateGroup.style.display = "none";
+      } else {
+        autoRotateGroup.style.display = "flex";
+      }
+    });
+
+    autoRotateCheckbox.addEventListener("change", (e) => {
+      this.sendPreviewCommand("setAutoRotate", e.target.checked);
+    });
+
     // Listen for messages from preview iframe
     window.addEventListener("message", (event) => {
       if (event.data && event.data.type === "requestShaderData") {
@@ -1643,6 +1702,12 @@ class BlueprintSystem {
         this.previewReady = true;
         this.clearShaderErrors(); // Clear errors on new load
         this.sendUniformValuesToPreview();
+
+        // Send initial preview settings
+        this.sendPreviewCommand("setEffectTarget", effectTargetSelect.value);
+        this.sendPreviewCommand("setObject", objectSelect.value);
+        this.sendPreviewCommand("setCameraMode", cameraModeSelect.value);
+        this.sendPreviewCommand("setAutoRotate", autoRotateCheckbox.checked);
       } else if (event.data && event.data.type === "shaderError") {
         this.displayShaderError(event.data.message, event.data.severity);
       }
@@ -1726,6 +1791,19 @@ class BlueprintSystem {
       {
         type: "shaderData",
         shaderData: this.cachedShaderData,
+      },
+      "*"
+    );
+  }
+
+  sendPreviewCommand(command, value) {
+    if (!this.previewIframe) return;
+
+    this.previewIframe.contentWindow.postMessage(
+      {
+        type: "previewCommand",
+        command: command,
+        value: value,
       },
       "*"
     );

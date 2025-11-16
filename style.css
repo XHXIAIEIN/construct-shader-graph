@@ -1328,6 +1328,53 @@ button:hover {
   background: #e24a4a;
 }
 
+#preview-controls {
+  background: #1a1a1a;
+  padding: 8px 12px;
+  display: flex;
+  gap: 12px;
+  border-bottom: 1px solid #4a4a4a;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.preview-control-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.preview-control-group label {
+  color: #aaa;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.preview-control-group select {
+  background: #2a2a2a;
+  border: 1px solid #4a4a4a;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  outline: none;
+}
+
+.preview-control-group select:hover {
+  border-color: #6a6a6a;
+}
+
+.preview-control-group select:focus {
+  border-color: #4a9eff;
+}
+
+.preview-control-group input[type="checkbox"] {
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+}
+
 #preview-iframe {
   flex: 1;
   border: none;

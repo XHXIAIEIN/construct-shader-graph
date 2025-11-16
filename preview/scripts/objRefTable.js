@@ -4,7 +4,8 @@ self.C3_GetObjectRefTable = function () {
 		C3.Plugins.Sprite,
 		C3.Plugins.TiledBg,
 		C3.Plugins.Shape3D,
-		C3.Plugins.Camera3D
+		C3.Plugins.Camera3D,
+		C3.Plugins.Mouse
 	];
 };
 self.C3_JsPropNameTable = [
@@ -12,7 +13,8 @@ self.C3_JsPropNameTable = [
 	{background: 0},
 	{shape3d: 0},
 	{camera: 0},
-	{background3d: 0}
+	{background3d: 0},
+	{Mouse: 0}
 ];
 
 self.InstanceType = {
@@ -20,5 +22,6 @@ self.InstanceType = {
 	background: class extends self.ITiledBackgroundInstance {},
 	shape3d: class extends self.I3DShapeInstance {},
 	camera: class extends self.IInstance {},
-	background3d: class extends self.I3DShapeInstance {}
+	background3d: class extends self.I3DShapeInstance {},
+	Mouse: class extends self.IInstance {}
 }

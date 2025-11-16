@@ -24,6 +24,22 @@ let background3d;
 let camera;
 let layout;
 let layer;
+let runtime;
+
+// Camera state
+let cameraMode = "2d";
+let autoRotate = true;
+let cameraAngle = 0;
+let cameraDistance = 240;
+let cameraHeight = 240;
+let targetPosition = { x: 120, y: 120, z: 60 };
+let isDragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
+let dragStartAngle = 0;
+let dragStartHeight = 0;
+let lastDragTime = 0;
+let resumeRotationTimeout = null;
 
 // Promise that waits for shader data from parent window
 function waitForShaderData() {
@@ -33,7 +49,6 @@ function waitForShaderData() {
         // Store the shader data
         self["C3_Shaders"] = self["C3_Shaders"] || {};
         self["C3_Shaders"]["skymen_Placeholdereffect"] = event.data.shaderData;
-        console.log(self["C3_Shaders"]["skymen_Placeholdereffect"]);
         // Clean up listener
         window.removeEventListener("message", messageHandler);
 
@@ -69,7 +84,9 @@ function setupDefaultShader() {
   };
 }
 
-async function OnBeforeProjectStart(runtime) {
+async function OnBeforeProjectStart(rt) {
+  runtime = rt;
+
   // Capture shader errors and warnings
   setupShaderErrorCapture();
 
@@ -81,6 +98,12 @@ async function OnBeforeProjectStart(runtime) {
   layout = runtime.layout;
   layer = piggy.layer;
 
+  // Setup camera controls
+  setupCameraControls();
+
+  // Start camera update loop
+  runtime.addEventListener("tick", updateCamera);
+
   if (window !== window.parent) {
     // Signal that project is ready for parameter updates
     window.parent.postMessage({ type: "projectReady" }, "*");
@@ -88,6 +111,8 @@ async function OnBeforeProjectStart(runtime) {
     window.addEventListener("message", (event) => {
       if (event.data && event.data.type === "updateParam") {
         updateParam(runtime, event.data.index, event.data.value);
+      } else if (event.data && event.data.type === "previewCommand") {
+        handlePreviewCommand(event.data.command, event.data.value);
       }
     });
   }
@@ -107,7 +132,7 @@ function setEffectTarget(target) {
   layer.effects[0].isActive = false;
 
   switch (target) {
-    case "piggy":
+    case "sprite":
       piggy.effects[0].isActive = true;
       break;
     case "shape3D":
@@ -129,14 +154,156 @@ function setObject(object) {
 
   if (object === "sprite") {
     piggy.isVisible = true;
+    targetPosition.z = 0;
   } else {
     shape3D.isVisible = true;
     shape3D.shape = object;
+    targetPosition.z = 60;
   }
 }
 
 function setCameraMode(mode) {
-  //2d, perspective, orthographic
+  cameraMode = mode;
+  const cam = camera;
+
+  if (mode === "2d") {
+    // Reset to 2D mode
+    cam.restore2DCamera();
+    layout.scrollTo(120, 120);
+  } else if (mode === "perspective") {
+    layout.projection = "perspective";
+    cam.fieldOfView = 45;
+  } else if (mode === "orthographic") {
+    layout.projection = "orthographic";
+    cam.orthographicScale = 1;
+  }
+}
+
+function setAutoRotate(enabled) {
+  autoRotate = enabled;
+
+  if (enabled && !isDragging && cameraMode !== "2d") {
+    // Clear any pending timeout
+    if (resumeRotationTimeout) {
+      clearTimeout(resumeRotationTimeout);
+      resumeRotationTimeout = null;
+    }
+  }
+}
+
+function handlePreviewCommand(command, value) {
+  switch (command) {
+    case "setEffectTarget":
+      setEffectTarget(value);
+      break;
+    case "setObject":
+      setObject(value);
+      break;
+    case "setCameraMode":
+      setCameraMode(value);
+      break;
+    case "setAutoRotate":
+      setAutoRotate(value);
+      break;
+  }
+}
+
+function setupCameraControls() {
+  runtime.addEventListener("mousedown", (e) => {
+    if (cameraMode === "2d") return;
+
+    isDragging = true;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    dragStartAngle = cameraAngle;
+    dragStartHeight = cameraHeight;
+    lastDragTime = Date.now();
+
+    // Stop auto rotation
+    if (resumeRotationTimeout) {
+      clearTimeout(resumeRotationTimeout);
+      resumeRotationTimeout = null;
+    }
+
+    runtime.mouse.setCursorStyle("grabbing");
+  });
+
+  runtime.addEventListener("mousemove", (e) => {
+    if (!isDragging || cameraMode === "2d") return;
+
+    const deltaX = e.clientX - dragStartX;
+    const deltaY = e.clientY - dragStartY;
+
+    // Update camera angle based on horizontal drag
+    cameraAngle = dragStartAngle + deltaX * 0.005;
+
+    // Update camera height based on vertical drag
+    cameraHeight = Math.max(50, Math.min(300, dragStartHeight - deltaY * 0.5));
+
+    lastDragTime = Date.now();
+  });
+
+  runtime.addEventListener("mouseup", () => {
+    if (!isDragging) return;
+
+    isDragging = false;
+    runtime.mouse.setCursorStyle("grab");
+
+    // If auto rotate is enabled, wait a bit then resume rotation
+    if (autoRotate && cameraMode !== "2d") {
+      resumeRotationTimeout = setTimeout(() => {
+        resumeRotationTimeout = null;
+      }, 1000);
+    }
+  });
+
+  runtime.addEventListener("mouseleave", () => {
+    if (isDragging) {
+      isDragging = false;
+      runtime.mouse.setCursorStyle("default");
+    }
+  });
+
+  // Set initial cursor
+  if (cameraMode !== "2d") {
+    runtime.mouse.setCursorStyle("grab");
+  }
+}
+
+function updateCamera() {
+  if (cameraMode === "2d") return;
+
+  const cam = camera;
+
+  // Auto rotate if enabled and not dragging
+  if (autoRotate && !isDragging && resumeRotationTimeout === null) {
+    cameraAngle += runtime.dt * 0.3; // Slow rotation
+  }
+
+  // Calculate camera position in a circle around the target
+  let x = targetPosition.x + Math.cos(cameraAngle) * cameraDistance;
+  let y = targetPosition.y + Math.sin(cameraAngle) * cameraDistance;
+  let z = cameraHeight;
+
+  // Smoothly interpolate camera position
+  const camPos = cam.getCameraPosition();
+  const lerpFactor = 1 - Math.pow(0.001, runtime.dt);
+  x += (x - camPos[0]) * lerpFactor;
+  y += (y - camPos[1]) * lerpFactor;
+  z += (z - camPos[2]) * lerpFactor;
+
+  // Look at the target position
+  cam.lookAtPosition(
+    x,
+    y,
+    z,
+    targetPosition.x,
+    targetPosition.y,
+    targetPosition.z,
+    0,
+    0,
+    1
+  );
 }
 
 function setupShaderErrorCapture() {
@@ -267,6 +434,26 @@ function setupShaderErrorCapture() {
         ],
       ];
       super.Init(t);
+    }
+  };
+  self.C3.EffectList = class extends self.C3.EffectList {
+    constructor(e, t) {
+      debugger;
+      if (t.length === 1) {
+        while (t[0].length < 3) {
+          t[0].push([]);
+        }
+        t[0][2] = [
+          true,
+          ...self["C3_Shaders"]["skymen_Placeholdereffect"].parameters.map(
+            (p) => {
+              return p[2] === "color" ? [1, 1, 1] : 1;
+            }
+          ),
+        ];
+      }
+      debugger;
+      super(e, t);
     }
   };
 }
