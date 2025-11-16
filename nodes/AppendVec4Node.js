@@ -1,0 +1,75 @@
+import { NodeType } from "./NodeType.js";
+
+export const AppendVec4Node = new NodeType(
+  "Append Vec4",
+  [
+    { name: "A", type: "custom" },
+    { name: "B", type: "custom" },
+  ],
+  [{ name: "Result", type: "vec4" }],
+  "#3a4a5a",
+  {
+    webgl1: {
+      dependency: "",
+      execution: (inputs, outputs) =>
+        `    vec4 ${outputs[0]} = vec4(${inputs[0]}, ${inputs[1]});`,
+    },
+    webgl2: {
+      dependency: "",
+      execution: (inputs, outputs) =>
+        `    vec4 ${outputs[0]} = vec4(${inputs[0]}, ${inputs[1]});`,
+    },
+    webgpu: {
+      dependency: "",
+      execution: (inputs, outputs) =>
+        `    var ${outputs[0]}: vec4<f32> = vec4<f32>(${inputs[0]}, ${inputs[1]});`,
+    },
+  },
+  "Vector",
+  ["append", "combine", "concatenate", "join", "construct", "vec4"]
+);
+
+// Function to determine custom types for inputs
+AppendVec4Node.getCustomType = (node, port) => {
+  if (port.type === "input") {
+    const portIndex = port.index;
+
+    // Check if this specific port is connected
+    const thisPortType = node.getConnectedInputType(portIndex);
+
+    // If this port is connected, return its actual type
+    if (thisPortType !== null) {
+      return thisPortType;
+    }
+
+    // This port is disconnected, check the other port
+    const otherPortIndex = portIndex === 0 ? 1 : 0;
+    const otherPortType = node.getConnectedInputType(otherPortIndex);
+
+    // If both inputs are disconnected, use genType3OrLess (float, vec2, or vec3)
+    if (otherPortType === null) {
+      return portIndex === 0 ? "genType3OrLess" : "genType3OrLess2";
+    }
+
+    // Calculate what type this disconnected input should accept based on vec4 target and other input
+    const otherComponents = getComponentCount(otherPortType);
+    const neededComponents = 4 - otherComponents;
+
+    if (neededComponents <= 0) return "float";
+    if (neededComponents === 1) return "float";
+    if (neededComponents === 2) return "vec2";
+    if (neededComponents === 3) return "vec3";
+    return "vec4";
+  }
+
+  return portIndex === 0 ? "genType3OrLess" : "genType3OrLess2";
+};
+
+// Helper function to get component count from type
+function getComponentCount(type) {
+  if (type === "float" || type === "int" || type === "boolean") return 1;
+  if (type === "vec2") return 2;
+  if (type === "vec3") return 3;
+  if (type === "vec4") return 4;
+  return 1; // Default to 1 for unknown types
+}

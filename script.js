@@ -27,8 +27,13 @@ class Port {
     this.name = portDef.name;
 
     // Store value for editable input ports
+    // Custom types are never editable as their type can change dynamically
     const portTypeInfo = PORT_TYPES[this.portType];
-    if (type === "input" && portTypeInfo?.editable) {
+    if (
+      type === "input" &&
+      portTypeInfo?.editable &&
+      this.portType !== "custom"
+    ) {
       this.value = portTypeInfo.defaultValue;
       this.isEditable = true;
     } else {
@@ -208,18 +213,41 @@ class Port {
     const outputResolvedType = outputPort.getResolvedType();
     const inputResolvedType = inputPort.getResolvedType();
 
+    // For custom types, always pass the resolved type
+    // For generic types, pass resolved type if it's different from the port type
+    const outputTypeToCheck =
+      outputPort.portType === "custom"
+        ? outputResolvedType
+        : outputResolvedType !== outputPort.portType
+        ? outputResolvedType
+        : null;
+
+    const inputTypeToCheck =
+      inputPort.portType === "custom"
+        ? inputResolvedType
+        : inputResolvedType !== inputPort.portType
+        ? inputResolvedType
+        : null;
+
     // Check type compatibility using the new system with resolved types
     return areTypesCompatible(
       outputPort.portType,
       inputPort.portType,
-      outputResolvedType !== outputPort.portType ? outputResolvedType : null,
-      inputResolvedType !== inputPort.portType ? inputResolvedType : null
+      outputTypeToCheck,
+      inputTypeToCheck
     );
   }
 
   // Update editability based on resolved type (for generic types)
   updateEditability() {
     if (this.type !== "input") return;
+
+    // Custom types should never be editable as their type can change dynamically
+    if (this.portType === "custom") {
+      this.isEditable = false;
+      return;
+    }
+
     const resolvedType = this.getResolvedType();
     const portTypeInfo = PORT_TYPES[resolvedType];
 
@@ -465,6 +493,23 @@ class Node {
         }
       });
     }
+  }
+
+  // Get the resolved type of a connected input port
+  getConnectedInputType(inputIndex) {
+    const inputPort = this.inputPorts[inputIndex];
+    if (!inputPort) return null;
+
+    // Check if there's a connection
+    if (inputPort.connections.length > 0) {
+      const wire = inputPort.connections[0];
+      const sourcePort = wire.startPort;
+      if (sourcePort) {
+        return sourcePort.getResolvedType();
+      }
+    }
+
+    return null;
   }
 }
 

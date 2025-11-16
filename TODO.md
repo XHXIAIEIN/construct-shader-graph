@@ -64,7 +64,7 @@
 - [x] Vec3 Decompose (split vec3 into X, Y, Z) - Vec3DecomposeNode
 - [x] Vec4 Decompose (split vec4 into X, Y, Z, W) - Vec4DecomposeNode
 - [x] Split/Swizzle (extract components with swizzle like .xyz, .rgb, .xxy, etc.) - SwizzleNode
-- [ ] Append (append values to vector, e.g., vec2 + float = vec3)
+- [x] Append (append values to vector, e.g., vec2 + float = vec3) - AppendVec3Node, AppendVec4Node
 
 ### Texture Operations
 

@@ -8,6 +8,22 @@ const genType = {
   allowedTypes: ["float", "vec2", "vec3", "vec4"],
 };
 
+const genType2OrLess = {
+  color: "#c084fc",
+  name: "genType2OrLess",
+  editable: false,
+  isGeneric: true,
+  allowedTypes: ["float", "vec2"],
+};
+
+const genType3OrLess = {
+  color: "#c084fc",
+  name: "genType3OrLess",
+  editable: false,
+  isGeneric: true,
+  allowedTypes: ["float", "vec2", "vec3"],
+};
+
 export const PORT_TYPES = {
   // Scalar types
   float: {
@@ -148,6 +164,24 @@ export const PORT_TYPES = {
     isGeneric: true,
     allowedTypes: ["float", "int", "boolean", "vec2", "vec3", "vec4", "color"],
   },
+  genType2Plus: {
+    color: "#c084fc",
+    name: "Vec2+",
+    editable: false,
+    isGeneric: true,
+    allowedTypes: ["vec2", "vec3", "vec4"],
+  },
+  genType3Plus: {
+    color: "#c084fc",
+    name: "Vec3+",
+    editable: false,
+    isGeneric: true,
+    allowedTypes: ["vec3", "vec4"],
+  },
+  genType2OrLess,
+  genType2OrLess2: { ...genType2OrLess },
+  genType3OrLess,
+  genType3OrLess2: { ...genType3OrLess },
 };
 
 // Helper function to check if a type is generic
@@ -177,23 +211,39 @@ export function areTypesCompatible(
   resolvedOutputType = null,
   resolvedInputType = null
 ) {
-  // Use resolved types if available (for generics)
+  // For custom types, we must use the resolved type
+  // If custom type is provided but resolved type is null, they're incompatible
+  if (outputType === "custom" && !resolvedOutputType) return false;
+  if (inputType === "custom" && !resolvedInputType) return false;
+
+  // Use resolved types if available (for generics and custom types)
   const actualOutputType = resolvedOutputType || outputType;
   const actualInputType = resolvedInputType || inputType;
 
   // Exact match
   if (actualOutputType === actualInputType) return true;
 
-  // If input is generic, check if output is in allowed types
+  // If input is generic (and not resolved), check if output is in allowed types
   if (isGenericType(inputType) && !resolvedInputType) {
     const allowedTypes = getAllowedTypesForGeneric(inputType);
     return allowedTypes.includes(actualOutputType);
   }
 
-  // If output is generic, check if input is in allowed types
+  // If output is generic (and not resolved), check if input is in allowed types
   if (isGenericType(outputType) && !resolvedOutputType) {
     const allowedTypes = getAllowedTypesForGeneric(outputType);
     return allowedTypes.includes(actualInputType);
+  }
+
+  // If actual types are generic (resolved from custom), check compatibility
+  if (isGenericType(actualOutputType)) {
+    const allowedTypes = getAllowedTypesForGeneric(actualOutputType);
+    return allowedTypes.includes(actualInputType);
+  }
+
+  if (isGenericType(actualInputType)) {
+    const allowedTypes = getAllowedTypesForGeneric(actualInputType);
+    return allowedTypes.includes(actualOutputType);
   }
 
   // Check if input type is a composite that includes the output type

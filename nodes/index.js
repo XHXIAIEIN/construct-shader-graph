@@ -86,6 +86,8 @@ import { CartesianToPolarNode } from "./CartesianToPolarNode.js";
 import { SphericalToCartesianNode } from "./SphericalToCartesianNode.js";
 import { CartesianToSphericalNode } from "./CartesianToSphericalNode.js";
 import { SwizzleNode } from "./SwizzleNode.js";
+import { AppendVec3Node } from "./AppendVec3Node.js";
+import { AppendVec4Node } from "./AppendVec4Node.js";
 
 // Import built-in parameter nodes
 import { BuiltinSrcStartNode } from "./BuiltinSrcStartNode.js";
@@ -186,6 +188,8 @@ export const NODE_TYPES = {
   sphericalToCartesian: SphericalToCartesianNode,
   cartesianToSpherical: CartesianToSphericalNode,
   swizzle: SwizzleNode,
+  appendVec3: AppendVec3Node,
+  appendVec4: AppendVec4Node,
 
   // Built-in parameters
   builtinSrcStart: BuiltinSrcStartNode,
