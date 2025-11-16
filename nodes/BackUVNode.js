@@ -25,6 +25,6 @@ export const BackUVNode = new NodeType(
         `    var ${outputs[0]}: vec2<f32> = c3_getBackUV(input.fragPos.xy, textureBack);`,
     },
   },
-  "Input",
+  "UV",
   ["uv", "coordinates", "texcoord", "back", "background"]
 );

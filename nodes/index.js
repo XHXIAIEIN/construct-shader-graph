@@ -108,6 +108,10 @@ import { BuiltinSrcSizeNode } from "./BuiltinSrcSizeNode.js";
 import { BuiltinSrcCenterNode } from "./BuiltinSrcCenterNode.js";
 import { BuiltinSrcOriginSizeNode } from "./BuiltinSrcOriginSizeNode.js";
 import { BuiltinSrcOriginCenterNode } from "./BuiltinSrcOriginCenterNode.js";
+import { BuiltinDestCenterNode } from "./BuiltinDestCenterNode.js";
+import { BuiltinDestSizeNode } from "./BuiltinDestSizeNode.js";
+import { BuiltinLayoutCenterNode } from "./BuiltinLayoutCenterNode.js";
+import { BuiltinLayoutSizeNode } from "./BuiltinLayoutSizeNode.js";
 
 // Export NODE_TYPES object
 export const NODE_TYPES = {
@@ -194,20 +198,24 @@ export const NODE_TYPES = {
   // Built-in parameters
   builtinSrcStart: BuiltinSrcStartNode,
   builtinSrcEnd: BuiltinSrcEndNode,
+  builtinSrcSize: BuiltinSrcSizeNode,
+  builtinSrcCenter: BuiltinSrcCenterNode,
   builtinSrcOriginStart: BuiltinSrcOriginStartNode,
   builtinSrcOriginEnd: BuiltinSrcOriginEndNode,
+  builtinSrcOriginSize: BuiltinSrcOriginSizeNode,
+  builtinSrcOriginCenter: BuiltinSrcOriginCenterNode,
   builtinLayoutStart: BuiltinLayoutStartNode,
   builtinLayoutEnd: BuiltinLayoutEndNode,
+  builtinLayoutCenter: BuiltinLayoutCenterNode,
+  builtinLayoutSize: BuiltinLayoutSizeNode,
   builtinDestStart: BuiltinDestStartNode,
   builtinDestEnd: BuiltinDestEndNode,
+  builtinDestCenter: BuiltinDestCenterNode,
+  builtinDestSize: BuiltinDestSizeNode,
   builtinDevicePixelRatio: BuiltinDevicePixelRatioNode,
   builtinLayerScale: BuiltinLayerScaleNode,
   builtinLayerAngle: BuiltinLayerAngleNode,
   builtinSeconds: BuiltinSecondsNode,
   builtinZNear: BuiltinZNearNode,
   builtinZFar: BuiltinZFarNode,
-  builtinSrcSize: BuiltinSrcSizeNode,
-  builtinSrcCenter: BuiltinSrcCenterNode,
-  builtinSrcOriginSize: BuiltinSrcOriginSizeNode,
-  builtinSrcOriginCenter: BuiltinSrcOriginCenterNode,
 };

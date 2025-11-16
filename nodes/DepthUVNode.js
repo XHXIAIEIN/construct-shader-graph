@@ -25,6 +25,6 @@ export const DepthUVNode = new NodeType(
         `    var ${outputs[0]}: vec2<f32> = c3_getDepthUV(input.fragPos.xy, textureDepth);`,
     },
   },
-  "Input",
+  "UV",
   ["uv", "coordinates", "texcoord", "depth"]
 );

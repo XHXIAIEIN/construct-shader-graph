@@ -35,5 +35,5 @@ export const Hash33Node = new NodeType(
     },
   },
   "Noise",
-  ["hash", "random", "pseudo-random", "prng", "noise", "vec3"]
+  ["hash", "random", "pseudo-random", "prng", "noise"]
 );

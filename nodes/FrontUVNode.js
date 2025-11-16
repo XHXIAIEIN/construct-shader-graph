@@ -21,6 +21,6 @@ export const FrontUVNode = new NodeType(
         `    var ${outputs[0]}: vec2<f32> = input.fragUV;`,
     },
   },
-  "Input",
+  "UV",
   ["uv", "coordinates", "texcoord", "front"]
 );
