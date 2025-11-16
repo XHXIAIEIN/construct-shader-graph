@@ -20,9 +20,13 @@ self.C3_GetObjectRefTable = function () {
 		C3.Plugins.FileSystem.Acts.ReadBinaryFile,
 		C3.Plugins.FileSystem.Cnds.OnFileOperationComplete,
 		C3.Plugins.Sprite.Cnds.IsVisible,
-		C3.Plugins.Sprite.Acts.LoadURL,
 		C3.Plugins.BinaryData.Exps.GetURL,
-		C3.Plugins.Shape3D.Cnds.IsVisible
+		C3.Plugins.Shape3D.Cnds.IsVisible,
+		C3.Plugins.Sprite.Acts.LoadURL,
+		C3.Plugins.System.Cnds.CompareBoolVar,
+		C3.JavaScriptInEvents.EventSheet1_Event7_Act1,
+		C3.Plugins.System.Acts.WaitForPreviousActions,
+		C3.JavaScriptInEvents.EventSheet1_Event10_Act1
 	];
 };
 self.C3_JsPropNameTable = [
@@ -36,7 +40,9 @@ self.C3_JsPropNameTable = [
 	{ValidImageFileFormats: 0},
 	{BinaryData: 0},
 	{shape3dTexture: 0},
-	{Browser: 0}
+	{Browser: 0},
+	{url: 0},
+	{fromDrop: 0}
 ];
 
 self.InstanceType = {

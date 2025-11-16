@@ -11,6 +11,14 @@ let shaderDataPromise = (async () => {
 })();
 
 runOnStartup(async (runtime) => {
+  globalThis.loadSpriteUrl = (url) => {
+    runtime.callFunction("loadSpriteUrl", url, false);
+  };
+  globalThis.loadShapeUrl = (url) => {
+    runtime.callFunction("loadSpriteUrl", url, false);
+  };
+  globalThis.updatePreviewSpriteUrl = (url) => {};
+  globalThis.updatePreviewShapeUrl = (url) => {};
   await shaderDataPromise;
   runtime.addEventListener("beforeprojectstart", () =>
     OnBeforeProjectStart(runtime)
