@@ -11,22 +11,21 @@ export const TextureFrontNode = new NodeType(
   "#3a4a4a",
   {
     webgl1: {
-      dependency: "uniform lowp sampler2D samplerFront;",
+      dependency: "",
       execution: (inputs, outputs) =>
         `    vec4 ${outputs[0]} = texture2D(samplerFront, ${inputs[0]}.xy);\n` +
         `    vec3 ${outputs[1]} = ${outputs[0]}.xyz;\n` +
         `    float ${outputs[2]} = ${outputs[0]}.a;`,
     },
     webgl2: {
-      dependency: "uniform lowp sampler2D samplerFront;",
+      dependency: "",
       execution: (inputs, outputs) =>
         `    vec4 ${outputs[0]} = texture(samplerFront, ${inputs[0]}.xy);\n` +
         `    vec3 ${outputs[1]} = ${outputs[0]}.xyz;\n` +
         `    float ${outputs[2]} = ${outputs[0]}.a;`,
     },
     webgpu: {
-      dependency: `%%SAMPLERFRONT_BINDING%% var samplerFront : sampler;
-%%TEXTUREFRONT_BINDING%% var textureFront : texture_2d<f32>;`,
+      dependency: ``,
       execution: (inputs, outputs) =>
         `    var ${outputs[0]}: vec4<f32> = textureSample(textureFront, samplerFront, ${inputs[0]}.xy);\n` +
         `    var ${outputs[1]}: vec3<f32> = ${outputs[0]}.xyz;\n` +

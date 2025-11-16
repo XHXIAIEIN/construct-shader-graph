@@ -11,13 +11,13 @@ export const DepthUVNode = new NodeType(
       dependency: `vec2 getDepthUV() {
     return (destStart + (destEnd - destStart) * vTex - layoutStart) / (layoutEnd - layoutStart);
 }`,
-      execution: (inputs, outputs) => `    ${outputs[0]} = getDepthUV();`,
+      execution: (inputs, outputs) => `    vec2 ${outputs[0]} = getDepthUV();`,
     },
     webgl2: {
       dependency: `vec2 getDepthUV() {
     return (destStart + (destEnd - destStart) * vTex - layoutStart) / (layoutEnd - layoutStart);
 }`,
-      execution: (inputs, outputs) => `    ${outputs[0]} = getDepthUV();`,
+      execution: (inputs, outputs) => `    vec2 ${outputs[0]} = getDepthUV();`,
     },
     webgpu: {
       dependency: ``,

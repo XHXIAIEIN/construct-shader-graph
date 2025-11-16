@@ -11,13 +11,13 @@ export const BackUVNode = new NodeType(
       dependency: `vec2 getBackUV() {
     return (destStart + (destEnd - destStart) * vTex - layoutStart) / (layoutEnd - layoutStart);
 }`,
-      execution: (inputs, outputs) => `    ${outputs[0]} = getBackUV();`,
+      execution: (inputs, outputs) => `    vec2 ${outputs[0]} = getBackUV();`,
     },
     webgl2: {
       dependency: `vec2 getBackUV() {
     return (destStart + (destEnd - destStart) * vTex - layoutStart) / (layoutEnd - layoutStart);
 }`,
-      execution: (inputs, outputs) => `    ${outputs[0]} = getBackUV();`,
+      execution: (inputs, outputs) => `    vec2 ${outputs[0]} = getBackUV();`,
     },
     webgpu: {
       dependency: ``,

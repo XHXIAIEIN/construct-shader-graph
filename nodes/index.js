@@ -65,9 +65,16 @@ import { Vec4Node } from "./Vec4Node.js";
 import { Vec2DecomposeNode } from "./Vec2DecomposeNode.js";
 import { Vec3DecomposeNode } from "./Vec3DecomposeNode.js";
 import { Vec4DecomposeNode } from "./Vec4DecomposeNode.js";
+import { ColorDecomposeNode } from "./ColorDecomposeNode.js";
 import { TextureFrontNode } from "./TextureFrontNode.js";
 import { TextureBackNode } from "./TextureBackNode.js";
 import { TextureDepthNode } from "./TextureDepthNode.js";
+import { SamplerFrontNode } from "./SamplerFrontNode.js";
+import { SamplerBackNode } from "./SamplerBackNode.js";
+import { SamplerDepthNode } from "./SamplerDepthNode.js";
+import { TextureSampleNode } from "./TextureSampleNode.js";
+import { TextureSampleLODNode } from "./TextureSampleLODNode.js";
+import { TextureSampleGradNode } from "./TextureSampleGradNode.js";
 import { FrontUVNode } from "./FrontUVNode.js";
 import { BackUVNode } from "./BackUVNode.js";
 import { DepthUVNode } from "./DepthUVNode.js";
@@ -171,9 +178,16 @@ export const NODE_TYPES = {
   vec2Decompose: Vec2DecomposeNode,
   vec3Decompose: Vec3DecomposeNode,
   vec4Decompose: Vec4DecomposeNode,
+  colorDecompose: ColorDecomposeNode,
   textureFront: TextureFrontNode,
   textureBack: TextureBackNode,
   textureDepth: TextureDepthNode,
+  samplerFront: SamplerFrontNode,
+  samplerBack: SamplerBackNode,
+  samplerDepth: SamplerDepthNode,
+  textureSample: TextureSampleNode,
+  textureSampleLOD: TextureSampleLODNode,
+  textureSampleGrad: TextureSampleGradNode,
   frontUV: FrontUVNode,
   backUV: BackUVNode,
   depthUV: DepthUVNode,

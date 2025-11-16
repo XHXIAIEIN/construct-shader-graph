@@ -1,0 +1,40 @@
+import { NodeType } from "./NodeType.js";
+import { PORT_TYPES } from "./PortTypes.js";
+
+export const SamplerDepthNode = new NodeType(
+  "samplerDepth",
+  [],
+  [{ name: "Sampler", type: "texture" }],
+  PORT_TYPES.texture.color,
+  {
+    webgl1: {
+      dependency: "",
+      execution: () => "",
+    },
+    webgl2: {
+      dependency: "",
+      execution: () => "",
+    },
+    webgpu: {
+      dependency: "",
+      execution: () => "",
+    },
+  },
+  "Texture",
+  ["sampler", "depth", "texture", "layer", "z"]
+);
+
+// Metadata about this texture sampler
+SamplerDepthNode.textureMetadata = {
+  outputType: "float", // Shared output type for all shader languages
+  webgl1: {
+    samplerName: "samplerDepth",
+  },
+  webgl2: {
+    samplerName: "samplerDepth",
+  },
+  webgpu: {
+    textureName: "textureDepth",
+    samplerName: "samplerDepth",
+  },
+};

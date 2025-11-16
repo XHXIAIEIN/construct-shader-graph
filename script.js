@@ -1254,6 +1254,60 @@ class BlueprintSystem {
         this.hideUniformModal();
       }
     });
+
+    // View Code Modal handlers
+    const viewCodeModal = document.getElementById("viewCodeModal");
+
+    document
+      .getElementById("viewCodeModalClose")
+      .addEventListener("click", () => {
+        viewCodeModal.style.display = "none";
+      });
+
+    document.getElementById("viewCodeModalOk").addEventListener("click", () => {
+      viewCodeModal.style.display = "none";
+    });
+
+    // Close modal on outside click
+    viewCodeModal.addEventListener("mousedown", (e) => {
+      if (e.target === viewCodeModal) {
+        viewCodeModal.style.display = "none";
+      }
+    });
+
+    // Tab switching
+    document.querySelectorAll(".code-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const target = tab.dataset.target;
+
+        // Update active tab
+        document
+          .querySelectorAll(".code-tab")
+          .forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+
+        // Update active panel
+        document
+          .querySelectorAll(".code-panel")
+          .forEach((p) => p.classList.remove("active"));
+        document.getElementById(`code-${target}`).classList.add("active");
+      });
+    });
+
+    // Copy button
+    document.getElementById("copyCodeBtn").addEventListener("click", () => {
+      const activePanel = document.querySelector(".code-panel.active code");
+      if (activePanel) {
+        navigator.clipboard.writeText(activePanel.textContent).then(() => {
+          const btn = document.getElementById("copyCodeBtn");
+          const originalText = btn.textContent;
+          btn.textContent = "Copied!";
+          setTimeout(() => {
+            btn.textContent = originalText;
+          }, 2000);
+        });
+      }
+    });
   }
 
   showUniformModal() {
@@ -3206,6 +3260,10 @@ class BlueprintSystem {
       this.closeSidebar();
     });
 
+    document.getElementById("viewCodeBtn").addEventListener("click", () => {
+      this.showViewCodeModal();
+    });
+
     document.getElementById("exportBtn").addEventListener("click", () => {
       this.exportGLSL();
     });
@@ -3704,6 +3762,41 @@ class BlueprintSystem {
     }
 
     return shader;
+  }
+
+  showViewCodeModal() {
+    const graph = this.buildDependencyGraph();
+
+    if (!graph) {
+      alert("No output node found. Cannot generate shader.");
+      return;
+    }
+
+    const levels = this.topologicalSort(
+      graph.dependencies,
+      graph.connectedNodes
+    );
+
+    // Generate shaders for all targets
+    const targets = ["webgl1", "webgl2", "webgpu"];
+    const shaders = {};
+
+    for (const target of targets) {
+      const portToVarName = this.generateVariableNames(levels, target);
+      const boilerplate = this.getBoilerplate(target);
+      const uniformDeclarations = this.generateUniformDeclarations(target);
+      const shaderCode = this.generateShader(target, levels, portToVarName);
+      const fullShader = boilerplate + uniformDeclarations + shaderCode;
+      shaders[target] = fullShader;
+    }
+
+    // Populate the modal with the generated code
+    document.getElementById("code-webgl1-content").textContent = shaders.webgl1;
+    document.getElementById("code-webgl2-content").textContent = shaders.webgl2;
+    document.getElementById("code-webgpu-content").textContent = shaders.webgpu;
+
+    // Show the modal
+    document.getElementById("viewCodeModal").style.display = "flex";
   }
 
   async exportGLSL() {

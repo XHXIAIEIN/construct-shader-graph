@@ -9,11 +9,11 @@ export const FrontUVNode = new NodeType(
   {
     webgl1: {
       dependency: "",
-      execution: (inputs, outputs) => `    ${outputs[0]} = vTex;`,
+      execution: (inputs, outputs) => `    vec2 ${outputs[0]} = vTex;`,
     },
     webgl2: {
       dependency: "",
-      execution: (inputs, outputs) => `    ${outputs[0]} = vTex;`,
+      execution: (inputs, outputs) => `    vec2 ${outputs[0]} = vTex;`,
     },
     webgpu: {
       dependency: "",

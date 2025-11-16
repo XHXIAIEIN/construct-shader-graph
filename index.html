@@ -13,6 +13,7 @@
         <button id="saveBtn">Save</button>
         <button id="loadBtn">Load</button>
         <button id="clearBtn">Clear All</button>
+        <button id="viewCodeBtn">View Code</button>
         <button id="exportBtn">Export</button>
       </div>
       <input
@@ -311,6 +312,41 @@
         </div>
       </div>
     </div>
+
+    <!-- View Code Modal -->
+    <div id="viewCodeModal" class="modal" style="display: none">
+      <div class="modal-content view-code-modal">
+        <div class="modal-header">
+          <h2>Generated Shader Code</h2>
+          <button class="modal-close" id="viewCodeModalClose">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="code-tabs">
+            <button class="code-tab active" data-target="webgl1">
+              WebGL 1
+            </button>
+            <button class="code-tab" data-target="webgl2">WebGL 2</button>
+            <button class="code-tab" data-target="webgpu">WebGPU</button>
+          </div>
+          <div class="code-panels">
+            <div class="code-panel active" id="code-webgl1">
+              <pre><code id="code-webgl1-content"></code></pre>
+            </div>
+            <div class="code-panel" id="code-webgl2">
+              <pre><code id="code-webgl2-content"></code></pre>
+            </div>
+            <div class="code-panel" id="code-webgpu">
+              <pre><code id="code-webgpu-content"></code></pre>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="copyCodeBtn">Copy Current</button>
+          <button id="viewCodeModalOk">Close</button>
+        </div>
+      </div>
+    </div>
+
     <script type="module" src="script.js"></script>
   </body>
 </html>

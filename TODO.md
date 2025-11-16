@@ -71,11 +71,15 @@
 - [x] Texture Sample Front (sample front texture) - TextureFrontNode (outputs RGBA, Color, Alpha)
 - [x] Texture Sample Back (sample background texture) - TextureBackNode (outputs RGBA, Color, Alpha)
 - [x] Texture Sample Depth (sample depth texture) - TextureDepthNode (outputs RGBA, Color, Alpha)
+- [x] Sampler Front (provides front texture sampler) - SamplerFrontNode
+- [x] Sampler Back (provides back texture sampler) - SamplerBackNode
+- [x] Sampler Depth (provides depth texture sampler) - SamplerDepthNode
+- [x] Texture Sample (generic texture sampling with custom output type) - TextureSampleNode
+- [x] Texture Sample LOD (sample with specific mip level) - TextureSampleLODNode
+- [x] Texture Sample Grad (sample with explicit gradients) - TextureSampleGradNode
 - [x] Front UV (get front texture UV coordinates) - FrontUVNode
 - [x] Back UV (get background texture UV coordinates) - BackUVNode
 - [x] Depth UV (get depth texture UV coordinates) - DepthUVNode
-- [ ] Texture Sample LOD (sample with specific mip level)
-- [ ] Texture Sample Grad (sample with explicit gradients)
 - [ ] Texture Size (get texture dimensions)
 
 ### Color Operations
