@@ -10,6 +10,7 @@ import {
 import { UniformFloatNode } from "./nodes/UniformFloatNode.js";
 import { UniformColorNode } from "./nodes/UniformColorNode.js";
 import JSZip from "jszip";
+import { HistoryManager } from "./HistoryManager.js";
 
 // Import boilerplate files as raw text
 import boilerplateWebGL1 from "./shaders/boilerplate-webgl1.glsl?raw";
@@ -700,6 +701,12 @@ class BlueprintSystem {
     this.previewReady = false;
     this.previewNeedsUpdate = true;
 
+    // History Manager for undo/redo
+    this.history = new HistoryManager(this);
+
+    // Track node positions for undo/redo
+    this.dragStartPositions = new Map();
+
     this.setupEventListeners();
     this.setupInputField();
     this.setupSearchMenu();
@@ -709,6 +716,11 @@ class BlueprintSystem {
     this.setupPreview();
     this.setupMinimap();
     this.render();
+
+    // Initialize history after setup
+    setTimeout(() => {
+      this.history.currentState = this.exportState();
+    }, 0);
   }
 
   setupCanvas() {
@@ -1416,12 +1428,18 @@ class BlueprintSystem {
     this.hideUniformModal();
     this.renderUniformList();
     this.onShaderChanged();
+
+    // Push state for undo/redo
+    this.history.pushState("Add uniform");
   }
 
   deleteUniform(id) {
     this.uniforms = this.uniforms.filter((u) => u.id !== id);
     this.renderUniformList();
     this.onShaderChanged();
+
+    // Push state for undo/redo
+    this.history.pushState("Delete uniform");
   }
 
   updateUniformValue(id, value) {
@@ -2699,6 +2717,9 @@ class BlueprintSystem {
     this.hideInputField();
     this.render();
     this.onShaderChanged();
+
+    // Push state for undo/redo
+    this.history.pushState("Edit value");
   }
 
   cancelEditingPort() {
@@ -3215,6 +3236,9 @@ class BlueprintSystem {
     this.render();
     this.updateDependencyList();
     this.onShaderChanged();
+
+    // Push state for undo/redo
+    this.history.pushState("Create node");
   }
 
   focusNextSearchResult() {
@@ -3460,6 +3484,9 @@ class BlueprintSystem {
     this.clearSelection();
     this.render();
     this.updateDependencyList();
+
+    // Push state for undo/redo
+    this.history.pushState("Delete nodes");
   }
 
   onKeyDown(e) {
@@ -3471,8 +3498,23 @@ class BlueprintSystem {
       return;
     }
 
+    // Ctrl/Cmd + Z: Undo (without Shift)
+    if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
+      e.preventDefault();
+      this.history.undo();
+      return;
+    }
+    // Ctrl/Cmd + Shift + Z or Ctrl/Cmd + Y: Redo
+    else if (
+      (e.ctrlKey || e.metaKey) &&
+      ((e.key === "z" && e.shiftKey) || e.key === "y")
+    ) {
+      e.preventDefault();
+      this.history.redo();
+      return;
+    }
     // Ctrl/Cmd + N: New File
-    if ((e.ctrlKey || e.metaKey) && e.key === "n") {
+    else if ((e.ctrlKey || e.metaKey) && e.key === "n") {
       e.preventDefault();
       this.createNewFile();
     }
@@ -4149,6 +4191,10 @@ class BlueprintSystem {
     this.render();
     this.updateDependencyList();
     this.onShaderChanged();
+
+    // Clear and reinitialize history
+    this.history.clear();
+    this.history.currentState = this.exportState();
   }
 
   async saveToJSON() {
@@ -4425,6 +4471,10 @@ class BlueprintSystem {
       setTimeout(() => {
         this.onShaderChanged();
       }, 100);
+
+      // Clear and reinitialize history
+      this.history.clear();
+      this.history.currentState = this.exportState();
     } catch (error) {
       console.error("Failed to load blueprint:", error);
       alert(`Failed to load blueprint: ${error.message}`);
@@ -4475,6 +4525,158 @@ class BlueprintSystem {
 
     // Check built-in nodes
     return NODE_TYPES[key] || null;
+  }
+
+  /**
+   * Export complete state snapshot for undo/redo
+   */
+  exportState() {
+    return {
+      version: "1.0.0",
+      nodes: this.nodes.map((node) => ({
+        id: node.id,
+        x: node.x,
+        y: node.y,
+        nodeTypeKey: this.getNodeTypeKey(node.nodeType),
+        operation: node.operation,
+        customInput: node.customInput,
+        uniformId: node.uniformId,
+        uniformName: node.uniformName,
+        uniformDisplayName: node.uniformDisplayName,
+        uniformVariableName: node.uniformVariableName,
+        inputPorts: node.inputPorts.map((port) => ({
+          name: port.name,
+          portType: port.portType,
+          value: this.cloneValue(port.value),
+        })),
+        outputPorts: node.outputPorts.map((port) => ({
+          name: port.name,
+          portType: port.portType,
+        })),
+      })),
+      wires: this.wires.map((wire) => ({
+        startNodeId: wire.startPort.node.id,
+        startPortIndex: wire.startPort.node.outputPorts.indexOf(wire.startPort),
+        endNodeId: wire.endPort.node.id,
+        endPortIndex: wire.endPort.node.inputPorts.indexOf(wire.endPort),
+        rerouteNodes: wire.rerouteNodes.map((rn) => ({ x: rn.x, y: rn.y })),
+      })),
+      uniforms: JSON.parse(JSON.stringify(this.uniforms)),
+      customNodes: JSON.parse(JSON.stringify(this.customNodes)),
+      shaderSettings: { ...this.shaderSettings },
+      counters: {
+        nodeIdCounter: this.nodeIdCounter,
+        uniformIdCounter: this.uniformIdCounter,
+        customNodeIdCounter: this.customNodeIdCounter,
+      },
+    };
+  }
+
+  /**
+   * Clone a value (for port values)
+   */
+  cloneValue(value) {
+    if (Array.isArray(value)) return [...value];
+    if (typeof value === "object" && value !== null) return { ...value };
+    return value;
+  }
+
+  /**
+   * Load state snapshot (for undo/redo)
+   */
+  loadState(stateData) {
+    // Clear current state
+    this.nodes = [];
+    this.wires = [];
+    this.selectedNodes.clear();
+    this.selectedRerouteNodes.clear();
+
+    // Restore counters
+    this.nodeIdCounter = stateData.counters.nodeIdCounter;
+    this.uniformIdCounter = stateData.counters.uniformIdCounter;
+    this.customNodeIdCounter = stateData.counters.customNodeIdCounter;
+
+    // Restore uniforms and custom nodes
+    this.uniforms = JSON.parse(JSON.stringify(stateData.uniforms));
+    this.customNodes = JSON.parse(JSON.stringify(stateData.customNodes));
+    this.shaderSettings = { ...stateData.shaderSettings };
+
+    // Restore nodes
+    const nodeMap = new Map();
+    stateData.nodes.forEach((nodeData) => {
+      const nodeType = this.getNodeTypeFromKey(nodeData.nodeTypeKey);
+      if (!nodeType) {
+        console.warn(`Unknown node type: ${nodeData.nodeTypeKey}`);
+        return;
+      }
+
+      const node = new Node(nodeData.x, nodeData.y, nodeData.id, nodeType);
+
+      node.operation = nodeData.operation;
+      node.customInput = nodeData.customInput;
+      node.uniformId = nodeData.uniformId;
+      node.uniformName = nodeData.uniformName;
+      node.uniformDisplayName = nodeData.uniformDisplayName;
+      node.uniformVariableName = nodeData.uniformVariableName;
+
+      // Restore port values
+      node.inputPorts.forEach((port, i) => {
+        if (
+          nodeData.inputPorts[i] &&
+          nodeData.inputPorts[i].value !== undefined
+        ) {
+          port.value = this.cloneValue(nodeData.inputPorts[i].value);
+        }
+      });
+
+      nodeMap.set(nodeData.id, node);
+      this.nodes.push(node);
+    });
+
+    // Restore wires
+    stateData.wires.forEach((wireData) => {
+      const startNode = nodeMap.get(wireData.startNodeId);
+      const endNode = nodeMap.get(wireData.endNodeId);
+
+      if (startNode && endNode) {
+        const startPort = startNode.outputPorts[wireData.startPortIndex];
+        const endPort = endNode.inputPorts[wireData.endPortIndex];
+
+        if (startPort && endPort) {
+          const wire = new Wire(startPort, endPort);
+          wireData.rerouteNodes.forEach((rnData) => {
+            const rerouteNode = new RerouteNode(rnData.x, rnData.y, wire);
+            wire.rerouteNodes.push(rerouteNode);
+          });
+          this.wires.push(wire);
+          startPort.connections.push(wire);
+          endPort.connections.push(wire);
+
+          // Resolve generic types for this connection
+          this.resolveGenericsForConnection(startPort, endPort);
+
+          // Update editability
+          endPort.updateEditability();
+        }
+      }
+    });
+
+    // After all wires are restored, update editability for all ports
+    this.nodes.forEach((node) => {
+      node.inputPorts.forEach((port) => {
+        port.updateEditability();
+      });
+      // Recalculate node height in case port editability changed
+      node.recalculateHeight();
+    });
+
+    // Update UI
+    this.renderUniformList();
+    this.renderCustomNodesList();
+    this.updateShaderSettingsUI();
+    this.render();
+    this.updateDependencyList();
+    this.onShaderChanged();
   }
 
   updateShaderSettingsUI() {
@@ -5115,8 +5317,13 @@ class BlueprintSystem {
         node.dragOffsetX = pos.x - node.x;
         node.dragOffsetY = pos.y - node.y;
 
-        // Store drag offsets for all selected nodes
+        // Store initial positions for undo/redo
+        this.dragStartPositions.clear();
         this.selectedNodes.forEach((selectedNode) => {
+          this.dragStartPositions.set(selectedNode.id, {
+            x: selectedNode.x,
+            y: selectedNode.y,
+          });
           selectedNode.dragOffsetX = pos.x - selectedNode.x;
           selectedNode.dragOffsetY = pos.y - selectedNode.y;
         });
@@ -5333,6 +5540,9 @@ class BlueprintSystem {
 
           this.activeWire = null;
           this.onShaderChanged();
+
+          // Push state for wire connection
+          this.history.pushState("Connect wire");
         } else {
           // Remove the wire if it was picked up
           if (this.wires.includes(this.activeWire)) {
@@ -5380,6 +5590,9 @@ class BlueprintSystem {
 
           this.activeWire = null;
           this.onShaderChanged();
+
+          // Push state for wire connection
+          this.history.pushState("Connect wire");
         } else {
           // Remove the wire if it was picked up
           if (this.wires.includes(this.activeWire)) {
@@ -5413,12 +5626,20 @@ class BlueprintSystem {
     if (this.draggedRerouteNode) {
       this.draggedRerouteNode.isDragging = false;
       this.draggedRerouteNode = null;
+      // Push state for reroute node movement
+      this.history.pushState("Move reroute nodes");
     }
 
     // Stop dragging node
     if (this.draggedNode) {
       this.draggedNode.isDragging = false;
       this.draggedNode = null;
+
+      // Push state for node movement if nodes actually moved
+      if (this.dragStartPositions.size > 0) {
+        this.history.pushState("Move nodes");
+        this.dragStartPositions.clear();
+      }
     }
 
     this.render();
