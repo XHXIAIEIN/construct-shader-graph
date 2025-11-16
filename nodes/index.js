@@ -78,6 +78,13 @@ import { TilingNode } from "./TilingNode.js";
 import { TwirlNode } from "./TwirlNode.js";
 import { FlipNode } from "./FlipNode.js";
 import { RemapNode } from "./RemapNode.js";
+import { DDXNode } from "./DDXNode.js";
+import { DDYNode } from "./DDYNode.js";
+import { FWidthNode } from "./FWidthNode.js";
+import { PolarToCartesianNode } from "./PolarToCartesianNode.js";
+import { CartesianToPolarNode } from "./CartesianToPolarNode.js";
+import { SphericalToCartesianNode } from "./SphericalToCartesianNode.js";
+import { CartesianToSphericalNode } from "./CartesianToSphericalNode.js";
 
 // Import built-in parameter nodes
 import { BuiltinSrcStartNode } from "./BuiltinSrcStartNode.js";
@@ -170,6 +177,13 @@ export const NODE_TYPES = {
   twirl: TwirlNode,
   flip: FlipNode,
   remap: RemapNode,
+  ddx: DDXNode,
+  ddy: DDYNode,
+  fwidth: FWidthNode,
+  polarToCartesian: PolarToCartesianNode,
+  cartesianToPolar: CartesianToPolarNode,
+  sphericalToCartesian: SphericalToCartesianNode,
+  cartesianToSpherical: CartesianToSphericalNode,
 
   // Built-in parameters
   builtinSrcStart: BuiltinSrcStartNode,

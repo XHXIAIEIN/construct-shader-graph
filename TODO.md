@@ -27,7 +27,7 @@
 - [x] Floor (round down) - FloorNode
 - [x] Ceil (round up) - CeilNode
 - [x] Round (round to nearest integer) - RoundNode
-- [ ] Sign (returns -1, 0, or 1)
+- [x] Sign (returns -1, 0, or 1) - SignNode
 - [x] Mod/Fmod (modulo operation) - ModNode
 - [x] Sqrt (square root) - SqrtNode
 - [x] Exp (exponential) - ExpNode
@@ -102,32 +102,35 @@
 
 ### UV/Coordinate Operations
 
-- [ ] Tiling/Repeat (repeat UVs)
-- [ ] Offset (offset UVs)
+- [x] Tiling/Repeat (repeat UVs) - TilingNode, WrapUVNode
+- [x] Offset (offset UVs) - WrapUVNode (with offset parameter)
 - [x] Rotate (rotate UVs around point) - RotateAroundPointNode
-- [ ] Scale (scale UVs from center)
-- [ ] Polar Coordinates (cartesian to polar)
-- [ ] Twirl/Swirl (twist UVs around point)
-- [ ] Flip (flip UVs horizontally/vertically)
+- [x] Scale (scale UVs from center) - ScaleUVNode
+- [x] Polar Coordinates (cartesian to polar) - CartesianToPolarNode, PolarToCartesianNode
+- [x] Spherical Coordinates (cartesian to spherical) - CartesianToSphericalNode, SphericalToCartesianNode
+- [x] Twirl/Swirl (twist UVs around point) - TwirlNode
+- [x] Flip (flip UVs horizontally/vertically) - FlipNode
 
 ### Gradient/Interpolation
 
 - [ ] Gradient (linear gradient)
 - [ ] Radial Gradient
-- [ ] Remap (remap value from one range to another)
+- [x] Remap (remap value from one range to another) - RemapNode
 
 ### Utility
 
 - [x] Compare (>, >=, ==, !=, <=, <) - CompareNode (outputs boolean)
 - [ ] If/Branch (conditional branching)
-- [ ] Select/Ternary (select between two values based on condition)
+- [x] Select/Ternary (select between two values based on condition) - SelectNode
+- [x] To Float (convert int to float) - ToFloatNode
+- [x] To Int (convert float to int) - ToIntNode
 - [ ] One Minus (1 - x)
 - [ ] Negate (-x)
 - [ ] Reciprocal (1/x)
 - [ ] Saturate (clamp to 0-1)
-- [ ] DDX (derivative in X)
-- [ ] DDY (derivative in Y)
-- [ ] FWIDTH (sum of absolute derivatives)
+- [x] DDX (derivative in X) - DDXNode
+- [x] DDY (derivative in Y) - DDYNode
+- [x] FWIDTH (sum of absolute derivatives) - FWidthNode
 
 ### Advanced
 
