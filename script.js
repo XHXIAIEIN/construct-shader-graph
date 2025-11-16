@@ -701,6 +701,15 @@ class BlueprintSystem {
     this.previewReady = false;
     this.previewNeedsUpdate = true;
 
+    // Preview settings (not part of undo/redo)
+    this.previewSettings = {
+      effectTarget: "sprite",
+      object: "sprite",
+      cameraMode: "2d",
+      autoRotate: true,
+      samplingMode: "trilinear",
+    };
+
     // History Manager for undo/redo
     this.history = new HistoryManager(this);
 
@@ -1675,16 +1684,19 @@ class BlueprintSystem {
 
     effectTargetSelect.addEventListener("change", (e) => {
       const target = e.target.value;
+      this.previewSettings.effectTarget = target;
       this.sendPreviewCommand("setEffectTarget", target);
 
       // Auto-sync object selection
       if (target === "sprite") {
         objectSelect.value = "sprite";
+        this.previewSettings.object = "sprite";
         this.sendPreviewCommand("setObject", "sprite");
       } else if (target === "shape3D") {
         // Set to box if currently on sprite, otherwise keep current 3D shape
         if (objectSelect.value === "sprite") {
           objectSelect.value = "box";
+          this.previewSettings.object = "box";
         }
         this.sendPreviewCommand("setObject", objectSelect.value);
       }
@@ -1692,6 +1704,7 @@ class BlueprintSystem {
 
     objectSelect.addEventListener("change", (e) => {
       const object = e.target.value;
+      this.previewSettings.object = object;
       this.sendPreviewCommand("setObject", object);
 
       // Auto-sync effect target selection
@@ -1702,15 +1715,18 @@ class BlueprintSystem {
         effectTargetSelect.value !== "layer"
       ) {
         effectTargetSelect.value = "sprite";
+        this.previewSettings.effectTarget = "sprite";
         this.sendPreviewCommand("setEffectTarget", "sprite");
       } else if (object !== "sprite" && effectTargetSelect.value === "sprite") {
         effectTargetSelect.value = "shape3D";
+        this.previewSettings.effectTarget = "shape3D";
         this.sendPreviewCommand("setEffectTarget", "shape3D");
       }
     });
 
     cameraModeSelect.addEventListener("change", (e) => {
       const mode = e.target.value;
+      this.previewSettings.cameraMode = mode;
       this.sendPreviewCommand("setCameraMode", mode);
 
       // Show/hide auto rotate option based on camera mode
@@ -1722,7 +1738,15 @@ class BlueprintSystem {
     });
 
     autoRotateCheckbox.addEventListener("change", (e) => {
+      this.previewSettings.autoRotate = e.target.checked;
       this.sendPreviewCommand("setAutoRotate", e.target.checked);
+    });
+
+    // Sampling mode select (requires reload)
+    const samplingModeSelect = document.getElementById("samplingModeSelect");
+    samplingModeSelect.addEventListener("change", (e) => {
+      this.previewSettings.samplingMode = e.target.value;
+      this.updatePreview(); // Reload preview with new sampling mode
     });
 
     // Listen for messages from preview iframe
@@ -1735,11 +1759,20 @@ class BlueprintSystem {
         this.clearShaderErrors(); // Clear errors on new load
         this.sendUniformValuesToPreview();
 
-        // Send initial preview settings
-        this.sendPreviewCommand("setEffectTarget", effectTargetSelect.value);
-        this.sendPreviewCommand("setObject", objectSelect.value);
-        this.sendPreviewCommand("setCameraMode", cameraModeSelect.value);
-        this.sendPreviewCommand("setAutoRotate", autoRotateCheckbox.checked);
+        // Send saved preview settings
+        this.sendPreviewCommand(
+          "setEffectTarget",
+          this.previewSettings.effectTarget
+        );
+        this.sendPreviewCommand("setObject", this.previewSettings.object);
+        this.sendPreviewCommand(
+          "setCameraMode",
+          this.previewSettings.cameraMode
+        );
+        this.sendPreviewCommand(
+          "setAutoRotate",
+          this.previewSettings.autoRotate
+        );
       } else if (event.data && event.data.type === "shaderError") {
         this.displayShaderError(event.data.message, event.data.severity);
       }
@@ -1771,9 +1804,13 @@ class BlueprintSystem {
     // Cache the shader data for when preview requests it
     this.cachedShaderData = this.buildShaderData(shaders);
 
-    // Reload iframe without query parameters
+    // Build query params for settings that require reload
+    const params = new URLSearchParams();
+    params.set("samplingMode", this.previewSettings.samplingMode);
+
+    // Reload iframe with query parameters
     this.previewReady = false;
-    this.previewIframe.src = `preview/index.html`;
+    this.previewIframe.src = `preview/index.html?${params.toString()}`;
   }
 
   buildShaderData(shaders) {
@@ -4648,6 +4685,7 @@ class BlueprintSystem {
       shaderSettings: this.shaderSettings,
       uniforms: this.uniforms,
       customNodes: this.customNodes,
+      previewSettings: this.previewSettings,
       camera: {
         x: this.camera.x,
         y: this.camera.y,
@@ -4794,6 +4832,15 @@ class BlueprintSystem {
         this.customNodeIdCounter =
           data.customNodeIdCounter || this.customNodes.length + 1;
         this.renderCustomNodesList();
+      }
+
+      // Restore preview settings
+      if (data.previewSettings) {
+        this.previewSettings = {
+          ...this.previewSettings,
+          ...data.previewSettings,
+        };
+        this.updatePreviewSettingsUI();
       }
 
       // Restore camera
@@ -5151,6 +5198,38 @@ class BlueprintSystem {
           element.value = this.shaderSettings[settingKey];
         }
       }
+    }
+  }
+
+  updatePreviewSettingsUI() {
+    // Update preview control UI elements
+    const effectTargetSelect = document.getElementById("effectTargetSelect");
+    const objectSelect = document.getElementById("objectSelect");
+    const cameraModeSelect = document.getElementById("cameraModeSelect");
+    const autoRotateCheckbox = document.getElementById("autoRotateCheckbox");
+    const autoRotateGroup = document.getElementById("autoRotateGroup");
+    const samplingModeSelect = document.getElementById("samplingModeSelect");
+
+    if (effectTargetSelect) {
+      effectTargetSelect.value = this.previewSettings.effectTarget;
+    }
+    if (objectSelect) {
+      objectSelect.value = this.previewSettings.object;
+    }
+    if (cameraModeSelect) {
+      cameraModeSelect.value = this.previewSettings.cameraMode;
+
+      // Show/hide auto rotate based on camera mode
+      if (autoRotateGroup) {
+        autoRotateGroup.style.display =
+          this.previewSettings.cameraMode === "2d" ? "none" : "flex";
+      }
+    }
+    if (autoRotateCheckbox) {
+      autoRotateCheckbox.checked = this.previewSettings.autoRotate;
+    }
+    if (samplingModeSelect) {
+      samplingModeSelect.value = this.previewSettings.samplingMode;
     }
   }
 

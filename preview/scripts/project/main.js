@@ -515,4 +515,18 @@ function setupShaderErrorCapture() {
       super(e, t);
     }
   };
+  self.C3.Runtime = class extends self.C3.Runtime {
+    async _LoadDataJson(e) {
+      const t = e["project"];
+
+      // Get sampling mode from query params
+      const urlParams = new URLSearchParams(window.location.search);
+      const samplingMode = urlParams.get("samplingMode") || "trilinear";
+
+      // Set sampling mode (t[14] is the sampling mode property)
+      t[14] = samplingMode;
+
+      await super._LoadDataJson(e);
+    }
+  };
 }
