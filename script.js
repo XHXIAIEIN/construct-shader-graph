@@ -2034,69 +2034,94 @@ class BlueprintSystem {
       const oldInputPorts = [...node.inputPorts];
       const oldOutputPorts = [...node.outputPorts];
 
+      // Collect wires to disconnect
+      const wiresToDisconnect = [];
+
       node.inputPorts = customNode.inputs.map((input, index) => {
         const oldPort = oldInputPorts[index];
-        const port = new Port(node, input.name, input.type, "input", index);
-        // Preserve value if port still exists and type matches
-        if (oldPort && oldPort.portType === input.type) {
-          port.value = oldPort.value;
-          // Preserve connections if type matches
-          port.connections = oldPort.connections.filter((wire) => {
-            const outputType = wire.startPort.portType;
-            if (areTypesCompatible(outputType, input.type)) {
-              wire.endPort = port;
-              return true;
-            } else {
-              // Disconnect incompatible wire
-              this.disconnectWire(wire);
-              return false;
-            }
-          });
+        const port = new Port(node, "input", index, {
+          name: input.name,
+          type: input.type,
+        });
+
+        if (oldPort) {
+          // If type matches, try to preserve connections
+          if (oldPort.portType === input.type) {
+            port.value = oldPort.value;
+            // Preserve connections if type matches
+            port.connections = oldPort.connections.filter((wire) => {
+              const outputType = wire.startPort.portType;
+              if (areTypesCompatible(outputType, input.type)) {
+                wire.endPort = port;
+                return true;
+              } else {
+                // Mark wire for disconnection
+                wiresToDisconnect.push(wire);
+                return false;
+              }
+            });
+          } else {
+            // Type changed, disconnect all old connections
+            wiresToDisconnect.push(...oldPort.connections);
+          }
         }
         return port;
       });
 
       node.outputPorts = customNode.outputs.map((output, index) => {
         const oldPort = oldOutputPorts[index];
-        const port = new Port(node, output.name, output.type, "output", index);
-        // Preserve connections if port still exists and type matches
-        if (oldPort && oldPort.portType === output.type) {
-          port.connections = oldPort.connections.filter((wire) => {
-            const inputType = wire.endPort.portType;
-            if (areTypesCompatible(output.type, inputType)) {
-              wire.startPort = port;
-              return true;
-            } else {
-              // Disconnect incompatible wire
-              this.disconnectWire(wire);
-              return false;
-            }
-          });
+        const port = new Port(node, "output", index, {
+          name: output.name,
+          type: output.type,
+        });
+
+        if (oldPort) {
+          // If type matches, try to preserve connections
+          if (oldPort.portType === output.type) {
+            port.connections = oldPort.connections.filter((wire) => {
+              const inputType = wire.endPort.portType;
+              if (areTypesCompatible(output.type, inputType)) {
+                wire.startPort = port;
+                return true;
+              } else {
+                // Mark wire for disconnection
+                wiresToDisconnect.push(wire);
+                return false;
+              }
+            });
+          } else {
+            // Type changed, disconnect all old connections
+            wiresToDisconnect.push(...oldPort.connections);
+          }
         }
         return port;
       });
 
-      // Disconnect wires from removed ports
+      // Collect wires from removed ports
       for (let i = customNode.inputs.length; i < oldInputCount; i++) {
         const oldPort = oldInputPorts[i];
         if (oldPort) {
-          [...oldPort.connections].forEach((wire) => this.disconnectWire(wire));
+          wiresToDisconnect.push(...oldPort.connections);
         }
       }
 
       for (let i = customNode.outputs.length; i < oldOutputCount; i++) {
         const oldPort = oldOutputPorts[i];
         if (oldPort) {
-          [...oldPort.connections].forEach((wire) => this.disconnectWire(wire));
+          wiresToDisconnect.push(...oldPort.connections);
         }
       }
 
+      // Now disconnect all collected wires
+      wiresToDisconnect.forEach((wire) => this.disconnectWire(wire));
+
+      // Update port editability
+      node.inputPorts.forEach((port) => {
+        port.updateEditability();
+      });
+
       // Recalculate node height
-      const maxPorts = Math.max(
-        node.inputPorts.length,
-        node.outputPorts.length
-      );
-      node.height = 50 + maxPorts * 40 + 10;
+      node.recalculateHeight();
     });
 
     this.render();
