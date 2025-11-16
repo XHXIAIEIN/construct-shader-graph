@@ -26,5 +26,7 @@ export const Vec4Node = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]}: vec4<f32> = vec4<f32>(${inputs[0]}, ${inputs[1]}, ${inputs[2]}, ${inputs[3]});`,
     },
-  }
+  },
+  "Vector",
+  ["compose", "construct", "combine", "rgba", "color", "xyzw"]
 );

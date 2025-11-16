@@ -25,5 +25,7 @@ export const Vec3Node = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]}: vec3<f32> = vec3<f32>(${inputs[0]}, ${inputs[1]}, ${inputs[2]});`,
     },
-  }
+  },
+  "Vector",
+  ["compose", "construct", "combine", "3d", "rgb", "xyz"]
 );

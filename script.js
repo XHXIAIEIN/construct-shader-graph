@@ -2627,9 +2627,13 @@ class BlueprintSystem {
     const query = this.searchInput.value.toLowerCase();
     const filteredTypes = this.getFilteredNodeTypes();
 
-    // Filter by search query
+    // Filter by search query (check name and tags)
     const results = filteredTypes.filter(([key, nodeType]) => {
-      return nodeType.name.toLowerCase().includes(query);
+      const nameMatch = nodeType.name.toLowerCase().includes(query);
+      const tagMatch =
+        nodeType.tags &&
+        nodeType.tags.some((tag) => tag.toLowerCase().includes(query));
+      return nameMatch || tagMatch;
     });
 
     // Clear results
@@ -2675,46 +2679,96 @@ class BlueprintSystem {
       this.searchResults.appendChild(createCustomBtn);
     }
 
-    // Add results
+    // Group results by category
+    const categorizedResults = {};
     results.forEach(([key, nodeType]) => {
-      const item = document.createElement("div");
-      item.className = "search-result-item";
-      item.dataset.nodeTypeKey = key;
-      item.tabIndex = 0; // Make focusable
+      const category = nodeType.category || "Misc";
+      if (!categorizedResults[category]) {
+        categorizedResults[category] = [];
+      }
+      categorizedResults[category].push([key, nodeType]);
+    });
 
-      // Color indicator
-      const colorDiv = document.createElement("div");
-      colorDiv.className = "search-result-color";
-      colorDiv.style.background = nodeType.color;
-      item.appendChild(colorDiv);
+    // Sort categories
+    const sortedCategories = Object.keys(categorizedResults).sort();
 
-      // Name
-      const nameDiv = document.createElement("div");
-      nameDiv.className = "search-result-name";
-      nameDiv.textContent = nodeType.name;
-      item.appendChild(nameDiv);
+    // Determine if categories should be expanded (when there's a search query)
+    const expandAll = query.length > 0;
 
-      // Type info
-      const typeDiv = document.createElement("div");
-      typeDiv.className = "search-result-type";
-      const inputCount = nodeType.inputs.length;
-      const outputCount = nodeType.outputs.length;
-      typeDiv.textContent = `${inputCount}→${outputCount}`;
-      item.appendChild(typeDiv);
+    // Render each category
+    sortedCategories.forEach((category) => {
+      const categoryNodes = categorizedResults[category];
 
-      // Click handler
-      item.addEventListener("click", () => {
-        this.selectNodeType(key, nodeType);
-      });
+      // Create category header
+      const categoryHeader = document.createElement("div");
+      categoryHeader.className = "search-category-header";
+      categoryHeader.textContent = category;
+      categoryHeader.dataset.category = category;
 
-      // Enter key handler
-      item.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          this.selectNodeType(key, nodeType);
+      // Make category collapsible
+      const isExpanded = expandAll;
+      categoryHeader.classList.toggle("expanded", isExpanded);
+
+      categoryHeader.addEventListener("click", () => {
+        categoryHeader.classList.toggle("expanded");
+        const categoryContent = categoryHeader.nextElementSibling;
+        if (categoryContent) {
+          categoryContent.classList.toggle("collapsed");
         }
       });
 
-      this.searchResults.appendChild(item);
+      this.searchResults.appendChild(categoryHeader);
+
+      // Create category content container
+      const categoryContent = document.createElement("div");
+      categoryContent.className = "search-category-content";
+      if (!isExpanded) {
+        categoryContent.classList.add("collapsed");
+      }
+
+      // Add nodes in this category
+      categoryNodes.forEach(([key, nodeType]) => {
+        const item = document.createElement("div");
+        item.className = "search-result-item";
+        item.dataset.nodeTypeKey = key;
+        item.tabIndex = 0; // Make focusable
+
+        // Color indicator
+        const colorDiv = document.createElement("div");
+        colorDiv.className = "search-result-color";
+        colorDiv.style.background = nodeType.color;
+        item.appendChild(colorDiv);
+
+        // Name
+        const nameDiv = document.createElement("div");
+        nameDiv.className = "search-result-name";
+        nameDiv.textContent = nodeType.name;
+        item.appendChild(nameDiv);
+
+        // Type info
+        const typeDiv = document.createElement("div");
+        typeDiv.className = "search-result-type";
+        const inputCount = nodeType.inputs.length;
+        const outputCount = nodeType.outputs.length;
+        typeDiv.textContent = `${inputCount}→${outputCount}`;
+        item.appendChild(typeDiv);
+
+        // Click handler
+        item.addEventListener("click", () => {
+          this.selectNodeType(key, nodeType);
+        });
+
+        // Enter key handler
+        item.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            this.selectNodeType(key, nodeType);
+          }
+        });
+
+        categoryContent.appendChild(item);
+      });
+
+      this.searchResults.appendChild(categoryContent);
     });
 
     // If no results

@@ -26,5 +26,7 @@ export const SmoothstepNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]} = smoothstep(${inputs[0]}, ${inputs[1]}, ${inputs[2]});`,
     },
-  }
+  },
+  "Math",
+  ["smooth", "interpolate", "hermite"]
 );

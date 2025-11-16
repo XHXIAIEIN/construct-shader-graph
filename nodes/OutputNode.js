@@ -19,5 +19,7 @@ export const OutputNode = new NodeType(
       execution: (inputs, outputs) =>
         `    output.color = ${inputs[0]};\n    return output;`,
     },
-  }
+  },
+  "Output",
+  ["result", "final", "fragcolor"]
 );

@@ -22,5 +22,7 @@ export const BuiltinDevicePixelRatioNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]}: f32 = c3Params.devicePixelRatio;`,
     },
-  }
+  },
+  "Builtin",
+  ["device", "pixel", "ratio", "dpr", "resolution"]
 );

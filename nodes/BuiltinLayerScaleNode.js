@@ -20,5 +20,7 @@ export const BuiltinLayerScaleNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]}: f32 = c3Params.layerScale;`,
     },
-  }
+  },
+  "Builtin",
+  ["layer", "scale", "size"]
 );

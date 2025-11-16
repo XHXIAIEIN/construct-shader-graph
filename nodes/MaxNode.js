@@ -24,5 +24,7 @@ export const MaxNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]} = max(${inputs[0]}, ${inputs[1]});`,
     },
-  }
+  },
+  "Math",
+  ["maximum", "larger", "greatest"]
 );

@@ -30,7 +30,18 @@ export const CompareNode = new NodeType(
         return `    var ${outputs[0]}: bool = ${inputs[0]} ${op} ${inputs[1]};`;
       },
     },
-  }
+  },
+  "Logic",
+  [
+    "comparison",
+    "conditional",
+    "test",
+    "equal",
+    "greater",
+    "less",
+    "smaller",
+    "larger",
+  ]
 );
 
 // Add operation options to the node type

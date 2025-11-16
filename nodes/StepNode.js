@@ -25,5 +25,7 @@ export const StepNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]} = step(${inputs[0]}, ${inputs[1]});`,
     },
-  }
+  },
+  "Math",
+  ["threshold", "cutoff"]
 );

@@ -20,5 +20,7 @@ export const CosNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]} = cos(${inputs[0]});`,
     },
-  }
+  },
+  "Trigonometry",
+  ["cosine", "trig"]
 );

@@ -20,5 +20,7 @@ export const BuiltinZFarNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]}: f32 = c3Params.zFar;`,
     },
-  }
+  },
+  "Builtin",
+  ["z", "far", "depth", "camera"]
 );

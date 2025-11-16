@@ -21,5 +21,7 @@ export const LengthNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]} = length(${inputs[0]});`,
     },
-  }
+  },
+  "Vector",
+  ["magnitude", "distance"]
 );

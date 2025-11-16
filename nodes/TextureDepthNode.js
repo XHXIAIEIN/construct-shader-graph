@@ -22,5 +22,7 @@ export const TextureDepthNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]}: f32 = textureSample(textureDepth, samplerDepth, ${inputs[0]}.xy);`,
     },
-  }
+  },
+  "Texture",
+  ["sample", "depth", "z-buffer"]
 );

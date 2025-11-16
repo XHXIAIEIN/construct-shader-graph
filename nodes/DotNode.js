@@ -24,5 +24,7 @@ export const DotNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]} = dot(${inputs[0]}, ${inputs[1]});`,
     },
-  }
+  },
+  "Vector",
+  ["dot", "scalar", "product", "project", "projection"]
 );

@@ -24,5 +24,7 @@ export const MinNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]} = min(${inputs[0]}, ${inputs[1]});`,
     },
-  }
+  },
+  "Math",
+  ["minimum", "smaller", "least"]
 );

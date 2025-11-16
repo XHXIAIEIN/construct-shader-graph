@@ -20,5 +20,7 @@ export const SinNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]} = sin(${inputs[0]});`,
     },
-  }
+  },
+  "Trigonometry",
+  ["sine", "trig"]
 );

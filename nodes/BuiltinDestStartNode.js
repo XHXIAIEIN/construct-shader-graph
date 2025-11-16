@@ -20,5 +20,7 @@ export const BuiltinDestStartNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]}: vec2<f32> = c3Params.destStart;`,
     },
-  }
+  },
+  "Builtin",
+  ["destination", "start", "position"]
 );

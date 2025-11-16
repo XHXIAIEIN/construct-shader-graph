@@ -26,5 +26,7 @@ export const ClampNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]} = clamp(${inputs[0]}, ${inputs[1]}, ${inputs[2]});`,
     },
-  }
+  },
+  "Math",
+  ["constrain", "limit", "restrict"]
 );

@@ -20,5 +20,7 @@ export const BuiltinZNearNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]}: f32 = c3Params.zNear;`,
     },
-  }
+  },
+  "Builtin",
+  ["z", "near", "depth", "camera"]
 );

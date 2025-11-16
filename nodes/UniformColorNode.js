@@ -27,5 +27,7 @@ export const UniformColorNode = new NodeType(
         return `    var ${outputs[0]}: vec3<f32> = shaderParams.${uniformName};`;
       },
     },
-  }
+  },
+  "Input",
+  ["uniform", "parameter", "variable", "color", "rgb"]
 );

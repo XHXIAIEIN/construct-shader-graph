@@ -27,5 +27,7 @@ export const UniformFloatNode = new NodeType(
         return `    var ${outputs[0]}: f32 = shaderParams.${uniformName};`;
       },
     },
-  }
+  },
+  "Input",
+  ["uniform", "parameter", "variable", "float"]
 );

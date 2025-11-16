@@ -26,5 +26,7 @@ export const MixNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]} = mix(${inputs[0]}, ${inputs[1]}, ${inputs[2]});`,
     },
-  }
+  },
+  "Math",
+  ["lerp", "blend", "interpolate"]
 );

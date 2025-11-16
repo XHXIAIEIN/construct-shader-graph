@@ -32,5 +32,7 @@ export const TextureBackNode = new NodeType(
         `    var ${outputs[1]}: vec3<f32> = ${outputs[0]}.xyz;\n` +
         `    var ${outputs[2]}: f32 = ${outputs[0]}.a;`,
     },
-  }
+  },
+  "Texture",
+  ["sample", "back", "layer", "background"]
 );

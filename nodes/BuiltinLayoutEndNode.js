@@ -20,5 +20,7 @@ export const BuiltinLayoutEndNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]}: vec2<f32> = c3Params.layoutEnd;`,
     },
-  }
+  },
+  "Builtin",
+  ["layout", "end", "position"]
 );

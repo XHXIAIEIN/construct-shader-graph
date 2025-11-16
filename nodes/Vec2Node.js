@@ -24,5 +24,7 @@ export const Vec2Node = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]}: vec2<f32> = vec2<f32>(${inputs[0]}, ${inputs[1]});`,
     },
-  }
+  },
+  "Vector",
+  ["compose", "construct", "combine", "2d", "xy"]
 );

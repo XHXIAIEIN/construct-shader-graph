@@ -312,6 +312,56 @@ button:hover {
   background: #5a5a5a;
 }
 
+/* Search Category Headers */
+.search-category-header {
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #888;
+  background: #222;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  margin-top: 4px;
+  border-radius: 3px;
+  transition: background 0.15s;
+}
+
+.search-category-header:first-child {
+  margin-top: 0;
+}
+
+.search-category-header:hover {
+  background: #2a2a2a;
+  color: #aaa;
+}
+
+.search-category-header::before {
+  content: "▼";
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 8px;
+  transition: transform 0.2s;
+  transform: rotate(-90deg);
+}
+
+.search-category-header.expanded::before {
+  transform: rotate(0deg);
+}
+
+.search-category-content {
+  max-height: 1000px;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.2s ease;
+  opacity: 1;
+}
+
+.search-category-content.collapsed {
+  max-height: 0;
+  opacity: 0;
+}
+
 /* Uniform Sidebar */
 #uniform-sidebar {
   width: 320px;

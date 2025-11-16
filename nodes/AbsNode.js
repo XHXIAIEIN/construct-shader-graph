@@ -19,5 +19,7 @@ export const AbsNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]} = abs(${inputs[0]});`,
     },
-  }
+  },
+  "Math",
+  ["absolute", "magnitude"]
 );

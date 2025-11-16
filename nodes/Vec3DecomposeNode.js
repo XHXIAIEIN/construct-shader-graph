@@ -25,5 +25,7 @@ export const Vec3DecomposeNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]}: f32 = ${inputs[0]}.x;\n    var ${outputs[1]}: f32 = ${inputs[0]}.y;\n    var ${outputs[2]}: f32 = ${inputs[0]}.z;`,
     },
-  }
+  },
+  "Vector",
+  ["split", "break", "separate", "3d", "rgb", "xyz"]
 );

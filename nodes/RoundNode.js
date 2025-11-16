@@ -21,5 +21,7 @@ export const RoundNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]} = round(${inputs[0]});`,
     },
-  }
+  },
+  "Math",
+  ["floor", "ceil", "nearest"]
 );

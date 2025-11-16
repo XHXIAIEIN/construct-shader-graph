@@ -24,5 +24,7 @@ export const PowerNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]} = pow(${inputs[0]}, ${inputs[1]});`,
     },
-  }
+  },
+  "Math",
+  ["pow", "exponent", "exponential"]
 );

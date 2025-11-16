@@ -21,5 +21,7 @@ export const NormalizeNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]} = normalize(${inputs[0]});`,
     },
-  }
+  },
+  "Vector",
+  ["unit vector", "direction", "unit", "length"]
 );

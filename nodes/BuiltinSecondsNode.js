@@ -20,5 +20,7 @@ export const BuiltinSecondsNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]}: f32 = c3Params.seconds;`,
     },
-  }
+  },
+  "Builtin",
+  ["time", "elapsed", "duration"]
 );

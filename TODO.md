@@ -1,6 +1,7 @@
 # Features
 
 - allow copy/pasting/duplicating nodes
+- background is broken for some reason
 
 # Content
 

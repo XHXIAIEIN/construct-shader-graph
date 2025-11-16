@@ -1,10 +1,20 @@
 // Node type definition class
 export class NodeType {
-  constructor(name, inputs, outputs, color = "#3a3a3a", shaderCode = {}) {
+  constructor(
+    name,
+    inputs,
+    outputs,
+    color = "#3a3a3a",
+    shaderCode = {},
+    category = "Misc",
+    tags = []
+  ) {
     this.name = name;
     this.inputs = inputs; // Array of {name, type}
     this.outputs = outputs; // Array of {name, type}
     this.color = color;
+    this.category = category; // Category for grouping in search
+    this.tags = tags; // Additional search tags
 
     // Shader code for different targets
     // Each target has { dependency: string, execution: function }

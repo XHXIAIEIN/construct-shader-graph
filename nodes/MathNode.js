@@ -30,7 +30,20 @@ export const MathNode = new NodeType(
         return `    var ${outputs[0]} = ${inputs[0]} ${op} ${inputs[1]};`;
       },
     },
-  }
+  },
+  "Math",
+  [
+    "add",
+    "subtract",
+    "multiply",
+    "divide",
+    "arithmetic",
+    "operation",
+    "+",
+    "-",
+    "*",
+    "/",
+  ]
 );
 
 // Add operation options to the node type

@@ -23,5 +23,7 @@ export const BuiltinSrcOriginStartNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]}: vec2<f32> = c3Params.srcOriginStart;`,
     },
-  }
+  },
+  "Builtin",
+  ["source", "origin", "start", "position"]
 );

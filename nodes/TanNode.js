@@ -20,5 +20,7 @@ export const TanNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]} = tan(${inputs[0]});`,
     },
-  }
+  },
+  "Trigonometry",
+  ["tangent", "trig"]
 );

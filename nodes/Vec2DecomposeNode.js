@@ -24,5 +24,7 @@ export const Vec2DecomposeNode = new NodeType(
       execution: (inputs, outputs) =>
         `    var ${outputs[0]}: f32 = ${inputs[0]}.x;\n    var ${outputs[1]}: f32 = ${inputs[0]}.y;`,
     },
-  }
+  },
+  "Vector",
+  ["split", "break", "separate", "2d", "xy"]
 );
