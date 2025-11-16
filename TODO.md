@@ -104,7 +104,7 @@
 
 - [ ] Tiling/Repeat (repeat UVs)
 - [ ] Offset (offset UVs)
-- [ ] Rotate (rotate UVs around point)
+- [x] Rotate (rotate UVs around point) - RotateAroundPointNode
 - [ ] Scale (scale UVs from center)
 - [ ] Polar Coordinates (cartesian to polar)
 - [ ] Twirl/Swirl (twist UVs around point)

@@ -72,6 +72,12 @@ import { FrontUVNode } from "./FrontUVNode.js";
 import { BackUVNode } from "./BackUVNode.js";
 import { DepthUVNode } from "./DepthUVNode.js";
 import { OutputNode } from "./OutputNode.js";
+import { WrapUVNode } from "./WrapUVNode.js";
+import { ScaleUVNode } from "./ScaleUVNode.js";
+import { TilingNode } from "./TilingNode.js";
+import { TwirlNode } from "./TwirlNode.js";
+import { FlipNode } from "./FlipNode.js";
+import { RemapNode } from "./RemapNode.js";
 
 // Import built-in parameter nodes
 import { BuiltinSrcStartNode } from "./BuiltinSrcStartNode.js";
@@ -158,6 +164,12 @@ export const NODE_TYPES = {
   backUV: BackUVNode,
   depthUV: DepthUVNode,
   output: OutputNode,
+  wrapUV: WrapUVNode,
+  scaleUV: ScaleUVNode,
+  tiling: TilingNode,
+  twirl: TwirlNode,
+  flip: FlipNode,
+  remap: RemapNode,
 
   // Built-in parameters
   builtinSrcStart: BuiltinSrcStartNode,
