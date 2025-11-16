@@ -8,11 +8,11 @@ export const BuiltinDestEndNode = new NodeType(
   PORT_TYPES.vec2.color,
   {
     webgl1: {
-      dependency: "uniform mediump vec2 destEnd;",
+      dependency: "",
       execution: (inputs, outputs) => `    vec2 ${outputs[0]} = destEnd;`,
     },
     webgl2: {
-      dependency: "uniform mediump vec2 destEnd;",
+      dependency: "",
       execution: (inputs, outputs) => `    vec2 ${outputs[0]} = destEnd;`,
     },
     webgpu: {

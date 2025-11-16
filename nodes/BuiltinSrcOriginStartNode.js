@@ -8,12 +8,12 @@ export const BuiltinSrcOriginStartNode = new NodeType(
   PORT_TYPES.vec2.color,
   {
     webgl1: {
-      dependency: "uniform mediump vec2 srcOriginStart;",
+      dependency: "",
       execution: (inputs, outputs) =>
         `    vec2 ${outputs[0]} = srcOriginStart;`,
     },
     webgl2: {
-      dependency: "uniform mediump vec2 srcOriginStart;",
+      dependency: "",
       execution: (inputs, outputs) =>
         `    vec2 ${outputs[0]} = srcOriginStart;`,
     },

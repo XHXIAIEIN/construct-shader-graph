@@ -8,11 +8,11 @@ export const BuiltinLayerAngleNode = new NodeType(
   PORT_TYPES.float.color,
   {
     webgl1: {
-      dependency: "uniform mediump float layerAngle;",
+      dependency: "",
       execution: (inputs, outputs) => `    float ${outputs[0]} = layerAngle;`,
     },
     webgl2: {
-      dependency: "uniform mediump float layerAngle;",
+      dependency: "",
       execution: (inputs, outputs) => `    float ${outputs[0]} = layerAngle;`,
     },
     webgpu: {

@@ -11,13 +11,23 @@ export const ModNode = new NodeType(
   {
     webgl1: {
       dependency: "",
-      execution: (inputs, outputs) =>
-        `    ${outputs[0]} = mod(${inputs[0]}, ${inputs[1]});`,
+      execution: (inputs, outputs, node) => {
+        const op = node.operation || "floor";
+        if (op === "truncate") {
+          return `    ${outputs[0]} = ${inputs[0]} - ${inputs[1]} * trunc(${inputs[0]} / ${inputs[1]});`;
+        }
+        return `    ${outputs[0]} = mod(${inputs[0]}, ${inputs[1]});`;
+      },
     },
     webgl2: {
       dependency: "",
-      execution: (inputs, outputs) =>
-        `    ${outputs[0]} = mod(${inputs[0]}, ${inputs[1]});`,
+      execution: (inputs, outputs, node) => {
+        const op = node.operation || "floor";
+        if (op === "truncate") {
+          return `    ${outputs[0]} = ${inputs[0]} - ${inputs[1]} * trunc(${inputs[0]} / ${inputs[1]});`;
+        }
+        return `    ${outputs[0]} = mod(${inputs[0]}, ${inputs[1]});`;
+      },
     },
     webgpu: {
       dependency: "",
@@ -28,3 +38,10 @@ export const ModNode = new NodeType(
   "Math",
   ["modulo", "remainder", "%", "wrap", "fmod", "modf", "modulus"]
 );
+
+// Add operation options to the node type
+ModNode.hasOperation = true;
+ModNode.operationOptions = [
+  { value: "floor", label: "Floor" },
+  { value: "truncate", label: "Truncate" },
+];

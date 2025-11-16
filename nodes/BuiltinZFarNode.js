@@ -8,11 +8,11 @@ export const BuiltinZFarNode = new NodeType(
   PORT_TYPES.float.color,
   {
     webgl1: {
-      dependency: "uniform mediump float zFar;",
+      dependency: "",
       execution: (inputs, outputs) => `    float ${outputs[0]} = zFar;`,
     },
     webgl2: {
-      dependency: "uniform mediump float zFar;",
+      dependency: "",
       execution: (inputs, outputs) => `    float ${outputs[0]} = zFar;`,
     },
     webgpu: {

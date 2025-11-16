@@ -8,11 +8,11 @@ export const BuiltinLayerScaleNode = new NodeType(
   PORT_TYPES.float.color,
   {
     webgl1: {
-      dependency: "uniform mediump float layerScale;",
+      dependency: "",
       execution: (inputs, outputs) => `    float ${outputs[0]} = layerScale;`,
     },
     webgl2: {
-      dependency: "uniform mediump float layerScale;",
+      dependency: "",
       execution: (inputs, outputs) => `    float ${outputs[0]} = layerScale;`,
     },
     webgpu: {

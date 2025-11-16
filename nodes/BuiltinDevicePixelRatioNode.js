@@ -8,12 +8,12 @@ export const BuiltinDevicePixelRatioNode = new NodeType(
   PORT_TYPES.float.color,
   {
     webgl1: {
-      dependency: "uniform mediump float devicePixelRatio;",
+      dependency: "",
       execution: (inputs, outputs) =>
         `    float ${outputs[0]} = devicePixelRatio;`,
     },
     webgl2: {
-      dependency: "uniform mediump float devicePixelRatio;",
+      dependency: "",
       execution: (inputs, outputs) =>
         `    float ${outputs[0]} = devicePixelRatio;`,
     },

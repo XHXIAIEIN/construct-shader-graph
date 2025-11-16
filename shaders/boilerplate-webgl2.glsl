@@ -11,3 +11,19 @@ uniform mediump vec2 pixelSize;
 
 in mediump vec2 vTex;
 out lowp vec4 outColor;
+
+// Builtin uniforms
+uniform mediump vec2 srcStart;
+uniform mediump vec2 srcEnd;
+uniform mediump vec2 srcOriginStart;
+uniform mediump vec2 srcOriginEnd;
+uniform mediump vec2 layoutStart;
+uniform mediump vec2 layoutEnd;
+uniform mediump vec2 destStart;
+uniform mediump vec2 destEnd;
+uniform mediump float devicePixelRatio;
+uniform mediump float layerScale;
+uniform mediump float layerAngle;
+uniform highmedp float seconds;
+uniform mediump float zNear;
+uniform mediump float zFar;

@@ -8,11 +8,11 @@ export const BuiltinSecondsNode = new NodeType(
   PORT_TYPES.float.color,
   {
     webgl1: {
-      dependency: "uniform highmedp float seconds;",
+      dependency: "",
       execution: (inputs, outputs) => `    float ${outputs[0]} = seconds;`,
     },
     webgl2: {
-      dependency: "uniform highmedp float seconds;",
+      dependency: "",
       execution: (inputs, outputs) => `    float ${outputs[0]} = seconds;`,
     },
     webgpu: {
