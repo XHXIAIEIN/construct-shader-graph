@@ -49,14 +49,11 @@
 
 ### Vector Operations
 
-- [x] Dot (dot product)
-- [ ] Cross (cross product)
-- [x] Length (vector length/magnitude)
-- [ ] Distance (distance between two points)
-- [x] Normalize (normalize vector to unit length)
-- [ ] Reflect (reflect vector)
-- [ ] Refract (refract vector)
-- [ ] FaceForward (orient vector to face forward)
+- [x] Dot (dot product) - DotNode
+- [x] Cross (cross product) - CrossNode
+- [x] Length (vector length/magnitude) - LengthNode
+- [x] Distance (distance between two points) - DistanceNode
+- [x] Normalize (normalize vector to unit length) - NormalizeNode
 
 ### Vector Construction/Decomposition
 
@@ -96,12 +93,12 @@
 
 ### Noise Functions
 
-- [ ] Random/Hash (pseudo-random from seed)
-- [ ] Value Noise
-- [ ] Perlin Noise
-- [ ] Simplex Noise
-- [ ] Voronoi/Worley Noise
-- [ ] Fractal Brownian Motion (FBM)
+- [x] Random/Hash (pseudo-random from seed) - Hash11Node, Hash21Node, Hash22Node, Hash33Node
+- [x] Value Noise - ValueNoiseNode
+- [x] Perlin Noise - PerlinNoiseNode
+- [x] Simplex Noise - SimplexNoiseNode
+- [x] Voronoi/Worley Noise - VoronoiNoiseNode
+- [x] Fractal Brownian Motion (FBM) - FBMNode
 
 ### UV/Coordinate Operations
 
