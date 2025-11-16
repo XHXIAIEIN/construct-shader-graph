@@ -64,6 +64,14 @@ button:hover {
     background: #c0392b;
 }
 
+.report-issue-btn {
+    background: #95a5a6;
+}
+
+.report-issue-btn:hover {
+    background: #7f8c8d;
+}
+
 #canvas-container {
     flex: 1;
     position: relative;
