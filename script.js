@@ -4775,6 +4775,35 @@ class BlueprintSystem {
     return langData;
   }
 
+  addDefaultNodes() {
+    // Add default nodes: FrontUV -> TextureFront -> Output
+    const frontUVNode = this.addNode(200, 300, NODE_TYPES.frontUV);
+    const textureFrontNode = this.addNode(400, 300, NODE_TYPES.textureFront);
+    const outputNode = this.addNode(700, 300, NODE_TYPES.output);
+
+    // Connect FrontUV output to TextureFront input (UV input)
+    const wire1 = new Wire(
+      frontUVNode.outputPorts[0],
+      textureFrontNode.inputPorts[0]
+    );
+    this.wires.push(wire1);
+    frontUVNode.outputPorts[0].connections.push(wire1);
+    textureFrontNode.inputPorts[0].connections.push(wire1);
+
+    // Connect TextureFront output to Output input (Color input)
+    const wire2 = new Wire(
+      textureFrontNode.outputPorts[0],
+      outputNode.inputPorts[0]
+    );
+    this.wires.push(wire2);
+    textureFrontNode.outputPorts[0].connections.push(wire2);
+    outputNode.inputPorts[0].connections.push(wire2);
+
+    this.render();
+    this.updateDependencyList();
+    this.onShaderChanged();
+  }
+
   createNewFile() {
     // Clear file handle to start fresh
     this.fileHandle = null;
@@ -4824,16 +4853,12 @@ class BlueprintSystem {
     // Reset node ID counter
     this.nodeIdCounter = 1;
 
-    // Re-add the output node
-    this.addNode(600, 300, NODE_TYPES.output);
-
-    this.render();
-    this.updateDependencyList();
-    this.onShaderChanged();
-
-    // Clear and reinitialize history
+    this.addDefaultNodes();
+    // Clear and reinitialize history after adding default nodes
     this.history.clear();
     this.history.currentState = this.exportState();
+
+    this.render();
   }
 
   async saveToJSON() {
@@ -7337,5 +7362,6 @@ class BlueprintSystem {
 const canvas = document.getElementById("canvas");
 const blueprint = new BlueprintSystem(canvas);
 
-// Add default output node
-blueprint.addNode(600, 300, NODE_TYPES.output);
+// Initialize with default nodes
+
+blueprint.createNewFile();
