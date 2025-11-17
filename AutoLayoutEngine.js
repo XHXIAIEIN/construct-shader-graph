@@ -377,6 +377,34 @@ export class AutoLayoutEngine {
   }
 
   /**
+   * Sort children by their port index to maintain visual order
+   * This prevents unnecessary wire crossings
+   */
+  sortChildrenByPortIndex(parentNodeId, children, subgraph) {
+    const parentData = subgraph.get(parentNodeId);
+    if (!parentData || !parentData.inputConnections) return;
+
+    // Create a map of child node ID to minimum port index
+    const childPortMap = new Map();
+
+    parentData.inputConnections.forEach((conn) => {
+      if (children.includes(conn.nodeId)) {
+        const currentMin = childPortMap.get(conn.nodeId);
+        if (currentMin === undefined || conn.portIndex < currentMin) {
+          childPortMap.set(conn.nodeId, conn.portIndex);
+        }
+      }
+    });
+
+    // Sort children array in place by port index (lower port index = higher up = earlier in array)
+    children.sort((a, b) => {
+      const portA = childPortMap.get(a) ?? Infinity;
+      const portB = childPortMap.get(b) ?? Infinity;
+      return portA - portB;
+    });
+  }
+
+  /**
    * Build a dependency graph from nodes and their connections
    */
   buildDependencyGraph(nodes) {
@@ -594,6 +622,9 @@ export class AutoLayoutEngine {
         const children =
           subgraph.get(nodeId)?.inputs.filter((id) => subgraph.has(id)) || [];
 
+        // Sort children by port index to maintain visual order and prevent wire crossings
+        this.sortChildrenByPortIndex(nodeId, children, subgraph);
+
         // Track parent relationships (inputs -> this node)
         children.forEach((childId) => {
           if (!nodeParents.has(childId)) {
@@ -725,6 +756,9 @@ export class AutoLayoutEngine {
       if (!data) return;
 
       const children = data.inputs.filter((id) => subgraph.has(id));
+
+      // Sort children by port index to maintain visual order
+      this.sortChildrenByPortIndex(nodeId, children, subgraph);
 
       // Only set if not already set (first parent wins for tree structure)
       if (!tree.has(nodeId)) {
