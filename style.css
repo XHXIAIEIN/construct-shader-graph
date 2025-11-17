@@ -155,15 +155,16 @@ body {
 
 /* Secondary Button (Report Issue) */
 .toolbar-btn-secondary {
-  background: rgba(149, 165, 166, 0.2);
-  border-color: #7f8c8d;
-  color: #bbb;
+  background: rgba(255, 152, 0, 0.15);
+  border-color: #ff9800;
+  color: #ffb74d;
 }
 
 .toolbar-btn-secondary:hover {
-  background: rgba(149, 165, 166, 0.3);
-  border-color: #95a5a6;
-  color: #ddd;
+  background: rgba(255, 152, 0, 0.25);
+  border-color: #ffa726;
+  color: #ffc947;
+  box-shadow: 0 2px 12px rgba(255, 152, 0, 0.3);
 }
 
 /* Icon-only Button (GitHub) */
