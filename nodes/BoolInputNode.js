@@ -5,7 +5,7 @@ export const BoolInputNode = new NodeType(
   "Bool Input",
   [], // No inputs
   [{ name: "Value", type: "bool" }],
-  PORT_TYPES.bool.color,
+  PORT_TYPES.boolean.color,
   {
     webgl1: {
       dependency: "",
@@ -25,22 +25,12 @@ export const BoolInputNode = new NodeType(
       dependency: "",
       execution: (inputs, outputs, node) => {
         const value = node.operation || "false";
-        return `    let ${outputs[0]}: bool = ${value};`;
+        return `    var ${outputs[0]}: bool = ${value};`;
       },
     },
   },
-  {
-    category: "Input",
-    searchTerms: [
-      "bool",
-      "boolean",
-      "true",
-      "false",
-      "constant",
-      "value",
-      "input",
-    ],
-  }
+  "Input",
+  ["bool", "boolean", "true", "false", "constant", "value", "input", "literal"]
 );
 
 // Add operation options for true/false selection

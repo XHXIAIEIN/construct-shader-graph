@@ -20,13 +20,11 @@ export const FloatInputNode = new NodeType(
     webgpu: {
       dependency: "",
       execution: (inputs, outputs, node) =>
-        `    let ${outputs[0]}: f32 = ${node.customInput || "0.0"};`,
+        `    var ${outputs[0]}: f32 = ${node.customInput || "0.0"};`,
     },
   },
-  {
-    category: "Input",
-    searchTerms: ["float", "number", "constant", "value", "input"],
-  }
+  "Input",
+  ["float", "number", "constant", "value", "input", "literal", "decimal"]
 );
 
 // Add custom input configuration with validation

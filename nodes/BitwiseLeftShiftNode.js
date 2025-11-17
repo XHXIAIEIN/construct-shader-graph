@@ -23,11 +23,19 @@ export const BitwiseLeftShiftNode = new NodeType(
     webgpu: {
       dependency: "",
       execution: (inputs, outputs) =>
-        `    let ${outputs[0]}: i32 = ${inputs[0]} << ${inputs[1]};`,
+        `    var ${outputs[0]}: i32 = ${inputs[0]} << ${inputs[1]};`,
     },
   },
-  {
-    category: "Bitwise",
-    searchTerms: ["bitwise", "left", "shift", "<<", "bit"],
-  }
+  "Bitwise",
+  [
+    "bitwise",
+    "left",
+    "shift",
+    "<<",
+    "bit",
+    "binary",
+    "integer",
+    "operation",
+    "multiply",
+  ]
 );

@@ -8,7 +8,7 @@ export const GetBitNode = new NodeType(
     { name: "Index", type: "int" },
   ],
   [{ name: "Bit", type: "bool" }],
-  PORT_TYPES.bool.color,
+  PORT_TYPES.boolean.color,
   {
     webgl1: {
       dependency: "",
@@ -23,11 +23,22 @@ export const GetBitNode = new NodeType(
     webgpu: {
       dependency: "",
       execution: (inputs, outputs) =>
-        `    let ${outputs[0]}: bool = ((${inputs[0]} >> ${inputs[1]}) & 1) == 1;`,
+        `    var ${outputs[0]}: bool = ((${inputs[0]} >> ${inputs[1]}) & 1) == 1;`,
     },
   },
-  {
-    category: "Bitwise",
-    searchTerms: ["bit", "get", "mask", "bitwise", "index", "flag", "test"],
-  }
+  "Bitwise",
+  [
+    "bit",
+    "get",
+    "mask",
+    "bitwise",
+    "index",
+    "flag",
+    "test",
+    "binary",
+    "integer",
+    "operation",
+    "read",
+    "check",
+  ]
 );

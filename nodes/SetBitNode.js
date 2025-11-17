@@ -24,11 +24,21 @@ export const SetBitNode = new NodeType(
     webgpu: {
       dependency: "",
       execution: (inputs, outputs) =>
-        `    let ${outputs[0]}: i32 = select(${inputs[0]} & ~(1 << ${inputs[1]}), ${inputs[0]} | (1 << ${inputs[1]}), ${inputs[2]});`,
+        `    var ${outputs[0]}: i32 = select(${inputs[0]} & ~(1 << ${inputs[1]}), ${inputs[0]} | (1 << ${inputs[1]}), ${inputs[2]});`,
     },
   },
-  {
-    category: "Bitwise",
-    searchTerms: ["bit", "set", "mask", "bitwise", "index", "flag"],
-  }
+  "Bitwise",
+  [
+    "bit",
+    "set",
+    "mask",
+    "bitwise",
+    "index",
+    "flag",
+    "binary",
+    "integer",
+    "operation",
+    "write",
+    "modify",
+  ]
 );

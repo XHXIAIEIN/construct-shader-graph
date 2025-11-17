@@ -20,13 +20,11 @@ export const IntInputNode = new NodeType(
     webgpu: {
       dependency: "",
       execution: (inputs, outputs, node) =>
-        `    let ${outputs[0]}: i32 = ${node.customInput || "0"};`,
+        `    var ${outputs[0]}: i32 = ${node.customInput || "0"};`,
     },
   },
-  {
-    category: "Input",
-    searchTerms: ["int", "integer", "number", "constant", "value", "input"],
-  }
+  "Input",
+  ["int", "integer", "number", "constant", "value", "input", "literal"]
 );
 
 // Add custom input configuration with validation

@@ -23,11 +23,9 @@ export const BitwiseOrNode = new NodeType(
     webgpu: {
       dependency: "",
       execution: (inputs, outputs) =>
-        `    let ${outputs[0]}: i32 = ${inputs[0]} | ${inputs[1]};`,
+        `    var ${outputs[0]}: i32 = ${inputs[0]} | ${inputs[1]};`,
     },
   },
-  {
-    category: "Bitwise",
-    searchTerms: ["bitwise", "or", "|", "bit", "mask"],
-  }
+  "Bitwise",
+  ["bitwise", "or", "|", "bit", "mask", "binary", "integer", "operation"]
 );

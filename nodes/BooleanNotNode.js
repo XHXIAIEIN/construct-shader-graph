@@ -5,7 +5,7 @@ export const BooleanNotNode = new NodeType(
   "Boolean NOT",
   [{ name: "Value", type: "bool" }],
   [{ name: "Result", type: "bool" }],
-  PORT_TYPES.bool.color,
+  PORT_TYPES.boolean.color,
   {
     webgl1: {
       dependency: "",
@@ -18,19 +18,20 @@ export const BooleanNotNode = new NodeType(
     webgpu: {
       dependency: "",
       execution: (inputs, outputs) =>
-        `    let ${outputs[0]}: bool = !${inputs[0]};`,
+        `    var ${outputs[0]}: bool = !${inputs[0]};`,
     },
   },
-  {
-    category: "Boolean",
-    searchTerms: [
-      "boolean",
-      "not",
-      "!",
-      "logic",
-      "logical",
-      "invert",
-      "negate",
-    ],
-  }
+  "Logic",
+  [
+    "boolean",
+    "not",
+    "!",
+    "logic",
+    "logical",
+    "invert",
+    "negate",
+    "bool",
+    "operation",
+    "gate",
+  ]
 );

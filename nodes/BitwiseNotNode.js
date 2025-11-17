@@ -18,11 +18,20 @@ export const BitwiseNotNode = new NodeType(
     webgpu: {
       dependency: "",
       execution: (inputs, outputs) =>
-        `    let ${outputs[0]}: i32 = ~${inputs[0]};`,
+        `    var ${outputs[0]}: i32 = ~${inputs[0]};`,
     },
   },
-  {
-    category: "Bitwise",
-    searchTerms: ["bitwise", "not", "~", "bit", "invert", "complement"],
-  }
+  "Bitwise",
+  [
+    "bitwise",
+    "not",
+    "~",
+    "bit",
+    "invert",
+    "complement",
+    "binary",
+    "integer",
+    "operation",
+    "flip",
+  ]
 );

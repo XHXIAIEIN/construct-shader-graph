@@ -8,7 +8,7 @@ export const BooleanXorNode = new NodeType(
     { name: "B", type: "bool" },
   ],
   [{ name: "Result", type: "bool" }],
-  PORT_TYPES.bool.color,
+  PORT_TYPES.boolean.color,
   {
     webgl1: {
       dependency: "",
@@ -23,11 +23,20 @@ export const BooleanXorNode = new NodeType(
     webgpu: {
       dependency: "",
       execution: (inputs, outputs) =>
-        `    let ${outputs[0]}: bool = ${inputs[0]} != ${inputs[1]};`,
+        `    var ${outputs[0]}: bool = ${inputs[0]} != ${inputs[1]};`,
     },
   },
-  {
-    category: "Boolean",
-    searchTerms: ["boolean", "xor", "exclusive or", "logic", "logical"],
-  }
+  "Logic",
+  [
+    "boolean",
+    "xor",
+    "exclusive or",
+    "logic",
+    "logical",
+    "bool",
+    "operation",
+    "gate",
+    "toggle",
+    "different",
+  ]
 );

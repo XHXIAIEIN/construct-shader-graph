@@ -5,7 +5,7 @@ export const IsRotatedNode = new NodeType(
   "Is Rotated",
   [], // No inputs
   [{ name: "Rotated", type: "bool" }],
-  PORT_TYPES.bool.color,
+  PORT_TYPES.boolean.color,
   {
     webgl1: {
       dependency: "",
@@ -22,5 +22,7 @@ export const IsRotatedNode = new NodeType(
       execution: (inputs, outputs) =>
         `    let ${outputs[0]}: bool = bool(isSrcTexRotated);`,
     },
-  }
+  },
+  "Builtin",
+  ["is rotated", "rotated", "rotation", "rotation check"]
 );
