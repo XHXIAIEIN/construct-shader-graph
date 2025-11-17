@@ -148,6 +148,8 @@ import { HueNode } from "./HueNode.js";
 import { SaturationNode } from "./SaturationNode.js";
 import { InvertNode } from "./InvertNode.js";
 import { PixellateNode } from "./PixellateNode.js";
+import { PosterizeNode } from "./PosterizeNode.js";
+import { BlendModeNode } from "./BlendModeNode.js";
 
 // Export NODE_TYPES object
 export const NODE_TYPES = {
@@ -286,6 +288,8 @@ export const NODE_TYPES = {
   saturation: SaturationNode,
   invert: InvertNode,
   pixellate: PixellateNode,
+  posterize: PosterizeNode,
+  blendMode: BlendModeNode,
 
   // Debug nodes
   shaderLanguageTest: ShaderLanguageTestNode,
