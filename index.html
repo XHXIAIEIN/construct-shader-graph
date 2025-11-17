@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>C3 Shader Graph</title>
     <link rel="stylesheet" href="style.css" />
+    <script type="module">
+      // Import CodeMirror 6 modules from local npm packages
+      import {
+        EditorView,
+        basicSetup,
+      } from "/node_modules/codemirror/dist/index.js";
+      import { EditorState } from "/node_modules/@codemirror/state/dist/index.js";
+      import { cpp } from "/node_modules/@codemirror/lang-cpp/dist/index.js";
+      import { oneDark } from "/node_modules/@codemirror/theme-one-dark/dist/index.js";
+
+      // Make available globally
+      window.CodeMirror = { EditorView, EditorState, basicSetup, cpp, oneDark };
+    </script>
   </head>
   <body>
     <div id="app">
@@ -642,11 +655,7 @@
               </div>
             </div>
             <div class="custom-node-code-editor">
-              <textarea
-                id="customNodeCodeEditor"
-                rows="15"
-                placeholder="// Dependency code: functions, uniforms, etc. (outside main)&#10;// Example:&#10;// float customFunction(float x) {&#10;//   return x * 2.0;&#10;// }"
-              ></textarea>
+              <div id="customNodeCodeEditor"></div>
             </div>
           </div>
 

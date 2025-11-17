@@ -1608,8 +1608,11 @@ class BlueprintSystem {
       document.getElementById("customNodeOutputs");
     this.customNodesList = document.getElementById("custom-nodes-list");
 
-    // Code editor
-    this.customNodeCodeEditor = document.getElementById("customNodeCodeEditor");
+    // Code editor container
+    this.customNodeCodeEditorContainer = document.getElementById(
+      "customNodeCodeEditor"
+    );
+    this.codeMirrorEditor = null;
 
     // Current state for code editor
     this.currentCodeType = "dependency"; // "dependency" or "execution"
@@ -1622,6 +1625,9 @@ class BlueprintSystem {
       webgpu: { dependency: "", execution: "" },
     };
 
+    // Initialize CodeMirror editor (will be created when modal opens)
+    this.initializeCodeMirror();
+
     // Setup tab switching
     const codeTabs = document.querySelectorAll(".code-tab");
     const shaderTabs = document.querySelectorAll(".shader-tab");
@@ -1629,8 +1635,11 @@ class BlueprintSystem {
     codeTabs.forEach((tab) => {
       tab.addEventListener("click", () => {
         // Save current content
-        this.customNodeCodeData[this.currentShaderLang][this.currentCodeType] =
-          this.customNodeCodeEditor.value;
+        if (this.codeMirrorEditor) {
+          this.customNodeCodeData[this.currentShaderLang][
+            this.currentCodeType
+          ] = this.codeMirrorEditor.state.doc.toString();
+        }
 
         // Switch tab
         codeTabs.forEach((t) => t.classList.remove("active"));
@@ -1638,11 +1647,19 @@ class BlueprintSystem {
         this.currentCodeType = tab.dataset.codeType;
 
         // Load new content
-        this.customNodeCodeEditor.value =
-          this.customNodeCodeData[this.currentShaderLang][this.currentCodeType];
-
-        // Update placeholder
-        this.updateCodeEditorPlaceholder();
+        if (this.codeMirrorEditor) {
+          const newContent =
+            this.customNodeCodeData[this.currentShaderLang][
+              this.currentCodeType
+            ];
+          this.codeMirrorEditor.dispatch({
+            changes: {
+              from: 0,
+              to: this.codeMirrorEditor.state.doc.length,
+              insert: newContent,
+            },
+          });
+        }
       });
     });
 
@@ -1657,8 +1674,11 @@ class BlueprintSystem {
         }
 
         // Save current content
-        this.customNodeCodeData[this.currentShaderLang][this.currentCodeType] =
-          this.customNodeCodeEditor.value;
+        if (this.codeMirrorEditor) {
+          this.customNodeCodeData[this.currentShaderLang][
+            this.currentCodeType
+          ] = this.codeMirrorEditor.state.doc.toString();
+        }
 
         // Switch tab
         shaderTabs.forEach((t) => t.classList.remove("active"));
@@ -1666,11 +1686,19 @@ class BlueprintSystem {
         this.currentShaderLang = tab.dataset.shader;
 
         // Load new content
-        this.customNodeCodeEditor.value =
-          this.customNodeCodeData[this.currentShaderLang][this.currentCodeType];
-
-        // Update placeholder
-        this.updateCodeEditorPlaceholder();
+        if (this.codeMirrorEditor) {
+          const newContent =
+            this.customNodeCodeData[this.currentShaderLang][
+              this.currentCodeType
+            ];
+          this.codeMirrorEditor.dispatch({
+            changes: {
+              from: 0,
+              to: this.codeMirrorEditor.state.doc.length,
+              insert: newContent,
+            },
+          });
+        }
       });
     });
 
@@ -1686,9 +1714,11 @@ class BlueprintSystem {
         // If currently on WebGL 2 tab, switch to WebGL 1
         if (this.currentShaderLang === "webgl2") {
           // Save current content first
-          this.customNodeCodeData[this.currentShaderLang][
-            this.currentCodeType
-          ] = this.customNodeCodeEditor.value;
+          if (this.codeMirrorEditor) {
+            this.customNodeCodeData[this.currentShaderLang][
+              this.currentCodeType
+            ] = this.codeMirrorEditor.state.doc.toString();
+          }
 
           // Switch to WebGL 1
           document
@@ -1698,18 +1728,22 @@ class BlueprintSystem {
             .querySelector('.shader-tab[data-shader="webgl1"]')
             .classList.add("active");
           this.currentShaderLang = "webgl1";
-          this.customNodeCodeEditor.value =
-            this.customNodeCodeData[this.currentShaderLang][
-              this.currentCodeType
-            ];
+
+          if (this.codeMirrorEditor) {
+            const newContent =
+              this.customNodeCodeData[this.currentShaderLang][
+                this.currentCodeType
+              ];
+            this.codeMirrorEditor.dispatch({
+              changes: {
+                from: 0,
+                to: this.codeMirrorEditor.state.doc.length,
+                insert: newContent,
+              },
+            });
+          }
         }
       }
-    });
-
-    // Update code data when typing
-    this.customNodeCodeEditor.addEventListener("input", () => {
-      this.customNodeCodeData[this.currentShaderLang][this.currentCodeType] =
-        this.customNodeCodeEditor.value;
     });
 
     // Buttons
@@ -1766,7 +1800,6 @@ class BlueprintSystem {
     // Reset to default tab (execution)
     this.currentCodeType = "execution";
     this.currentShaderLang = "webgl1";
-    this.customNodeCodeEditor.value = "";
 
     // Reset tab UI
     document.querySelectorAll(".code-tab").forEach((tab) => {
@@ -1818,10 +1851,6 @@ class BlueprintSystem {
       this.customNodeCodeData.webgpu.execution =
         customNode.code.webgpu.execution;
 
-      // Show current tab content
-      this.customNodeCodeEditor.value =
-        this.customNodeCodeData[this.currentShaderLang][this.currentCodeType];
-
       // Update WebGL 2 tab disabled state based on splitWebGL
       const webgl2Tab = document.querySelector(
         '.shader-tab[data-shader="webgl2"]'
@@ -1837,8 +1866,18 @@ class BlueprintSystem {
       webgl2Tab.classList.remove("disabled");
     }
 
-    // Update placeholder for current tab
-    this.updateCodeEditorPlaceholder();
+    // Update CodeMirror content
+    if (this.codeMirrorEditor) {
+      const content =
+        this.customNodeCodeData[this.currentShaderLang][this.currentCodeType];
+      this.codeMirrorEditor.dispatch({
+        changes: {
+          from: 0,
+          to: this.codeMirrorEditor.state.doc.length,
+          insert: content,
+        },
+      });
+    }
 
     this.customNodeModal.classList.add("visible");
   }
@@ -1848,28 +1887,40 @@ class BlueprintSystem {
     this.editingCustomNode = null;
   }
 
-  updateCodeEditorPlaceholder() {
-    const placeholders = {
-      dependency: {
-        webgl1:
-          "// Dependency code: functions, uniforms, etc. (outside main)\n// Example:\n// float customFunction(float x) {\n//   return x * 2.0;\n// }",
-        webgl2:
-          "// Dependency code: functions, uniforms, etc. (outside main)\n// Example:\n// float customFunction(float x) {\n//   return x * 2.0;\n// }",
-        webgpu:
-          "// Dependency code: functions, etc. (outside main)\n// Example:\n// fn customFunction(x: f32) -> f32 {\n//   return x * 2.0;\n// }",
-      },
-      execution: {
-        webgl1:
-          "// Execution code (inside main)\n// Use {input0}, {input1}, etc. for inputs\n// Use {output0}, {output1}, etc. for outputs\n// Example:\n// float {output0} = {input0} + {input1};",
-        webgl2:
-          "// Execution code (inside main)\n// Use {input0}, {input1}, etc. for inputs\n// Use {output0}, {output1}, etc. for outputs\n// Example:\n// float {output0} = {input0} + {input1};",
-        webgpu:
-          "// Execution code (inside main)\n// Use {input0}, {input1}, etc. for inputs\n// Use {output0}, {output1}, etc. for outputs\n// Example:\n// var {output0}: f32 = {input0} + {input1};",
-      },
+  initializeCodeMirror() {
+    // Wait for CodeMirror to be available
+    const checkCodeMirror = () => {
+      if (window.CodeMirror) {
+        const { EditorView, EditorState, basicSetup, cpp, oneDark } =
+          window.CodeMirror;
+
+        // Create CodeMirror editor
+        this.codeMirrorEditor = new EditorView({
+          state: EditorState.create({
+            doc: "",
+            extensions: [
+              basicSetup,
+              cpp(),
+              oneDark,
+              EditorView.updateListener.of((update) => {
+                if (update.docChanged) {
+                  // Save content when it changes
+                  this.customNodeCodeData[this.currentShaderLang][
+                    this.currentCodeType
+                  ] = update.state.doc.toString();
+                }
+              }),
+            ],
+          }),
+          parent: this.customNodeCodeEditorContainer,
+        });
+      } else {
+        // Retry after a short delay
+        setTimeout(checkCodeMirror, 100);
+      }
     };
 
-    this.customNodeCodeEditor.placeholder =
-      placeholders[this.currentCodeType][this.currentShaderLang];
+    checkCodeMirror();
   }
 
   setupPreview() {
@@ -2744,8 +2795,10 @@ class BlueprintSystem {
     }
 
     // Save current editor content before creating the node
-    this.customNodeCodeData[this.currentShaderLang][this.currentCodeType] =
-      this.customNodeCodeEditor.value;
+    if (this.codeMirrorEditor) {
+      this.customNodeCodeData[this.currentShaderLang][this.currentCodeType] =
+        this.codeMirrorEditor.state.doc.toString();
+    }
 
     // Handle splitWebGL logic
     const splitWebGL = this.customNodeSplitWebGLInput.checked;
