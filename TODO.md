@@ -1,106 +1,42 @@
-# TODO: Update Nodes to Use Resolved Types
+# Shader Node Ideas from Construct Documentation
 
-The following nodes with `genType` (generic types) need to be updated to use the new resolved input/output types parameters in their execution functions.
+## WebGPU Helper Functions (from c3_helpers.wgsl)
 
-## Execution Function Signature Change
+- [ ] **c3_srcOriginToNorm Node** - Converts source origin coordinates to normalized (0-1) coordinates
 
-Change from: `(inputs, outputs, node)` or `(inputs, outputs)`  
-Change to: `(inputs, outputs, node, inputTypes, outputTypes)`
+  - WebGPU: `c3_srcOriginToNorm(input.fragUV)`
+  - WebGL: `(vTex - srcOriginStart) / (srcOriginEnd - srcOriginStart)`
 
-## Pattern to Follow
+- [ ] **c3_getLayoutPos Node** - Gets the current layout position being rendered
 
-### For WebGL1/WebGL2:
+  - WebGPU: `c3_getLayoutPos(input.fragUV)`
+  - WebGL: `mix(layoutStart, layoutEnd, normalizedCoords)`
 
-```javascript
-execution: (inputs, outputs, node, inputTypes, outputTypes) =>
-  `    ${outputTypes[0]} ${outputs[0]} = functionName(${inputs[0]});`;
-```
+- [ ] **c3_unpremultiply Node** - Converts premultiplied alpha to unpremultiplied
 
-### For WebGPU:
+  - WebGPU: `c3_unpremultiply(color)`
+  - WebGL: `if (a != 0.0) color.rgb /= a;`
 
-```javascript
-execution: (inputs, outputs, node, inputTypes, outputTypes) => {
-  const wgslType = toWGSLType(outputTypes[0]);
-  return `    var ${outputs[0]}: ${wgslType} = functionName(${inputs[0]});`;
-};
-```
+- [ ] **c3_premultiply Node** - Converts unpremultiplied to premultiplied alpha
 
-Don't forget to import `toWGSLType` from `./PortTypes.js` for WebGPU nodes!
+  - WebGPU: `c3_premultiply(color)`
+  - WebGL: `color.rgb *= a;`
 
----
+- [ ] **c3_getPixelSize Node** - Gets pixel size in texture coordinates (already implemented as PixelSizeNode)
 
-## Nodes to Update (39 remaining)
+  - WebGPU: `c3_getPixelSize(texture)`
+  - WebGL: `pixelSize` uniform
 
-### Math Operations (19 nodes)
+- [ ] **c3_getBackUV Node** - Gets UV coordinates for sampling background texture
 
-- [ ] AbsNode.js
-- [ ] PowerNode.js
-- [ ] RoundNode.js
-- [ ] MaxNode.js
-- [ ] MinNode.js
-- [ ] ClampNode.js
-- [ ] SmoothstepNode.js
-- [ ] FractNode.js
-- [ ] FloorNode.js
-- [ ] CeilNode.js
-- [ ] ModNode.js
-- [ ] SqrtNode.js
-- [ ] ExpNode.js
-- [ ] LnNode.js
-- [ ] Log10Node.js
-- [ ] Log2Node.js
-- [ ] Exp2Node.js
-- [ ] Exp10Node.js
-- [ ] SignNode.js
+  - WebGPU: `c3_getBackUV(input.fragPos.xy, textureBack)`
+  - WebGL: `(vTex - srcStart) / (srcEnd - srcStart)`
 
-### Trigonometry (8 nodes)
+- [ ] **c3_getDepthUV Node** - Gets UV coordinates for sampling depth buffer
 
-- [ ] CosNode.js
-- [ ] SinNode.js
-- [ ] TanNode.js
-- [ ] AsinNode.js
-- [ ] AcosNode.js
-- [ ] AtanNode.js
-- [ ] Atan2Node.js
-- [ ] ToRadiansNode.js
-- [ ] ToDegreesNode.js
+  - WebGPU: `c3_getDepthUV(input.fragPos.xy, textureDepth)`
+  - WebGL: `(vTex - srcStart) / (srcEnd - srcStart)`
 
-### Vector Operations (3 nodes)
-
-- [ ] NormalizeNode.js
-- [ ] LengthNode.js
-- [ ] DotNode.js
-
-### Utility (5 nodes)
-
-- [ ] MathNode.js (has operation dropdown)
-- [ ] CompareNode.js
-- [ ] DistanceNode.js
-- [ ] RemapNode.js
-- [ ] ShaderLanguageTestNode.js
-
-### Derivatives (3 nodes)
-
-- [ ] DDXNode.js
-- [ ] DDYNode.js
-- [ ] FWidthNode.js
-
----
-
-## Already Completed ✓
-
-- [x] MixNode.js
-- [x] StepNode.js
-- [x] SwizzleNode.js (custom type)
-- [x] TextureSampleGradNode.js (custom type)
-- [x] TextureSampleNode.js (custom type)
-- [x] TextureSampleLODNode.js (custom type)
-
----
-
-## Notes
-
-- Most nodes follow a simple pattern and can be updated quickly
-- MathNode has an operation dropdown, so it uses `node.operation`
-- ShaderLanguageTestNode has a typo in WebGPU (`shad${outputs[0]}` should probably be just `${outputs[0]}`)
-- Some nodes may not need type declarations if they're simple assignments, but it's better to be consistent
+- [ ] **c3_linearizeDepth Node** - Converts depth buffer value to linear depth
+  - WebGPU: `c3_linearizeDepth(depthSample)`
+  - WebGL: Manual calculation using zNear/zFar
