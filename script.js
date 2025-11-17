@@ -415,8 +415,16 @@ class Node {
         ? 45
         : 30
       : 0;
+    // Add extra space for variable dropdown if node has it
+    const variableDropdownSpace = this.nodeType.hasVariableDropdown ? 45 : 0;
     this.height =
-      50 + dropdownSpace + customInputSpace + maxPorts * 40 + extraHeight + 10;
+      50 +
+      dropdownSpace +
+      customInputSpace +
+      variableDropdownSpace +
+      maxPorts * 40 +
+      extraHeight +
+      10;
   }
 
   // Resolve generic type for a port based on connections

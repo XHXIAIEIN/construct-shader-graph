@@ -1621,6 +1621,20 @@ export class AutoLayoutEngine {
   estimateNodeHeight(node) {
     if (!node) return 100;
 
+    // Check if this is a variable node (pill-shaped)
+    // Variable nodes: no inputs, has outputs, and no special UI elements
+    const isVariable =
+      node.nodeType?.inputs?.length === 0 &&
+      node.nodeType?.outputs?.length > 0 &&
+      !node.nodeType?.hasOperation &&
+      !node.nodeType?.hasCustomInput &&
+      !node.nodeType?.hasVariableDropdown;
+
+    // Variable nodes are small and pill-shaped
+    if (isVariable) {
+      return 35;
+    }
+
     // Base header height
     let height = 50;
 
@@ -1637,6 +1651,10 @@ export class AutoLayoutEngine {
         : 30
       : 0;
     height += customInputOffset;
+
+    // Add variable dropdown offset if present
+    const variableDropdownOffset = node.nodeType?.hasVariableDropdown ? 45 : 0;
+    height += variableDropdownOffset;
 
     // Add port heights
     const portCount = Math.max(
