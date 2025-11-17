@@ -1006,9 +1006,19 @@ export class AutoLayoutEngine {
     childLayouts.forEach((child, index) => {
       const childLayout = child.layout;
       const childNode = subgraph.get(child.id)?.node;
-      let proposedY = 0; // Start at 0, not stacking!
 
-      // Removed verbose debug logging
+      // Smart initial placement: try to place below previous siblings
+      let proposedY = 0;
+
+      if (index > 0) {
+        // Start by trying to place this child just below the previous child's full tree
+        const prevBBox = placedBBoxes[placedBBoxes.length - 1];
+        if (prevBBox) {
+          // Place below the previous child's bounding box
+          proposedY =
+            prevBBox.y + prevBBox.height - childLayout.bbox.y + verticalSpacing;
+        }
+      }
 
       // SPECIAL CASE: If this is a single child with single connection, align by port
       if (childLayouts.length === 1 && childNode) {
@@ -1041,11 +1051,11 @@ export class AutoLayoutEngine {
         }
       }
 
-      // Check for overlaps with previously placed children
-      // CRITICAL: Must check FULL BBOX including descendants, not just immediate node
+      // Check for overlaps with ALL previously placed children's trees
+      // We need to find a position that doesn't overlap with any of them
       let hasOverlap = true;
       let attempts = 0;
-      const maxAttempts = 50; // Increased to handle cascading pushes
+      const maxAttempts = 100; // Increased for better placement
 
       while (hasOverlap && attempts < maxAttempts) {
         hasOverlap = false;
@@ -1058,66 +1068,49 @@ export class AutoLayoutEngine {
           height: childLayout.bbox.height,
         };
 
-        // Check against all previously placed children's FULL BBOXES
+        // Check against ALL previously placed children's FULL BBOXES
+        let maxPushDownY = proposedY;
+        let minPushUpY = proposedY;
+        let foundOverlap = false;
+
         for (let i = 0; i < placedBBoxes.length; i++) {
           const placedBBox = placedBBoxes[i];
           if (this.bboxesOverlap(proposedBBox, placedBBox)) {
-            // Overlap detected - choose the direction that requires LEAST movement
-            // Option 1: Push DOWN below the placed bbox
+            foundOverlap = true;
+
+            // Calculate where we'd need to push to avoid this bbox
             const pushDownY =
               placedBBox.y +
               placedBBox.height -
               childLayout.bbox.y +
               verticalSpacing;
 
-            // Option 2: Push UP above the placed bbox
             const pushUpY =
               placedBBox.y -
               childLayout.bbox.height -
               childLayout.bbox.y -
               verticalSpacing;
 
-            // Choose the option that moves the node the least distance
-            const distanceDown = Math.abs(pushDownY - proposedY);
-            const distanceUp = Math.abs(pushUpY - proposedY);
-
-            if (distanceUp < distanceDown) {
-              proposedY = pushDownY;
-            } else {
-              proposedY = pushUpY;
-            }
-
-            // Cascade push: If we pushed this node, we need to check if the pushed
-            // node now overlaps with others and push them too
-            const pushDelta = proposedY - (childOffsets[index]?.y || 0);
-            if (Math.abs(pushDelta) > 0.1) {
-              // Push any nodes that come after this one that might now overlap
-              for (let j = i + 1; j < placedBBoxes.length; j++) {
-                const otherBBox = placedBBoxes[j];
-                const testBBox = {
-                  x: proposedBBox.x,
-                  y: proposedY + childLayout.bbox.y,
-                  width: proposedBBox.width,
-                  height: proposedBBox.height,
-                };
-
-                if (this.bboxesOverlap(testBBox, otherBBox)) {
-                  // Need to push this other node too
-                  const otherPushY =
-                    pushDelta > 0
-                      ? otherBBox.y + pushDelta
-                      : otherBBox.y + pushDelta;
-                  placedBBoxes[j].y = otherPushY;
-                  if (childOffsets[j]) {
-                    childOffsets[j].y += pushDelta;
-                  }
-                }
-              }
-            }
-
-            hasOverlap = true;
-            break;
+            // Track the furthest we'd need to push in each direction
+            maxPushDownY = Math.max(maxPushDownY, pushDownY);
+            minPushUpY = Math.min(minPushUpY, pushUpY);
           }
+        }
+
+        if (foundOverlap) {
+          // Choose the direction that requires less movement
+          const distanceDown = Math.abs(maxPushDownY - proposedY);
+          const distanceUp = Math.abs(minPushUpY - proposedY);
+
+          if (distanceUp < distanceDown && minPushUpY >= 0) {
+            // Prefer pushing up if it's closer and doesn't go negative
+            proposedY = minPushUpY;
+          } else {
+            // Push down to clear all overlaps
+            proposedY = maxPushDownY;
+          }
+
+          hasOverlap = true;
         }
 
         attempts++;
