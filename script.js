@@ -1763,14 +1763,14 @@ class BlueprintSystem {
       webgpu: { dependency: "", execution: "" },
     };
 
-    // Reset to default tab
-    this.currentCodeType = "dependency";
+    // Reset to default tab (execution)
+    this.currentCodeType = "execution";
     this.currentShaderLang = "webgl1";
     this.customNodeCodeEditor.value = "";
 
     // Reset tab UI
     document.querySelectorAll(".code-tab").forEach((tab) => {
-      tab.classList.toggle("active", tab.dataset.codeType === "dependency");
+      tab.classList.toggle("active", tab.dataset.codeType === "execution");
     });
     document.querySelectorAll(".shader-tab").forEach((tab) => {
       tab.classList.toggle("active", tab.dataset.shader === "webgl1");
@@ -2828,6 +2828,9 @@ class BlueprintSystem {
     this.renderCustomNodesList();
     this.hideCustomNodeModal();
     console.log("Custom node saved:", customNode);
+
+    // Reload preview after saving custom node
+    this.updatePreview();
   }
 
   updateCustomNodeInstances(customNode) {
@@ -6912,6 +6915,28 @@ class BlueprintSystem {
       return;
     }
 
+    // Check if clicking on edit button for custom nodes
+    for (const node of this.nodes) {
+      if (node.nodeType.isCustom && node.editButtonBounds) {
+        const btn = node.editButtonBounds;
+        if (
+          pos.x >= btn.x &&
+          pos.x <= btn.x + btn.width &&
+          pos.y >= btn.y &&
+          pos.y <= btn.y + btn.height
+        ) {
+          // Find the custom node definition
+          const customNode = this.customNodes.find(
+            (cn) => cn.id === node.nodeType.customNodeId
+          );
+          if (customNode) {
+            this.showCustomNodeModal(customNode);
+          }
+          return;
+        }
+      }
+    }
+
     // Check if clicking on an operation dropdown
     for (const node of this.nodes) {
       if (node.nodeType.hasOperation) {
@@ -7926,6 +7951,61 @@ class BlueprintSystem {
       ctx.font = "bold 14px sans-serif";
       ctx.textAlign = "center";
       ctx.fillText(node.title, node.x + node.width / 2, node.y + 22);
+
+      // Edit button for custom nodes
+      if (node.nodeType.isCustom) {
+        const buttonSize = 20;
+        const buttonX = node.x + node.width - buttonSize - 5;
+        const buttonY = node.y + 7;
+
+        // Button background
+        ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+        ctx.beginPath();
+        ctx.roundRect(buttonX, buttonY, buttonSize, buttonSize, 4);
+        ctx.fill();
+
+        // Edit icon (pencil) - SVG path scaled to fit button
+        ctx.fillStyle = "#fff";
+        ctx.save();
+
+        // Scale and translate to fit the button (24x24 viewBox to 14x14 actual size)
+        const iconSize = 14;
+        const iconOffset = (buttonSize - iconSize) / 2;
+        ctx.translate(buttonX + iconOffset, buttonY + iconOffset);
+        const scale = iconSize / 24;
+        ctx.scale(scale, scale);
+
+        // Draw the pencil path
+        ctx.beginPath();
+        // M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87
+        ctx.moveTo(20.71, 7.04);
+        ctx.bezierCurveTo(21.1, 6.65, 21.1, 6, 20.71, 5.63);
+        ctx.lineTo(18.37, 3.29);
+        ctx.bezierCurveTo(18, 2.9, 17.35, 2.9, 16.96, 3.29);
+        ctx.lineTo(15.12, 5.12);
+        ctx.lineTo(18.87, 8.87);
+
+        // M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z
+        ctx.moveTo(3, 17.25);
+        ctx.lineTo(3, 21);
+        ctx.lineTo(6.75, 21);
+        ctx.lineTo(17.81, 9.93);
+        ctx.lineTo(14.06, 6.18);
+        ctx.lineTo(3, 17.25);
+        ctx.closePath();
+
+        ctx.fill();
+        ctx.restore();
+
+        // Store button bounds for click detection
+        if (!node.editButtonBounds) {
+          node.editButtonBounds = {};
+        }
+        node.editButtonBounds.x = buttonX;
+        node.editButtonBounds.y = buttonY;
+        node.editButtonBounds.width = buttonSize;
+        node.editButtonBounds.height = buttonSize;
+      }
 
       // Operation dropdown (if node has operations)
       if (node.nodeType.hasOperation) {

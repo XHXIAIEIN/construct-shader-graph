@@ -1446,6 +1446,7 @@ body {
 
 .custom-node-ports-column {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1500,8 +1501,11 @@ body {
   min-height: 130px;
   max-height: 130px;
   overflow-y: auto;
+  overflow-x: hidden;
   padding-right: 5px;
+  background: #1a1a1a;
   flex: 1;
+  width: 100%;
 }
 
 .custom-node-ports-list::-webkit-scrollbar {
@@ -1610,13 +1614,13 @@ body {
   gap: 4px;
   align-items: center;
   padding: 2px;
-  background: #1a1a1a;
   border-radius: 4px;
 }
 
 .custom-port-item input {
   flex: 1;
   min-width: 0;
+  width: 0;
 }
 
 .custom-port-item select {
