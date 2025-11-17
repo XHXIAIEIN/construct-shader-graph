@@ -730,13 +730,13 @@ body {
 .settings-form {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .settings-form label {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0px;
   font-size: 13px;
   color: #aaa;
 }
@@ -785,6 +785,7 @@ body {
   height: 16px;
   cursor: pointer;
   accent-color: #4a90e2;
+  margin: 2px 0px 1px 0px;
 }
 
 .checkbox-label span {

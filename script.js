@@ -698,6 +698,9 @@ class BlueprintSystem {
       preservesOpaqueness: true,
       animated: false,
       isDeprecated: false,
+      usesDepth: false,
+      mustPredraw: false,
+      supports3DDirectRendering: false,
       extendBoxH: 0,
       extendBoxV: 0,
     };
@@ -1180,6 +1183,11 @@ class BlueprintSystem {
     );
     const animatedCheckbox = document.getElementById("settingAnimated");
     const isDeprecatedCheckbox = document.getElementById("settingIsDeprecated");
+    const usesDepthCheckbox = document.getElementById("settingUsesDepth");
+    const mustPredrawCheckbox = document.getElementById("settingMustPredraw");
+    const supports3DDirectRenderingCheckbox = document.getElementById(
+      "settingSupports3DDirectRendering"
+    );
     const extendBoxHInput = document.getElementById("settingExtendBoxH");
     const extendBoxVInput = document.getElementById("settingExtendBoxV");
 
@@ -1197,6 +1205,10 @@ class BlueprintSystem {
       this.shaderSettings.preservesOpaqueness;
     animatedCheckbox.checked = this.shaderSettings.animated;
     isDeprecatedCheckbox.checked = this.shaderSettings.isDeprecated;
+    usesDepthCheckbox.checked = this.shaderSettings.usesDepth || false;
+    mustPredrawCheckbox.checked = this.shaderSettings.mustPredraw || false;
+    supports3DDirectRenderingCheckbox.checked =
+      this.shaderSettings.supports3DDirectRendering || false;
     extendBoxHInput.value = this.shaderSettings.extendBoxH;
     extendBoxVInput.value = this.shaderSettings.extendBoxV;
 
@@ -1276,6 +1288,22 @@ class BlueprintSystem {
 
     isDeprecatedCheckbox.addEventListener("change", () => {
       this.shaderSettings.isDeprecated = isDeprecatedCheckbox.checked;
+      this.onShaderChanged();
+    });
+
+    usesDepthCheckbox.addEventListener("change", () => {
+      this.shaderSettings.usesDepth = usesDepthCheckbox.checked;
+      this.onShaderChanged();
+    });
+
+    mustPredrawCheckbox.addEventListener("change", () => {
+      this.shaderSettings.mustPredraw = mustPredrawCheckbox.checked;
+      this.onShaderChanged();
+    });
+
+    supports3DDirectRenderingCheckbox.addEventListener("change", () => {
+      this.shaderSettings.supports3DDirectRendering =
+        supports3DDirectRenderingCheckbox.checked;
       this.onShaderChanged();
     });
 
@@ -2221,13 +2249,13 @@ class BlueprintSystem {
       glslWebGL2: shaders.webgl2,
       wgsl: shaders.webgpu,
       blendsBackground: this.shaderSettings.blendsBackground,
-      usesDepth: false,
+      usesDepth: this.shaderSettings.usesDepth,
       extendBoxHorizontal: this.shaderSettings.extendBoxH,
       extendBoxVertical: this.shaderSettings.extendBoxV,
       crossSampling: this.shaderSettings.crossSampling,
-      mustPreDraw: false,
+      mustPreDraw: this.shaderSettings.mustPredraw,
       preservesOpaqueness: this.shaderSettings.preservesOpaqueness,
-      supports3dDirectRendering: false,
+      supports3dDirectRendering: this.shaderSettings.supports3DDirectRendering,
       animated: this.shaderSettings.animated,
       parameters: parameters,
     };
@@ -4997,6 +5025,10 @@ class BlueprintSystem {
       "preserves-opaqueness": settings.preservesOpaqueness || false,
       animated: settings.animated || false,
       "is-deprecated": settings.isDeprecated || false,
+      "uses-depth": settings.usesDepth || false,
+      "must-predraw": settings.mustPredraw || false,
+      "supports-3d-direct-rendering":
+        settings.supports3DDirectRendering || false,
       "extend-box": {
         horizontal: settings.extendBoxH || 0,
         vertical: settings.extendBoxV || 0,
