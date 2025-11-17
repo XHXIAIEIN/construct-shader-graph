@@ -144,6 +144,10 @@ import { ClampToDestNode } from "./ClampToDestNode.js";
 import { GrayscaleNode } from "./GrayscaleNode.js";
 import { RGBtoHSLNode } from "./RGBtoHSLNode.js";
 import { HSLtoRGBNode } from "./HSLtoRGBNode.js";
+import { HueNode } from "./HueNode.js";
+import { SaturationNode } from "./SaturationNode.js";
+import { InvertNode } from "./InvertNode.js";
+import { PixellateNode } from "./PixellateNode.js";
 
 // Export NODE_TYPES object
 export const NODE_TYPES = {
@@ -278,6 +282,10 @@ export const NODE_TYPES = {
   grayscale: GrayscaleNode,
   rgbToHsl: RGBtoHSLNode,
   hslToRgb: HSLtoRGBNode,
+  hue: HueNode,
+  saturation: SaturationNode,
+  invert: InvertNode,
+  pixellate: PixellateNode,
 
   // Debug nodes
   shaderLanguageTest: ShaderLanguageTestNode,
