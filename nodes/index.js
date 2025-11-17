@@ -167,6 +167,27 @@ import { DrawFloatNode } from "./DrawFloatNode.js";
 import { SetVariableNode } from "./SetVariableNode.js";
 import { GetVariableNode } from "./GetVariableNode.js";
 
+// Import input nodes
+import { FloatInputNode } from "./FloatInputNode.js";
+import { IntInputNode } from "./IntInputNode.js";
+import { BoolInputNode } from "./BoolInputNode.js";
+
+// Import bitwise operation nodes
+import { BitwiseAndNode } from "./BitwiseAndNode.js";
+import { BitwiseOrNode } from "./BitwiseOrNode.js";
+import { BitwiseXorNode } from "./BitwiseXorNode.js";
+import { BitwiseNotNode } from "./BitwiseNotNode.js";
+import { BitwiseLeftShiftNode } from "./BitwiseLeftShiftNode.js";
+import { BitwiseRightShiftNode } from "./BitwiseRightShiftNode.js";
+import { SetBitNode } from "./SetBitNode.js";
+import { GetBitNode } from "./GetBitNode.js";
+
+// Import boolean operation nodes
+import { BooleanAndNode } from "./BooleanAndNode.js";
+import { BooleanOrNode } from "./BooleanOrNode.js";
+import { BooleanXorNode } from "./BooleanXorNode.js";
+import { BooleanNotNode } from "./BooleanNotNode.js";
+
 // Export NODE_TYPES object
 export const NODE_TYPES = {
   math: MathNode,
@@ -323,4 +344,25 @@ export const NODE_TYPES = {
   // Variable nodes
   setVariable: SetVariableNode,
   getVariable: GetVariableNode,
+
+  // Input nodes
+  floatInput: FloatInputNode,
+  intInput: IntInputNode,
+  boolInput: BoolInputNode,
+
+  // Bitwise operations
+  bitwiseAnd: BitwiseAndNode,
+  bitwiseOr: BitwiseOrNode,
+  bitwiseXor: BitwiseXorNode,
+  bitwiseNot: BitwiseNotNode,
+  bitwiseLeftShift: BitwiseLeftShiftNode,
+  bitwiseRightShift: BitwiseRightShiftNode,
+  setBit: SetBitNode,
+  getBit: GetBitNode,
+
+  // Boolean operations
+  booleanAnd: BooleanAndNode,
+  booleanOr: BooleanOrNode,
+  booleanXor: BooleanXorNode,
+  booleanNot: BooleanNotNode,
 };
