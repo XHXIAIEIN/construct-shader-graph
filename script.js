@@ -4426,12 +4426,14 @@ class BlueprintSystem {
 
   setupEventListeners() {
     this.canvas.addEventListener("mousedown", (e) => this.onMouseDown(e));
-    this.canvas.addEventListener("mousemove", (e) => this.onMouseMove(e));
-    this.canvas.addEventListener("mouseup", (e) => this.onMouseUp(e));
     this.canvas.addEventListener("contextmenu", (e) => this.onContextMenu(e));
     this.canvas.addEventListener("wheel", (e) => this.onWheel(e), {
       passive: false,
     });
+
+    // Attach mousemove and mouseup to document so they work even over UI elements
+    document.addEventListener("mousemove", (e) => this.onMouseMove(e));
+    document.addEventListener("mouseup", (e) => this.onMouseUp(e));
 
     // Drag and drop for uniforms
     this.canvas.addEventListener("dragover", (e) => {
