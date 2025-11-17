@@ -485,9 +485,24 @@ class Node {
         const oldType = this.nodeType.getCustomType(oldNode, port);
         const newType = this.nodeType.getCustomType(newNode, port);
 
-        // If type changed, disconnect all connections
+        // If type changed, check each connection for compatibility
         if (oldType !== newType && port.connections.length > 0) {
-          const connectionsToRemove = [...port.connections];
+          const connectionsToRemove = [];
+
+          port.connections.forEach((wire) => {
+            // Determine which port is the other end of this wire
+            const otherPort =
+              wire.startPort === port ? wire.endPort : wire.startPort;
+
+            // Check if the new type is still compatible with the other port
+            const isStillCompatible = port.canConnectTo(otherPort);
+
+            if (!isStillCompatible) {
+              connectionsToRemove.push(wire);
+            }
+          });
+
+          // Only disconnect incompatible connections
           connectionsToRemove.forEach((wire) => {
             editor.disconnectWire(wire);
           });
@@ -3372,10 +3387,22 @@ class BlueprintSystem {
 
     // Position the input field
     const rect = this.canvas.getBoundingClientRect();
-    this.customInputField.style.left = `${rect.left + bounds.x}px`;
-    this.customInputField.style.top = `${rect.top + bounds.y}px`;
-    this.customInputField.style.width = `${bounds.width}px`;
-    this.customInputField.style.height = `${bounds.height}px`;
+
+    // Transform world coordinates to screen coordinates
+    const screenX = bounds.x * this.camera.zoom + this.camera.x;
+    const screenY = bounds.y * this.camera.zoom + this.camera.y;
+    const screenWidth = bounds.width * this.camera.zoom;
+    const screenHeight = bounds.height * this.camera.zoom;
+
+    this.customInputField.style.left = `${
+      rect.left + window.scrollX + screenX
+    }px`;
+    this.customInputField.style.top = `${
+      rect.top + window.scrollY + screenY
+    }px`;
+    this.customInputField.style.width = `${screenWidth}px`;
+    this.customInputField.style.height = `${screenHeight}px`;
+    this.customInputField.style.fontSize = `${11 * this.camera.zoom}px`;
     this.customInputField.style.display = "block";
 
     // Set current value
@@ -3424,6 +3451,9 @@ class BlueprintSystem {
 
     this.render();
     this.onShaderChanged();
+
+    // Save to history
+    this.history.pushState("Edit custom input");
   }
 
   cancelEditingCustomInput() {
@@ -5170,6 +5200,7 @@ class BlueprintSystem {
         nodeTypeKey: this.getNodeTypeKey(node.nodeType),
         title: node.title,
         operation: node.operation,
+        customInput: node.customInput,
         uniformName: node.uniformName,
         uniformDisplayName: node.uniformDisplayName,
         uniformVariableName: node.uniformVariableName,
@@ -5363,6 +5394,8 @@ class BlueprintSystem {
           // Restore node properties
           if (nodeData.title) node.title = nodeData.title;
           if (nodeData.operation) node.operation = nodeData.operation;
+          if (nodeData.customInput !== undefined)
+            node.customInput = nodeData.customInput;
           if (nodeData.uniformName) node.uniformName = nodeData.uniformName;
           if (nodeData.uniformDisplayName)
             node.uniformDisplayName = nodeData.uniformDisplayName;
@@ -5417,6 +5450,9 @@ class BlueprintSystem {
           this.wires.push(wire);
           startPort.connections.push(wire);
           endPort.connections.push(wire);
+
+          // Resolve generic types for this connection
+          this.resolveGenericsForConnection(startPort, endPort);
         }
       }
 

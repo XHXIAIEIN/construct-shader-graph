@@ -32,8 +32,9 @@ export const PORT_TYPES = {
     editable: true,
     defaultValue: 0.0,
     toShaderValue: (value, shaderFormat) => {
-      // Floats are the same in all shader languages
-      return value.toString();
+      // Floats need to have .0 if they're whole numbers
+      const str = value.toString();
+      return str.includes(".") ? str : str + ".0";
     },
   },
   int: {
@@ -64,11 +65,15 @@ export const PORT_TYPES = {
     editable: true,
     defaultValue: [0.0, 0.0],
     toShaderValue: (value, shaderFormat) => {
+      const formatFloat = (v) => {
+        const str = v.toString();
+        return str.includes(".") ? str : str + ".0";
+      };
       if (shaderFormat === "webgpu") {
-        return `vec2<f32>(${value[0]}, ${value[1]})`;
+        return `vec2<f32>(${formatFloat(value[0])}, ${formatFloat(value[1])})`;
       }
       // webgl1 and webgl2
-      return `vec2(${value[0]}, ${value[1]})`;
+      return `vec2(${formatFloat(value[0])}, ${formatFloat(value[1])})`;
     },
   },
   vec3: {
@@ -77,11 +82,19 @@ export const PORT_TYPES = {
     editable: true,
     defaultValue: [1.0, 1.0, 1.0],
     toShaderValue: (value, shaderFormat) => {
+      const formatFloat = (v) => {
+        const str = v.toString();
+        return str.includes(".") ? str : str + ".0";
+      };
       if (shaderFormat === "webgpu") {
-        return `vec3<f32>(${value[0]}, ${value[1]}, ${value[2]})`;
+        return `vec3<f32>(${formatFloat(value[0])}, ${formatFloat(
+          value[1]
+        )}, ${formatFloat(value[2])})`;
       }
       // webgl1 and webgl2
-      return `vec3(${value[0]}, ${value[1]}, ${value[2]})`;
+      return `vec3(${formatFloat(value[0])}, ${formatFloat(
+        value[1]
+      )}, ${formatFloat(value[2])})`;
     },
   },
   vec4: {
@@ -90,11 +103,19 @@ export const PORT_TYPES = {
     editable: true,
     defaultValue: [1.0, 1.0, 1.0, 1.0],
     toShaderValue: (value, shaderFormat) => {
+      const formatFloat = (v) => {
+        const str = v.toString();
+        return str.includes(".") ? str : str + ".0";
+      };
       if (shaderFormat === "webgpu") {
-        return `vec4<f32>(${value[0]}, ${value[1]}, ${value[2]}, ${value[3]})`;
+        return `vec4<f32>(${formatFloat(value[0])}, ${formatFloat(
+          value[1]
+        )}, ${formatFloat(value[2])}, ${formatFloat(value[3])})`;
       }
       // webgl1 and webgl2
-      return `vec4(${value[0]}, ${value[1]}, ${value[2]}, ${value[3]})`;
+      return `vec4(${formatFloat(value[0])}, ${formatFloat(
+        value[1]
+      )}, ${formatFloat(value[2])}, ${formatFloat(value[3])})`;
     },
   },
 
