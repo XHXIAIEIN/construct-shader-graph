@@ -151,6 +151,14 @@ import { PixellateNode } from "./PixellateNode.js";
 import { PosterizeNode } from "./PosterizeNode.js";
 import { BlendModeNode } from "./BlendModeNode.js";
 
+// Import constant nodes
+import { PiNode } from "./PiNode.js";
+import { TauNode } from "./TauNode.js";
+import { ENode } from "./ENode.js";
+import { GoldenRatioNode } from "./GoldenRatioNode.js";
+import { Sqrt2Node } from "./Sqrt2Node.js";
+import { EpsilonNode } from "./EpsilonNode.js";
+
 // Export NODE_TYPES object
 export const NODE_TYPES = {
   math: MathNode,
@@ -290,6 +298,14 @@ export const NODE_TYPES = {
   pixellate: PixellateNode,
   posterize: PosterizeNode,
   blendMode: BlendModeNode,
+
+  // Constants
+  pi: PiNode,
+  tau: TauNode,
+  e: ENode,
+  goldenRatio: GoldenRatioNode,
+  sqrt2: Sqrt2Node,
+  epsilon: EpsilonNode,
 
   // Debug nodes
   shaderLanguageTest: ShaderLanguageTestNode,
