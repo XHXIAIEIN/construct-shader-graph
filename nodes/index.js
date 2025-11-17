@@ -6,6 +6,7 @@ export {
   isGenericType,
   getAllowedTypesForGeneric,
   toShaderValue,
+  toWGSLType,
 } from "./PortTypes.js";
 
 // Import all node types

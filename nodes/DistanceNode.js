@@ -1,4 +1,5 @@
 import { NodeType } from "./NodeType.js";
+import { toWGSLType } from "./PortTypes.js";
 
 export const DistanceNode = new NodeType(
   "Distance",
@@ -11,18 +12,20 @@ export const DistanceNode = new NodeType(
   {
     webgl1: {
       dependency: "",
-      execution: (inputs, outputs) =>
-        `    float ${outputs[0]} = distance(${inputs[0]}, ${inputs[1]});`,
+      execution: (inputs, outputs, node, inputTypes, outputTypes) =>
+        `    ${outputTypes[0]} ${outputs[0]} = distance(${inputs[0]}, ${inputs[1]});`,
     },
     webgl2: {
       dependency: "",
-      execution: (inputs, outputs) =>
-        `    float ${outputs[0]} = distance(${inputs[0]}, ${inputs[1]});`,
+      execution: (inputs, outputs, node, inputTypes, outputTypes) =>
+        `    ${outputTypes[0]} ${outputs[0]} = distance(${inputs[0]}, ${inputs[1]});`,
     },
     webgpu: {
       dependency: "",
-      execution: (inputs, outputs) =>
-        `    var ${outputs[0]}: f32 = distance(${inputs[0]}, ${inputs[1]});`,
+      execution: (inputs, outputs, node, inputTypes, outputTypes) => {
+        const wgslType = toWGSLType(outputTypes[0]);
+        return `    var ${outputs[0]}: ${wgslType} = distance(${inputs[0]}, ${inputs[1]});`;
+      },
     },
   },
   "Vector",

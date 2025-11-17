@@ -1,4 +1,5 @@
 import { NodeType } from "./NodeType.js";
+import { toWGSLType } from "./PortTypes.js";
 
 export const CompareNode = new NodeType(
   "Compare",
@@ -11,23 +12,24 @@ export const CompareNode = new NodeType(
   {
     webgl1: {
       dependency: "",
-      execution: (inputs, outputs, node) => {
+      execution: (inputs, outputs, node, inputTypes, outputTypes) => {
         const op = node.operation || ">";
-        return `    bool ${outputs[0]} = ${inputs[0]} ${op} ${inputs[1]};`;
+        return `    ${outputTypes[0]} ${outputs[0]} = ${inputs[0]} ${op} ${inputs[1]};`;
       },
     },
     webgl2: {
       dependency: "",
-      execution: (inputs, outputs, node) => {
+      execution: (inputs, outputs, node, inputTypes, outputTypes) => {
         const op = node.operation || ">";
-        return `    bool ${outputs[0]} = ${inputs[0]} ${op} ${inputs[1]};`;
+        return `    ${outputTypes[0]} ${outputs[0]} = ${inputs[0]} ${op} ${inputs[1]};`;
       },
     },
     webgpu: {
       dependency: "",
-      execution: (inputs, outputs, node) => {
+      execution: (inputs, outputs, node, inputTypes, outputTypes) => {
         const op = node.operation || ">";
-        return `    var ${outputs[0]}: bool = ${inputs[0]} ${op} ${inputs[1]};`;
+        const wgslType = toWGSLType(outputTypes[0]);
+        return `    var ${outputs[0]}: ${wgslType} = ${inputs[0]} ${op} ${inputs[1]};`;
       },
     },
   },

@@ -1,4 +1,5 @@
 import { NodeType } from "./NodeType.js";
+import { toWGSLType } from "./PortTypes.js";
 
 export const ModNode = new NodeType(
   "Mod",
@@ -11,32 +12,33 @@ export const ModNode = new NodeType(
   {
     webgl1: {
       dependency: "",
-      execution: (inputs, outputs, node) => {
+      execution: (inputs, outputs, node, inputTypes, outputTypes) => {
         const op = node.operation || "floor";
         if (op === "truncate") {
-          return `    ${outputs[0]} = ${inputs[0]} - ${inputs[1]} * trunc(${inputs[0]} / ${inputs[1]});`;
+          return `    ${outputTypes[0]} ${outputs[0]} = ${inputs[0]} - ${inputs[1]} * trunc(${inputs[0]} / ${inputs[1]});`;
         }
-        return `    ${outputs[0]} = mod(${inputs[0]}, ${inputs[1]});`;
+        return `    ${outputTypes[0]} ${outputs[0]} = mod(${inputs[0]}, ${inputs[1]});`;
       },
     },
     webgl2: {
       dependency: "",
-      execution: (inputs, outputs, node) => {
+      execution: (inputs, outputs, node, inputTypes, outputTypes) => {
         const op = node.operation || "floor";
         if (op === "truncate") {
-          return `    ${outputs[0]} = ${inputs[0]} - ${inputs[1]} * trunc(${inputs[0]} / ${inputs[1]});`;
+          return `    ${outputTypes[0]} ${outputs[0]} = ${inputs[0]} - ${inputs[1]} * trunc(${inputs[0]} / ${inputs[1]});`;
         }
-        return `    ${outputs[0]} = mod(${inputs[0]}, ${inputs[1]});`;
+        return `    ${outputTypes[0]} ${outputs[0]} = mod(${inputs[0]}, ${inputs[1]});`;
       },
     },
     webgpu: {
       dependency: "",
-      execution: (inputs, outputs, node) => {
+      execution: (inputs, outputs, node, inputTypes, outputTypes) => {
         const op = node.operation || "floor";
+        const wgslType = toWGSLType(outputTypes[0]);
         if (op === "truncate") {
-          return `    var ${outputs[0]} = ${inputs[0]} % ${inputs[1]};`;
+          return `    var ${outputs[0]}: ${wgslType} = ${inputs[0]} % ${inputs[1]};`;
         }
-        return `    var ${outputs[0]} = ${inputs[0]} - ${inputs[1]} * floor(${inputs[0]} / ${inputs[1]});`;
+        return `    var ${outputs[0]}: ${wgslType} = ${inputs[0]} - ${inputs[1]} * floor(${inputs[0]} / ${inputs[1]});`;
       },
     },
   },

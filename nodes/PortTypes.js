@@ -204,6 +204,34 @@ export function toShaderValue(value, type, shaderFormat) {
   return value?.toString() || "0.0";
 }
 
+// Helper function to convert a type to WGSL format
+export function toWGSLType(type) {
+  switch (type) {
+    case "float":
+      return "f32";
+    case "int":
+      return "i32";
+    case "boolean":
+      return "bool";
+    case "vec2":
+      return "vec2<f32>";
+    case "vec3":
+      return "vec3<f32>";
+    case "vec4":
+      return "vec4<f32>";
+    case "mat2":
+      return "mat2x2<f32>";
+    case "mat3":
+      return "mat3x3<f32>";
+    case "mat4":
+      return "mat4x4<f32>";
+    default:
+      // For unknown types, assume it's a vector type and add <f32>
+      // This handles cases where the type might already be in a format we don't recognize
+      return type.includes("<") ? type : `${type}<f32>`;
+  }
+}
+
 // Helper function to check if two port types are compatible
 export function areTypesCompatible(
   outputType,

@@ -1,4 +1,5 @@
 import { NodeType } from "./NodeType.js";
+import { toWGSLType } from "./PortTypes.js";
 
 export const FWidthNode = new NodeType(
   "FWidth",
@@ -10,18 +11,20 @@ export const FWidthNode = new NodeType(
       dependency: `#ifdef GL_OES_standard_derivatives
 #extension GL_OES_standard_derivatives : enable
 #endif`,
-      execution: (inputs, outputs) =>
-        `    ${outputs[0]} = fwidth(${inputs[0]});`,
+      execution: (inputs, outputs, node, inputTypes, outputTypes) =>
+        `    ${outputTypes[0]} ${outputs[0]} = fwidth(${inputs[0]});`,
     },
     webgl2: {
       dependency: "",
-      execution: (inputs, outputs) =>
-        `    ${outputs[0]} = fwidth(${inputs[0]});`,
+      execution: (inputs, outputs, node, inputTypes, outputTypes) =>
+        `    ${outputTypes[0]} ${outputs[0]} = fwidth(${inputs[0]});`,
     },
     webgpu: {
       dependency: "",
-      execution: (inputs, outputs) =>
-        `    var ${outputs[0]} = fwidth(${inputs[0]});`,
+      execution: (inputs, outputs, node, inputTypes, outputTypes) => {
+        const wgslType = toWGSLType(outputTypes[0]);
+        return `    var ${outputs[0]}: ${wgslType} = fwidth(${inputs[0]});`;
+      },
     },
   },
   "Math",

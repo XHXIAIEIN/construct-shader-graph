@@ -1,4 +1,5 @@
 import { NodeType } from "./NodeType.js";
+import { toWGSLType } from "./PortTypes.js";
 
 export const SwizzleNode = new NodeType(
   "Swizzle",
@@ -8,23 +9,24 @@ export const SwizzleNode = new NodeType(
   {
     webgl1: {
       dependency: "",
-      execution: (inputs, outputs, node) => {
+      execution: (inputs, outputs, node, inputTypes, outputTypes) => {
         const pattern = node.customInput || "xyz";
-        return `    ${outputs[0]} = ${inputs[0]}.${pattern};`;
+        return `    ${outputTypes[0]} ${outputs[0]} = ${inputs[0]}.${pattern};`;
       },
     },
     webgl2: {
       dependency: "",
-      execution: (inputs, outputs, node) => {
+      execution: (inputs, outputs, node, inputTypes, outputTypes) => {
         const pattern = node.customInput || "xyz";
-        return `    ${outputs[0]} = ${inputs[0]}.${pattern};`;
+        return `    ${outputTypes[0]} ${outputs[0]} = ${inputs[0]}.${pattern};`;
       },
     },
     webgpu: {
       dependency: "",
-      execution: (inputs, outputs, node) => {
+      execution: (inputs, outputs, node, inputTypes, outputTypes) => {
         const pattern = node.customInput || "xyz";
-        return `    var ${outputs[0]} = ${inputs[0]}.${pattern};`;
+        const wgslType = toWGSLType(outputTypes[0]);
+        return `    var ${outputs[0]}: ${wgslType} = ${inputs[0]}.${pattern};`;
       },
     },
   },

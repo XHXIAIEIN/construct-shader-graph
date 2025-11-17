@@ -4758,8 +4758,24 @@ class BlueprintSystem {
             portToVarName.get(port)
           );
 
+          // Get resolved input types
+          const inputTypes = node.inputPorts.map((port) =>
+            port.getResolvedType()
+          );
+
+          // Get resolved output types
+          const outputTypes = node.outputPorts.map((port) =>
+            port.getResolvedType()
+          );
+
           // Generate code
-          const code = execution(inputVars, outputVars, node);
+          const code = execution(
+            inputVars,
+            outputVars,
+            node,
+            inputTypes,
+            outputTypes
+          );
           shader += code + "\n";
         }
       }

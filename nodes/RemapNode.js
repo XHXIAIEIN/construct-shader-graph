@@ -1,4 +1,5 @@
 import { NodeType } from "./NodeType.js";
+import { toWGSLType } from "./PortTypes.js";
 
 export const RemapNode = new NodeType(
   "Remap",
@@ -14,18 +15,20 @@ export const RemapNode = new NodeType(
   {
     webgl1: {
       dependency: "",
-      execution: (inputs, outputs) =>
-        `    ${outputs[0]} = ${inputs[3]} + (${inputs[0]} - ${inputs[1]}) * (${inputs[4]} - ${inputs[3]}) / (${inputs[2]} - ${inputs[1]});`,
+      execution: (inputs, outputs, node, inputTypes, outputTypes) =>
+        `    ${outputTypes[0]} ${outputs[0]} = ${inputs[3]} + (${inputs[0]} - ${inputs[1]}) * (${inputs[4]} - ${inputs[3]}) / (${inputs[2]} - ${inputs[1]});`,
     },
     webgl2: {
       dependency: "",
-      execution: (inputs, outputs) =>
-        `    ${outputs[0]} = ${inputs[3]} + (${inputs[0]} - ${inputs[1]}) * (${inputs[4]} - ${inputs[3]}) / (${inputs[2]} - ${inputs[1]});`,
+      execution: (inputs, outputs, node, inputTypes, outputTypes) =>
+        `    ${outputTypes[0]} ${outputs[0]} = ${inputs[3]} + (${inputs[0]} - ${inputs[1]}) * (${inputs[4]} - ${inputs[3]}) / (${inputs[2]} - ${inputs[1]});`,
     },
     webgpu: {
       dependency: "",
-      execution: (inputs, outputs) =>
-        `    var ${outputs[0]} = ${inputs[3]} + (${inputs[0]} - ${inputs[1]}) * (${inputs[4]} - ${inputs[3]}) / (${inputs[2]} - ${inputs[1]});`,
+      execution: (inputs, outputs, node, inputTypes, outputTypes) => {
+        const wgslType = toWGSLType(outputTypes[0]);
+        return `    var ${outputs[0]}: ${wgslType} = ${inputs[3]} + (${inputs[0]} - ${inputs[1]}) * (${inputs[4]} - ${inputs[3]}) / (${inputs[2]} - ${inputs[1]});`;
+      },
     },
   },
   "Math",
