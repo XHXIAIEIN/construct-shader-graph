@@ -735,6 +735,11 @@ class BlueprintSystem {
     this.isPanning = false;
     this.panStart = { x: 0, y: 0 };
 
+    // Auto-panning state
+    this.autoPanPadding = 50; // Distance from edge to trigger auto-pan
+    this.autoPanSpeed = 10; // Pixels per frame to pan
+    this.autoPanInterval = null;
+
     // File System Access API support
     this.fileHandle = null;
 
@@ -7239,6 +7244,9 @@ class BlueprintSystem {
   }
 
   onMouseMove(e) {
+    // Store last mouse event for auto-panning
+    this.lastMouseEvent = e;
+
     // Handle panning
     if (this.isPanning) {
       const rect = this.canvas.getBoundingClientRect();
@@ -7249,6 +7257,18 @@ class BlueprintSystem {
     }
 
     const pos = this.getMousePos(e);
+
+    // Check if we should auto-pan (when dragging near edges)
+    const isDragging =
+      this.draggedNode ||
+      this.draggedRerouteNode ||
+      this.activeWire ||
+      this.isBoxSelecting;
+    if (isDragging) {
+      this.checkAutoPan(e);
+    } else {
+      this.stopAutoPan();
+    }
 
     // Update hovered port
     this.hoveredPort = this.findPortAtPosition(pos.x, pos.y);
@@ -7386,7 +7406,80 @@ class BlueprintSystem {
     this.render();
   }
 
+  checkAutoPan(e) {
+    const rect = this.canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    let panX = 0;
+    let panY = 0;
+
+    // Check if near left edge
+    if (mouseX < this.autoPanPadding) {
+      panX = this.autoPanSpeed;
+    }
+    // Check if near right edge
+    else if (mouseX > rect.width - this.autoPanPadding) {
+      panX = -this.autoPanSpeed;
+    }
+
+    // Check if near top edge
+    if (mouseY < this.autoPanPadding) {
+      panY = this.autoPanSpeed;
+    }
+    // Check if near bottom edge
+    else if (mouseY > rect.height - this.autoPanPadding) {
+      panY = -this.autoPanSpeed;
+    }
+
+    // If we need to pan and aren't already
+    if ((panX !== 0 || panY !== 0) && !this.autoPanInterval) {
+      this.startAutoPan(panX, panY);
+    }
+    // If we're panning but shouldn't be anymore
+    else if (panX === 0 && panY === 0 && this.autoPanInterval) {
+      this.stopAutoPan();
+    }
+    // Update pan direction if it changed
+    else if (
+      this.autoPanInterval &&
+      (this.autoPanX !== panX || this.autoPanY !== panY)
+    ) {
+      this.autoPanX = panX;
+      this.autoPanY = panY;
+    }
+  }
+
+  startAutoPan(panX, panY) {
+    this.autoPanX = panX;
+    this.autoPanY = panY;
+
+    this.autoPanInterval = setInterval(() => {
+      this.camera.x += this.autoPanX;
+      this.camera.y += this.autoPanY;
+
+      // Trigger a synthetic mousemove event to update dragged elements
+      if (this.lastMouseEvent) {
+        this.onMouseMove(this.lastMouseEvent);
+      } else {
+        this.render();
+      }
+    }, 16); // ~60fps
+  }
+
+  stopAutoPan() {
+    if (this.autoPanInterval) {
+      clearInterval(this.autoPanInterval);
+      this.autoPanInterval = null;
+      this.autoPanX = 0;
+      this.autoPanY = 0;
+    }
+  }
+
   onMouseUp(e) {
+    // Stop auto-panning
+    this.stopAutoPan();
+
     // Stop panning
     if (this.isPanning) {
       this.isPanning = false;
