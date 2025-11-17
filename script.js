@@ -691,6 +691,9 @@ class BlueprintSystem {
     this.wires = [];
     this.nodeIdCounter = 1;
 
+    // Debug state
+    this.debugBoundingBoxes = false;
+
     // Interaction state
     this.draggedNode = null;
     this.activeWire = null;
@@ -4401,7 +4404,17 @@ class BlueprintSystem {
       console.log(`Auto-arranging all ${this.nodes.length} nodes`);
     }
 
+    // Enable debug bounding boxes during auto-arrange
+    this.debugBoundingBoxes = true;
+    this.render(); // Show initial state
+
     this.autoLayoutEngine.autoArrange(selectedOnly);
+
+    // Keep debug boxes visible for 5 seconds after arrange
+    setTimeout(() => {
+      this.debugBoundingBoxes = false;
+      this.render();
+    }, 5000);
   }
 
   debugAutoArrange() {
@@ -7978,6 +7991,43 @@ class BlueprintSystem {
         this.debugBBox.x,
         this.debugBBox.y - 10 / this.camera.zoom
       );
+    }
+
+    // Draw individual node bounding boxes if enabled
+    if (this.debugBoundingBoxes) {
+      ctx.setLineDash([5 / this.camera.zoom, 5 / this.camera.zoom]);
+      ctx.lineWidth = 2 / this.camera.zoom;
+
+      this.nodes.forEach((node) => {
+        // Draw node bounding box
+        ctx.strokeStyle = "#00ffff";
+        ctx.fillStyle = "rgba(0, 255, 255, 0.05)";
+        ctx.fillRect(node.x, node.y, node.width, node.height);
+        ctx.strokeRect(node.x, node.y, node.width, node.height);
+
+        // Draw node label
+        ctx.setLineDash([]);
+        ctx.fillStyle = "#00ffff";
+        ctx.font = `${12 / this.camera.zoom}px monospace`;
+        const label = `${node.nodeType.name} (${node.width}x${node.height})`;
+        ctx.fillText(
+          label,
+          node.x + 5 / this.camera.zoom,
+          node.y - 5 / this.camera.zoom
+        );
+
+        // Draw dimensions at bottom
+        ctx.fillStyle = "#00ffff";
+        ctx.fillText(
+          `y: ${node.y.toFixed(1)} to ${(node.y + node.height).toFixed(1)}`,
+          node.x + 5 / this.camera.zoom,
+          node.y + node.height + 15 / this.camera.zoom
+        );
+
+        ctx.setLineDash([5 / this.camera.zoom, 5 / this.camera.zoom]);
+      });
+
+      ctx.setLineDash([]);
     }
 
     // Draw box selection

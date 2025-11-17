@@ -1091,6 +1091,15 @@ export class AutoLayoutEngine {
       let attempts = 0;
       const maxAttempts = 100; // Increased for better placement
 
+      const currentChildNode = this.bp.nodes.find((n) => n.id === child.id);
+      const currentChildNodeName =
+        currentChildNode?.nodeType?.name || `Node ${child.id}`;
+
+      console.log(
+        `\n🔍 Positioning child ${index}: ${currentChildNodeName} (ID: ${child.id})`
+      );
+      console.log(`   Initial proposedY: ${proposedY.toFixed(1)}`);
+
       while (hasOverlap && attempts < maxAttempts) {
         hasOverlap = false;
 
@@ -1100,6 +1109,8 @@ export class AutoLayoutEngine {
           const node = this.bp.nodes.find((n) => n.id === nodeId);
           if (node) {
             currentChildNodes.push({
+              nodeId,
+              nodeName: node.nodeType?.name || `Node ${nodeId}`,
               x: childLayout.bbox.x + pos.x,
               y: proposedY + pos.y,
               width: node.width || 200,
@@ -1108,26 +1119,58 @@ export class AutoLayoutEngine {
           }
         });
 
+        console.log(
+          `   Attempt ${attempts + 1}: Checking ${
+            currentChildNodes.length
+          } nodes at proposedY=${proposedY.toFixed(1)}`
+        );
+        if (attempts === 0) {
+          console.log(
+            `   Current child nodes:`,
+            currentChildNodes.map(
+              (n) =>
+                `${n.nodeName} (${n.width}x${n.height} at x:${n.x.toFixed(
+                  1
+                )}, y:${n.y.toFixed(1)})`
+            )
+          );
+        }
+
         // Check against ALL previously placed children's INDIVIDUAL NODES
         let maxPushDownY = proposedY;
         let minPushUpY = proposedY;
         let foundOverlap = false;
+        const overlaps = [];
 
         for (let i = 0; i < placedBBoxes.length; i++) {
           const placedChildLayout = childLayouts[i].layout;
           const placedChildOffset = childOffsets[i];
+          const placedChildNode = this.bp.nodes.find(
+            (n) => n.id === childLayouts[i].id
+          );
+          const placedChildName =
+            placedChildNode?.nodeType?.name || `Node ${childLayouts[i].id}`;
+
+          if (attempts === 0 && i === 0) {
+            console.log(`   Checking against previously placed children...`);
+          }
 
           // Get all node positions in this placed child's layout
+          const placedNodes = [];
           placedChildLayout.positions.forEach((pos, nodeId) => {
             const node = this.bp.nodes.find((n) => n.id === nodeId);
             if (!node) return;
 
             const placedNodeBBox = {
+              nodeId,
+              nodeName: node.nodeType?.name || `Node ${nodeId}`,
               x: placedChildLayout.bbox.x + pos.x,
               y: placedChildOffset.y + pos.y,
               width: node.width || 200,
               height: node.height || 100,
             };
+
+            placedNodes.push(placedNodeBBox);
 
             // Check if any of the current child's nodes overlap with this placed node
             for (const currentNodeBBox of currentChildNodes) {
@@ -1148,32 +1191,91 @@ export class AutoLayoutEngine {
                   (currentNodeBBox.y - proposedY) -
                   verticalSpacing;
 
+                overlaps.push({
+                  current: `${
+                    currentNodeBBox.nodeName
+                  } (y: ${currentNodeBBox.y.toFixed(1)} to ${(
+                    currentNodeBBox.y + currentNodeBBox.height
+                  ).toFixed(1)})`,
+                  placed: `${
+                    placedNodeBBox.nodeName
+                  } in ${placedChildName}'s tree (y: ${placedNodeBBox.y.toFixed(
+                    1
+                  )} to ${(placedNodeBBox.y + placedNodeBBox.height).toFixed(
+                    1
+                  )})`,
+                  pushDown: pushDownY.toFixed(1),
+                  pushUp: pushUpY.toFixed(1),
+                });
+
                 // Track the furthest we'd need to push in each direction
                 maxPushDownY = Math.max(maxPushDownY, pushDownY);
                 minPushUpY = Math.min(minPushUpY, pushUpY);
               }
             }
           });
+
+          if (attempts === 0) {
+            console.log(
+              `      ${placedChildName}'s tree (${placedNodes.length} nodes):`,
+              placedNodes.map(
+                (n) =>
+                  `${n.nodeName} (${n.width}x${n.height} at x:${n.x.toFixed(
+                    1
+                  )}, y:${n.y.toFixed(1)} to ${(n.y + n.height).toFixed(1)})`
+              )
+            );
+          }
         }
 
         if (foundOverlap) {
+          console.log(`   ❌ Found ${overlaps.length} overlap(s):`);
+          overlaps.forEach((overlap, idx) => {
+            console.log(
+              `      ${idx + 1}. ${overlap.current} ↔️ ${overlap.placed}`
+            );
+            console.log(
+              `         Push options: ⬇️ ${overlap.pushDown} or ⬆️ ${overlap.pushUp}`
+            );
+          });
+
           // Choose the direction that requires less movement
           const distanceDown = Math.abs(maxPushDownY - proposedY);
           const distanceUp = Math.abs(minPushUpY - proposedY);
 
+          console.log(
+            `   Decision: maxPushDown=${maxPushDownY.toFixed(
+              1
+            )} (dist: ${distanceDown.toFixed(
+              1
+            )}), minPushUp=${minPushUpY.toFixed(1)} (dist: ${distanceUp.toFixed(
+              1
+            )})`
+          );
+
           if (distanceUp < distanceDown && minPushUpY >= 0) {
             // Prefer pushing up if it's closer and doesn't go negative
+            console.log(`   ⬆️ Pushing UP to ${minPushUpY.toFixed(1)}`);
             proposedY = minPushUpY;
           } else {
             // Push down to clear all overlaps
+            console.log(`   ⬇️ Pushing DOWN to ${maxPushDownY.toFixed(1)}`);
             proposedY = maxPushDownY;
           }
 
           hasOverlap = true;
+        } else {
+          console.log(`   ✅ No overlaps found - position is good!`);
         }
 
         attempts++;
       }
+
+      console.log(
+        `   Final position: y=${proposedY.toFixed(
+          1
+        )} (after ${attempts} attempts)\n`
+      );
 
       // Store offset with child's own width (no forced alignment)
       childOffsets.push({
