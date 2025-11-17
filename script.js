@@ -708,6 +708,8 @@ class BlueprintSystem {
       cameraMode: "2d",
       autoRotate: true,
       samplingMode: "trilinear",
+      spriteTextureUrl: null,
+      shapeTextureUrl: null,
     };
 
     // History Manager for undo/redo
@@ -1749,6 +1751,9 @@ class BlueprintSystem {
       this.updatePreview(); // Reload preview with new sampling mode
     });
 
+    // Texture controls
+    this.setupTextureControls();
+
     // Listen for messages from preview iframe
     window.addEventListener("message", (event) => {
       if (event.data && event.data.type === "requestShaderData") {
@@ -1773,8 +1778,28 @@ class BlueprintSystem {
           "setAutoRotate",
           this.previewSettings.autoRotate
         );
+
+        // Load textures if they exist
+        if (this.previewSettings.spriteTextureUrl) {
+          this.loadPreviewTexture(
+            "sprite",
+            this.previewSettings.spriteTextureUrl
+          );
+        }
+        if (this.previewSettings.shapeTextureUrl) {
+          this.loadPreviewTexture(
+            "shape",
+            this.previewSettings.shapeTextureUrl
+          );
+        }
       } else if (event.data && event.data.type === "shaderError") {
         this.displayShaderError(event.data.message, event.data.severity);
+      } else if (event.data && event.data.type === "updatePreviewSpriteUrl") {
+        console.log("Received updatePreviewSpriteUrl message", event.data);
+        this.handleTextureUpdate("sprite", event.data.url);
+      } else if (event.data && event.data.type === "updatePreviewShapeUrl") {
+        console.log("Received updatePreviewShapeUrl message", event.data);
+        this.handleTextureUpdate("shape", event.data.url);
       }
     });
 
@@ -1782,6 +1807,139 @@ class BlueprintSystem {
     setTimeout(() => {
       this.updatePreview();
     }, 100);
+  }
+
+  setupTextureControls() {
+    const spriteTextureInput = document.getElementById("spriteTextureInput");
+    const spriteTextureBtn = document.getElementById("spriteTextureBtn");
+    const clearSpriteTextureBtn = document.getElementById(
+      "clearSpriteTextureBtn"
+    );
+    const spriteTexturePreview = document.getElementById(
+      "spriteTexturePreview"
+    );
+
+    const shapeTextureInput = document.getElementById("shapeTextureInput");
+    const shapeTextureBtn = document.getElementById("shapeTextureBtn");
+    const clearShapeTextureBtn = document.getElementById(
+      "clearShapeTextureBtn"
+    );
+    const shapeTexturePreview = document.getElementById("shapeTexturePreview");
+
+    // Sprite texture button
+    spriteTextureBtn.addEventListener("click", () => {
+      spriteTextureInput.click();
+    });
+
+    spriteTextureInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        this.loadTextureFromFile(file, "sprite");
+      }
+    });
+
+    clearSpriteTextureBtn.addEventListener("click", () => {
+      this.clearTexture("sprite");
+    });
+
+    // Shape texture button
+    shapeTextureBtn.addEventListener("click", () => {
+      shapeTextureInput.click();
+    });
+
+    shapeTextureInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        this.loadTextureFromFile(file, "shape");
+      }
+    });
+
+    clearShapeTextureBtn.addEventListener("click", () => {
+      this.clearTexture("shape");
+    });
+  }
+
+  loadTextureFromFile(file, type) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target.result;
+      this.setTextureUrl(type, dataUrl);
+      this.loadPreviewTexture(type, dataUrl);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  setTextureUrl(type, url) {
+    if (type === "sprite") {
+      this.previewSettings.spriteTextureUrl = url;
+      this.updateTexturePreview(
+        "spriteTexturePreview",
+        "clearSpriteTextureBtn",
+        url
+      );
+    } else if (type === "shape") {
+      this.previewSettings.shapeTextureUrl = url;
+      this.updateTexturePreview(
+        "shapeTexturePreview",
+        "clearShapeTextureBtn",
+        url
+      );
+    }
+  }
+
+  updateTexturePreview(previewId, clearBtnId, url) {
+    const preview = document.getElementById(previewId);
+    const clearBtn = document.getElementById(clearBtnId);
+
+    if (url) {
+      preview.innerHTML = `<img src="${url}" alt="Texture" />`;
+      clearBtn.style.display = "flex";
+    } else {
+      preview.innerHTML = "<span>No image</span>";
+      clearBtn.style.display = "none";
+    }
+  }
+
+  loadPreviewTexture(type, url) {
+    if (!this.previewIframe || !this.previewReady) return;
+
+    const functionName = type === "sprite" ? "loadSpriteUrl" : "loadShapeUrl";
+    this.previewIframe.contentWindow.postMessage(
+      {
+        type: "callFunction",
+        function: functionName,
+        url: url,
+      },
+      "*"
+    );
+  }
+
+  clearTexture(type) {
+    if (type === "sprite") {
+      this.previewSettings.spriteTextureUrl = null;
+      this.updateTexturePreview(
+        "spriteTexturePreview",
+        "clearSpriteTextureBtn",
+        null
+      );
+    } else if (type === "shape") {
+      this.previewSettings.shapeTextureUrl = null;
+      this.updateTexturePreview(
+        "shapeTexturePreview",
+        "clearShapeTextureBtn",
+        null
+      );
+    }
+
+    // Clearing requires a reload
+    this.updatePreview();
+  }
+
+  handleTextureUpdate(type, url) {
+    // Called when preview drops an image
+    // The URL from the preview is already a data URL (base64)
+    console.log(`Received texture update for ${type}:`, url?.substring(0, 50));
+    this.setTextureUrl(type, url);
   }
 
   updatePreview() {
@@ -5231,6 +5389,18 @@ class BlueprintSystem {
     if (samplingModeSelect) {
       samplingModeSelect.value = this.previewSettings.samplingMode;
     }
+
+    // Update texture previews
+    this.updateTexturePreview(
+      "spriteTexturePreview",
+      "clearSpriteTextureBtn",
+      this.previewSettings.spriteTextureUrl
+    );
+    this.updateTexturePreview(
+      "shapeTexturePreview",
+      "clearShapeTextureBtn",
+      this.previewSettings.shapeTextureUrl
+    );
   }
 
   downloadFile(filename, content) {

@@ -1448,6 +1448,93 @@ button:hover {
   height: 14px;
 }
 
+.preview-texture-group {
+  width: 100%;
+}
+
+.texture-preview-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.texture-preview {
+  width: 40px;
+  height: 40px;
+  background: #000;
+  border: 1px solid #4a4a4a;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.texture-preview span {
+  font-size: 9px;
+  color: #666;
+  text-align: center;
+  padding: 2px;
+}
+
+.texture-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.texture-btn {
+  background: #2a2a2a;
+  border: 1px solid #4a4a4a;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.texture-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.texture-btn:hover {
+  border-color: #6a6a6a;
+  background: #3a3a3a;
+}
+
+.texture-clear-btn {
+  background: none;
+  border: none;
+  color: #e24a4a;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+
+.texture-clear-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.texture-clear-btn:hover {
+  background: rgba(226, 74, 74, 0.2);
+}
+
 #togglePreviewSettingsBtn {
   background: none;
   border: none;

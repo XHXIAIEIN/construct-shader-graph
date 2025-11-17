@@ -4,12 +4,12 @@ const scriptsInEvents = {
 
 	async EventSheet1_Event7_Act1(runtime, localVars)
 	{
-		globalThis.updatePreviewSpriteUrl(url)
+		globalThis.updatePreviewSpriteUrl(localVars.url)
 	},
 
 	async EventSheet1_Event10_Act1(runtime, localVars)
 	{
-		globalThis.updatePreviewShapeUrl(url)
+		globalThis.updatePreviewShapeUrl(localVars.url)
 	}
 };
 

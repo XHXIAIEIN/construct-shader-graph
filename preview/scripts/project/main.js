@@ -15,10 +15,30 @@ runOnStartup(async (runtime) => {
     runtime.callFunction("loadSpriteUrl", url, false);
   };
   globalThis.loadShapeUrl = (url) => {
-    runtime.callFunction("loadSpriteUrl", url, false);
+    runtime.callFunction("loadShapeUrl", url, false);
   };
-  globalThis.updatePreviewSpriteUrl = (url) => {};
-  globalThis.updatePreviewShapeUrl = (url) => {};
+  globalThis.updatePreviewSpriteUrl = (url) => {
+    if (window !== window.parent) {
+      window.parent.postMessage(
+        {
+          type: "updatePreviewSpriteUrl",
+          url: url,
+        },
+        "*"
+      );
+    }
+  };
+  globalThis.updatePreviewShapeUrl = (url) => {
+    if (window !== window.parent) {
+      window.parent.postMessage(
+        {
+          type: "updatePreviewShapeUrl",
+          url: url,
+        },
+        "*"
+      );
+    }
+  };
   await shaderDataPromise;
   runtime.addEventListener("beforeprojectstart", () =>
     OnBeforeProjectStart(runtime)
@@ -128,6 +148,11 @@ async function OnBeforeProjectStart(rt) {
         updateParam(runtime, event.data.index, event.data.value);
       } else if (event.data && event.data.type === "previewCommand") {
         handlePreviewCommand(event.data.command, event.data.value);
+      } else if (event.data && event.data.type === "callFunction") {
+        // Call global function with the provided URL
+        if (typeof globalThis[event.data.function] === "function") {
+          globalThis[event.data.function](event.data.url);
+        }
       }
     });
   }
