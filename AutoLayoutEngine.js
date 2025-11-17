@@ -1060,9 +1060,9 @@ export class AutoLayoutEngine {
 
     // Scale horizontal spacing with node count (absolute minimal padding)
     let horizontalSpacing;
-    if (childLayouts.length === 1 && totalNodesInChildren === 1) {
-      horizontalSpacing = 20; // Single leaf child: just enough to see the wire
-    } else if (totalNodesInChildren <= 3) {
+    if (childLayouts.length === 1) {
+      horizontalSpacing = 30; // Single leaf child: just enough to see the wire
+    } else if (totalNodesInChildren <= 2) {
       horizontalSpacing = 30; // Few nodes: minimal spacing
     } else if (totalNodesInChildren <= 6) {
       horizontalSpacing = 40; // Several nodes: small spacing
@@ -1240,6 +1240,10 @@ export class AutoLayoutEngine {
       let oscillationDetected = false;
 
       // Calculate where this child will be placed in X
+      // Get the actual child node to check its width (pills are 120px, regular nodes are 180px)
+      const actualChildNode = this.bp.nodes.find((n) => n.id === child.id);
+      const actualChildWidth = actualChildNode?.width || 200;
+
       // The child node itself should be positioned with its RIGHT edge at -(nodeWidth + horizontalSpacing)
       const childNodePos = childLayout.positions.get(child.id);
       if (!childNodePos) {
@@ -1261,7 +1265,7 @@ export class AutoLayoutEngine {
         return; // Skip to next child
       }
       const childNodeRightEdge = -nodeWidth - horizontalSpacing;
-      const childBaseX = childNodeRightEdge - childNodePos.x - nodeWidth;
+      const childBaseX = childNodeRightEdge - childNodePos.x - actualChildWidth;
 
       // Now calculate the actual X position of the child's bbox in the parent's coordinate system
       const actualChildBBoxX = childBaseX + childLayout.bbox.x;
@@ -1335,9 +1339,17 @@ export class AutoLayoutEngine {
             );
             // Skip this placed child in overlap detection
           } else {
+            // Get the actual placed child node to check its width
+            const actualPlacedChildNode = this.bp.nodes.find(
+              (n) => n.id === childLayouts[i].id
+            );
+            const actualPlacedChildWidth = actualPlacedChildNode?.width || 200;
+
             const placedChildNodeRightEdge = -nodeWidth - horizontalSpacing;
             const placedChildBaseX =
-              placedChildNodeRightEdge - placedChildNodePos.x - nodeWidth;
+              placedChildNodeRightEdge -
+              placedChildNodePos.x -
+              actualPlacedChildWidth;
 
             // Get ALL nodes in the placed child's tree with ACTUAL positions
             const nodesToCheck = [];
@@ -1555,12 +1567,17 @@ export class AutoLayoutEngine {
         return;
       }
 
+      // Get the actual child node to check its width (pills are 120px, regular nodes are 180px)
+      const actualChildNode = this.bp.nodes.find((n) => n.id === child.id);
+      const actualChildWidth = actualChildNode?.width || 200;
+
       // The child node itself should be positioned with its RIGHT edge at -(nodeWidth + horizontalSpacing)
+      // For right-alignment: all nodes' right edges should align regardless of their width
       // childNodePos.x is the child node's X within its layout (relative to layout origin)
-      // We want: childBaseX + childNodePos.x + nodeWidth = -(nodeWidth + horizontalSpacing)
-      // Therefore: childBaseX = -(nodeWidth + horizontalSpacing) - childNodePos.x - nodeWidth
+      // We want: childBaseX + childNodePos.x + actualChildWidth = -(nodeWidth + horizontalSpacing)
+      // Therefore: childBaseX = -(nodeWidth + horizontalSpacing) - childNodePos.x - actualChildWidth
       const childNodeRightEdge = -nodeWidth - horizontalSpacing;
-      const childBaseX = childNodeRightEdge - childNodePos.x - nodeWidth;
+      const childBaseX = childNodeRightEdge - childNodePos.x - actualChildWidth;
 
       // Removed positioning debug logs
 
