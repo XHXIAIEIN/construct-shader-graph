@@ -162,6 +162,10 @@ import { EpsilonNode } from "./EpsilonNode.js";
 // Import debug nodes
 import { DrawFloatNode } from "./DrawFloatNode.js";
 
+// Import variable nodes
+import { SetVariableNode } from "./SetVariableNode.js";
+import { GetVariableNode } from "./GetVariableNode.js";
+
 // Export NODE_TYPES object
 export const NODE_TYPES = {
   math: MathNode,
@@ -313,4 +317,8 @@ export const NODE_TYPES = {
   // Debug nodes
   shaderLanguageTest: ShaderLanguageTestNode,
   drawFloat: DrawFloatNode,
+
+  // Variable nodes
+  setVariable: SetVariableNode,
+  getVariable: GetVariableNode,
 };

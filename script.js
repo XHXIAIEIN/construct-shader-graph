@@ -66,7 +66,9 @@ class Port {
         ? 45
         : 30
       : 0;
-    const startY = node.y + 50 + dropdownOffset + customInputOffset;
+    // Add extra offset if node has variable dropdown
+    const variableDropdownOffset = node.nodeType.hasVariableDropdown ? 45 : 0;
+    const startY = node.y + 50 + dropdownOffset + customInputOffset + variableDropdownOffset;
 
     // Calculate cumulative Y position based on actual port heights
     let y = startY;
@@ -295,6 +297,11 @@ class Node {
       this.customInput = nodeType.customInputConfig.defaultValue;
     }
 
+    // Initialize variable dropdown for Get Variable nodes
+    if (nodeType.hasVariableDropdown) {
+      this.selectedVariable = null;
+    }
+
     // Track resolved generic types (e.g., { T: "float" })
     this.resolvedGenerics = {};
 
@@ -334,10 +341,13 @@ class Node {
           ? 45
           : 30
         : 0;
+      // Add extra space for variable dropdown if node has it
+      const variableDropdownSpace = nodeType.hasVariableDropdown ? 45 : 0;
       this.height =
         50 +
         dropdownSpace +
         customInputSpace +
+        variableDropdownSpace +
         maxPorts * 40 +
         extraHeight +
         10;
@@ -441,6 +451,24 @@ class Node {
       y: this.y + headerHeight + topMargin,
       width: this.width - padding * 2,
       height: dropdownHeight,
+    };
+  }
+
+  getVariableDropdownBounds() {
+    if (!this.nodeType.hasVariableDropdown) return null;
+
+    const headerHeight = 30;
+    const dropdownHeight = 25;
+    const padding = 10;
+    const topMargin = 10; // Margin above the dropdown
+    const labelHeight = 15; // Height for the label
+
+    return {
+      x: this.x + padding,
+      y: this.y + headerHeight + topMargin + labelHeight,
+      width: this.width - padding * 2,
+      height: dropdownHeight,
+      labelY: this.y + headerHeight + topMargin,
     };
   }
 
@@ -3165,6 +3193,7 @@ class BlueprintSystem {
         : (-this.camera.y + this.canvas.height / 2) / this.camera.zoom;
 
     const node = new Node(posX, posY, this.nodeIdCounter++, nodeType);
+    node._blueprintSystem = this;
     node.uniformName = uniform.variableName; // Use variable name for shader code
     node.uniformDisplayName = uniform.name; // Store display name
     node.uniformVariableName = uniform.variableName; // Store variable name
@@ -3590,6 +3619,147 @@ class BlueprintSystem {
 
       menu.appendChild(option);
     });
+
+    // Close menu when clicking outside
+    const closeMenu = (e) => {
+      if (!menu.contains(e.target)) {
+        if (document.body.contains(menu)) {
+          document.body.removeChild(menu);
+        }
+        document.removeEventListener("mousedown", closeMenu);
+      }
+    };
+
+    setTimeout(() => {
+      document.addEventListener("mousedown", closeMenu);
+    }, 0);
+
+    document.body.appendChild(menu);
+  }
+
+  showVariableMenu(node, dropdownBounds) {
+    // Get all available variables from Set Variable nodes
+    const availableVariables = this.nodes
+      .filter((n) => n.nodeType.name === "Set Variable" && n.customInput)
+      .map((n) => n.customInput);
+
+    // Create a temporary menu for variable selection
+    const menu = document.createElement("div");
+    menu.className = "operation-menu";
+    menu.style.position = "fixed";
+
+    // Convert world coordinates to screen coordinates
+    const rect = this.canvas.getBoundingClientRect();
+    const screenX =
+      dropdownBounds.x * this.camera.zoom + this.camera.x + rect.left;
+    const screenY =
+      (dropdownBounds.y + dropdownBounds.height) * this.camera.zoom +
+      this.camera.y +
+      rect.top;
+    const menuWidth = dropdownBounds.width * this.camera.zoom;
+
+    menu.style.left = `${screenX}px`;
+    menu.style.top = `${screenY}px`;
+    menu.style.width = `${menuWidth}px`;
+    menu.style.background = "#2a2a2a";
+    menu.style.border = "2px solid #4a4a4a";
+    menu.style.borderRadius = "4px";
+    menu.style.padding = "2px";
+    menu.style.zIndex = "10000";
+    menu.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.5)";
+    menu.style.maxHeight = "200px";
+    menu.style.overflowY = "auto";
+
+    // Add "(none)" option
+    const noneOption = document.createElement("div");
+    noneOption.textContent = "(none)";
+    noneOption.style.padding = "6px 8px";
+    noneOption.style.cursor = "pointer";
+    noneOption.style.color = "#888";
+    noneOption.style.fontSize = "14px";
+    noneOption.style.borderRadius = "3px";
+    noneOption.style.fontFamily = "monospace";
+    noneOption.style.userSelect = "none";
+
+    if (!node.selectedVariable) {
+      noneOption.style.background = "#4a90e2";
+      noneOption.style.color = "#fff";
+    }
+
+    noneOption.addEventListener("mouseenter", () => {
+      if (node.selectedVariable) {
+        noneOption.style.background = "#3a3a3a";
+      }
+    });
+
+    noneOption.addEventListener("mouseleave", () => {
+      if (node.selectedVariable) {
+        noneOption.style.background = "transparent";
+      }
+    });
+
+    noneOption.addEventListener("click", () => {
+      node.selectedVariable = null;
+      // Update port types
+      node.outputPorts.forEach((port) => port.updateEditability());
+      document.body.removeChild(menu);
+      this.render();
+      this.onShaderChanged();
+    });
+
+    menu.appendChild(noneOption);
+
+    // Add available variables
+    if (availableVariables.length === 0) {
+      const noVarsOption = document.createElement("div");
+      noVarsOption.textContent = "No variables defined";
+      noVarsOption.style.padding = "6px 8px";
+      noVarsOption.style.color = "#666";
+      noVarsOption.style.fontSize = "12px";
+      noVarsOption.style.fontStyle = "italic";
+      noVarsOption.style.textAlign = "center";
+      noVarsOption.style.userSelect = "none";
+      menu.appendChild(noVarsOption);
+    } else {
+      availableVariables.forEach((varName) => {
+        const option = document.createElement("div");
+        option.textContent = varName;
+        option.style.padding = "6px 8px";
+        option.style.cursor = "pointer";
+        option.style.color = "#fff";
+        option.style.fontSize = "14px";
+        option.style.borderRadius = "3px";
+        option.style.fontFamily = "monospace";
+        option.style.userSelect = "none";
+
+        if (node.selectedVariable === varName) {
+          option.style.background = "#4a90e2";
+        }
+
+        option.addEventListener("mouseenter", () => {
+          if (node.selectedVariable !== varName) {
+            option.style.background = "#3a3a3a";
+          }
+        });
+
+        option.addEventListener("mouseleave", () => {
+          if (node.selectedVariable !== varName) {
+            option.style.background = "transparent";
+          }
+        });
+
+        option.addEventListener("click", () => {
+          node.selectedVariable = varName;
+          // Update port types
+          node.outputPorts.forEach((port) => port.updateEditability());
+          document.body.removeChild(menu);
+          this.render();
+          this.onShaderChanged();
+        });
+
+        menu.appendChild(option);
+      });
+    }
 
     // Close menu when clicking outside
     const closeMenu = (e) => {
@@ -4266,6 +4436,7 @@ class BlueprintSystem {
         y: node.y,
         operation: node.operation,
         customInput: node.customInput,
+        selectedVariable: node.selectedVariable,
         uniformId: node.uniformId,
         uniformName: node.uniformName,
         uniformDisplayName: node.uniformDisplayName,
@@ -4356,10 +4527,12 @@ class BlueprintSystem {
         this.nodeIdCounter++,
         nodeType
       );
+      newNode._blueprintSystem = this;
 
       // Restore properties
       newNode.operation = nodeData.operation;
       newNode.customInput = nodeData.customInput;
+      newNode.selectedVariable = nodeData.selectedVariable;
       newNode.uniformId = nodeData.uniformId;
       newNode.uniformName = nodeData.uniformName;
       newNode.uniformDisplayName = nodeData.uniformDisplayName;
@@ -4582,6 +4755,24 @@ class BlueprintSystem {
               visited.add(depNode);
               queue.push(depNode);
             }
+          }
+        }
+      }
+
+      // Special handling for Get Variable nodes - they depend on Set Variable nodes
+      if (node.nodeType.name === "Get Variable" && node.selectedVariable) {
+        const setVarNode = this.nodes.find(
+          (n) =>
+            n.nodeType.name === "Set Variable" &&
+            n.customInput === node.selectedVariable
+        );
+        
+        if (setVarNode) {
+          nodeDeps.add(setVarNode);
+          
+          if (!visited.has(setVarNode)) {
+            visited.add(setVarNode);
+            queue.push(setVarNode);
           }
         }
       }
@@ -5364,6 +5555,7 @@ class BlueprintSystem {
         title: node.title,
         operation: node.operation,
         customInput: node.customInput,
+        selectedVariable: node.selectedVariable,
         uniformName: node.uniformName,
         uniformDisplayName: node.uniformDisplayName,
         uniformVariableName: node.uniformVariableName,
@@ -5553,12 +5745,15 @@ class BlueprintSystem {
           }
 
           const node = new Node(nodeData.x, nodeData.y, nodeData.id, nodeType);
+          node._blueprintSystem = this;
 
           // Restore node properties
           if (nodeData.title) node.title = nodeData.title;
           if (nodeData.operation) node.operation = nodeData.operation;
           if (nodeData.customInput !== undefined)
             node.customInput = nodeData.customInput;
+          if (nodeData.selectedVariable !== undefined)
+            node.selectedVariable = nodeData.selectedVariable;
           if (nodeData.uniformName) node.uniformName = nodeData.uniformName;
           if (nodeData.uniformDisplayName)
             node.uniformDisplayName = nodeData.uniformDisplayName;
@@ -5702,6 +5897,7 @@ class BlueprintSystem {
         nodeTypeKey: this.getNodeTypeKey(node.nodeType),
         operation: node.operation,
         customInput: node.customInput,
+        selectedVariable: node.selectedVariable,
         uniformId: node.uniformId,
         uniformName: node.uniformName,
         uniformDisplayName: node.uniformDisplayName,
@@ -5773,9 +5969,11 @@ class BlueprintSystem {
       }
 
       const node = new Node(nodeData.x, nodeData.y, nodeData.id, nodeType);
+      node._blueprintSystem = this;
 
       node.operation = nodeData.operation;
       node.customInput = nodeData.customInput;
+      node.selectedVariable = nodeData.selectedVariable;
       node.uniformId = nodeData.uniformId;
       node.uniformName = nodeData.uniformName;
       node.uniformDisplayName = nodeData.uniformDisplayName;
@@ -5954,6 +6152,8 @@ class BlueprintSystem {
 
   addNode(x, y, nodeType = NODE_TYPES.math) {
     const node = new Node(x, y, this.nodeIdCounter++, nodeType);
+    // Store reference to blueprint system for nodes that need it (like Get Variable)
+    node._blueprintSystem = this;
     this.nodes.push(node);
     this.render();
     return node;
@@ -6437,6 +6637,22 @@ class BlueprintSystem {
           pos.y <= dropdown.y + dropdown.height
         ) {
           this.showOperationMenu(node, dropdown);
+          return;
+        }
+      }
+    }
+
+    // Check if clicking on a variable dropdown
+    for (const node of this.nodes) {
+      if (node.nodeType.hasVariableDropdown) {
+        const dropdown = node.getVariableDropdownBounds();
+        if (
+          pos.x >= dropdown.x &&
+          pos.x <= dropdown.x + dropdown.width &&
+          pos.y >= dropdown.y &&
+          pos.y <= dropdown.y + dropdown.height
+        ) {
+          this.showVariableMenu(node, dropdown);
           return;
         }
       }
@@ -7526,6 +7742,67 @@ class BlueprintSystem {
             inputBounds.y - 3
           );
         }
+      }
+
+      // Variable dropdown (if node has variable dropdown)
+      if (node.nodeType.hasVariableDropdown) {
+        const dropdown = node.getVariableDropdownBounds();
+
+        // Dropdown label
+        ctx.fillStyle = "#888";
+        ctx.font = "10px sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText("Variable", dropdown.x, dropdown.labelY + 10);
+
+        // Dropdown background
+        ctx.fillStyle = "#1a1a1a";
+        ctx.strokeStyle = "#4a4a4a";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(
+          dropdown.x,
+          dropdown.y,
+          dropdown.width,
+          dropdown.height,
+          4
+        );
+        ctx.fill();
+        ctx.stroke();
+
+        // Get display text
+        const displayText = node.selectedVariable || "(none)";
+
+        // Dropdown text
+        ctx.fillStyle = node.selectedVariable ? "#fff" : "#888";
+        ctx.font = "14px monospace";
+        ctx.textAlign = "left";
+        
+        // Clip text to dropdown bounds
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(
+          dropdown.x,
+          dropdown.y,
+          dropdown.width - 20, // Leave space for arrow
+          dropdown.height
+        );
+        ctx.clip();
+        ctx.fillText(
+          displayText,
+          dropdown.x + 8,
+          dropdown.y + dropdown.height / 2 + 5
+        );
+        ctx.restore();
+
+        // Dropdown arrow
+        ctx.fillStyle = "#888";
+        ctx.font = "10px sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText(
+          "▼",
+          dropdown.x + dropdown.width - 5,
+          dropdown.y + dropdown.height / 2 + 3
+        );
       }
 
       // Ports
