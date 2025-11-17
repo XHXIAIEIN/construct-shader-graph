@@ -565,6 +565,15 @@ function setupShaderErrorCapture() {
       // Set sampling mode (t[14] is the sampling mode property)
       t[14] = samplingMode;
 
+      t[15] =
+        t[15] ||
+        self["C3_Shaders"]["skymen_Placeholdereffect"].blendsBackground;
+
+      t[42] =
+        t[42] || self["C3_Shaders"]["skymen_Placeholdereffect"].crossSampling;
+
+      t[17] = t[17] || self["C3_Shaders"]["skymen_Placeholdereffect"].usesDepth;
+
       await super._LoadDataJson(e);
     }
   };
