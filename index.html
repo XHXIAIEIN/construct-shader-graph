@@ -571,94 +571,83 @@
       <div class="custom-node-modal-content">
         <h3>Custom Node</h3>
         <div class="custom-node-form">
-          <label>
-            <span>Node Name</span>
-            <input
-              type="text"
-              id="customNodeName"
-              placeholder="My Custom Node"
-            />
-          </label>
+          <!-- Header Section -->
+          <div class="custom-node-header">
+            <div class="custom-node-header-row">
+              <label class="name-label">
+                <span>Custom Node Name</span>
+                <input
+                  type="text"
+                  id="customNodeName"
+                  placeholder="My Custom Node"
+                />
+              </label>
+              <label class="color-label">
+                <span></span>
+                <input type="color" id="customNodeColor" value="#9b59b6" />
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="customNodeSplitWebGL" checked />
+                <span>split webgl</span>
+              </label>
+            </div>
 
-          <label>
-            <span>Node Color</span>
-            <input type="color" id="customNodeColor" value="#9b59b6" />
-          </label>
-
-          <div class="custom-node-section">
-            <h4>Inputs</h4>
-            <div id="customNodeInputs"></div>
-            <button id="addCustomInput" class="add-port-btn">
-              + Add Input
-            </button>
+            <div class="custom-node-header-row">
+              <div class="custom-node-ports-section">
+                <div class="custom-node-ports-column">
+                  <div class="custom-node-ports-header">
+                    <h4>Inputs</h4>
+                    <button id="addCustomInput" class="add-port-btn-small">
+                      +
+                    </button>
+                  </div>
+                  <div
+                    id="customNodeInputs"
+                    class="custom-node-ports-list"
+                  ></div>
+                </div>
+                <div class="custom-node-ports-column">
+                  <div class="custom-node-ports-header">
+                    <h4>Outputs</h4>
+                    <button id="addCustomOutput" class="add-port-btn-small">
+                      +
+                    </button>
+                  </div>
+                  <div
+                    id="customNodeOutputs"
+                    class="custom-node-ports-list"
+                  ></div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div class="custom-node-section">
-            <h4>Outputs</h4>
-            <div id="customNodeOutputs"></div>
-            <button id="addCustomOutput" class="add-port-btn">
-              + Add Output
-            </button>
-          </div>
-
-          <div class="custom-node-section">
-            <h4>WebGL 1 Code</h4>
-            <label>
-              <span>Dependency (functions, outside main)</span>
+          <!-- Code Editor Section -->
+          <div class="custom-node-code-section">
+            <div class="custom-node-code-header">
+              <div class="code-type-tabs">
+                <button class="code-tab active" data-code-type="dependency">
+                  Dependency
+                </button>
+                <button class="code-tab" data-code-type="execution">
+                  Execution
+                </button>
+              </div>
+              <div class="shader-lang-tabs">
+                <button class="shader-tab active" data-shader="webgl1">
+                  WebGL 1
+                </button>
+                <button class="shader-tab" data-shader="webgl2">WebGL 2</button>
+                <button class="shader-tab" data-shader="webgpu">WebGPU</button>
+              </div>
+            </div>
+            <div class="custom-node-code-editor">
               <textarea
-                id="customNodeWebGL1Dep"
-                rows="3"
-                placeholder="// Optional: functions, uniforms, etc."
+                id="customNodeCodeEditor"
+                rows="15"
+                placeholder="// Dependency code: functions, uniforms, etc. (outside main)&#10;// Example:&#10;// float customFunction(float x) {&#10;//   return x * 2.0;&#10;// }"
               ></textarea>
-            </label>
-            <label>
-              <span>Execution (inside main)</span>
-              <textarea
-                id="customNodeWebGL1Exec"
-                rows="4"
-                placeholder="// Use {input0}, {input1}, etc. for inputs&#10;// Use {output0}, {output1}, etc. for outputs&#10;float {output0} = {input0} + {input1};"
-              ></textarea>
-            </label>
-          </div>
-
-          <div class="custom-node-section">
-            <h4>WebGL 2 Code</h4>
-            <label>
-              <span>Dependency</span>
-              <textarea
-                id="customNodeWebGL2Dep"
-                rows="3"
-                placeholder="// Optional: functions, uniforms, etc."
-              ></textarea>
-            </label>
-            <label>
-              <span>Execution</span>
-              <textarea
-                id="customNodeWebGL2Exec"
-                rows="4"
-                placeholder="float {output0} = {input0} + {input1};"
-              ></textarea>
-            </label>
-          </div>
-
-          <div class="custom-node-section">
-            <h4>WebGPU Code</h4>
-            <label>
-              <span>Dependency</span>
-              <textarea
-                id="customNodeWebGPUDep"
-                rows="3"
-                placeholder="// Optional: functions, etc."
-              ></textarea>
-            </label>
-            <label>
-              <span>Execution</span>
-              <textarea
-                id="customNodeWebGPUExec"
-                rows="4"
-                placeholder="var {output0}: f32 = {input0} + {input1};"
-              ></textarea>
-            </label>
+            </div>
           </div>
 
           <div class="custom-node-modal-buttons">

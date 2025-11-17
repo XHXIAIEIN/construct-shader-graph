@@ -1599,19 +1599,118 @@ class BlueprintSystem {
     this.customNodeModal = document.getElementById("customNodeModal");
     this.customNodeNameInput = document.getElementById("customNodeName");
     this.customNodeColorInput = document.getElementById("customNodeColor");
+    this.customNodeSplitWebGLInput = document.getElementById(
+      "customNodeSplitWebGL"
+    );
     this.customNodeInputsContainer =
       document.getElementById("customNodeInputs");
     this.customNodeOutputsContainer =
       document.getElementById("customNodeOutputs");
     this.customNodesList = document.getElementById("custom-nodes-list");
 
-    // Code inputs
-    this.customNodeWebGL1Dep = document.getElementById("customNodeWebGL1Dep");
-    this.customNodeWebGL1Exec = document.getElementById("customNodeWebGL1Exec");
-    this.customNodeWebGL2Dep = document.getElementById("customNodeWebGL2Dep");
-    this.customNodeWebGL2Exec = document.getElementById("customNodeWebGL2Exec");
-    this.customNodeWebGPUDep = document.getElementById("customNodeWebGPUDep");
-    this.customNodeWebGPUExec = document.getElementById("customNodeWebGPUExec");
+    // Code editor
+    this.customNodeCodeEditor = document.getElementById("customNodeCodeEditor");
+
+    // Current state for code editor
+    this.currentCodeType = "dependency"; // "dependency" or "execution"
+    this.currentShaderLang = "webgl1"; // "webgl1", "webgl2", or "webgpu"
+
+    // Store code in memory
+    this.customNodeCodeData = {
+      webgl1: { dependency: "", execution: "" },
+      webgl2: { dependency: "", execution: "" },
+      webgpu: { dependency: "", execution: "" },
+    };
+
+    // Setup tab switching
+    const codeTabs = document.querySelectorAll(".code-tab");
+    const shaderTabs = document.querySelectorAll(".shader-tab");
+
+    codeTabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        // Save current content
+        this.customNodeCodeData[this.currentShaderLang][this.currentCodeType] =
+          this.customNodeCodeEditor.value;
+
+        // Switch tab
+        codeTabs.forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+        this.currentCodeType = tab.dataset.codeType;
+
+        // Load new content
+        this.customNodeCodeEditor.value =
+          this.customNodeCodeData[this.currentShaderLang][this.currentCodeType];
+
+        // Update placeholder
+        this.updateCodeEditorPlaceholder();
+      });
+    });
+
+    shaderTabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        // Don't allow switching to WebGL 2 if it's disabled
+        if (
+          tab.dataset.shader === "webgl2" &&
+          tab.classList.contains("disabled")
+        ) {
+          return;
+        }
+
+        // Save current content
+        this.customNodeCodeData[this.currentShaderLang][this.currentCodeType] =
+          this.customNodeCodeEditor.value;
+
+        // Switch tab
+        shaderTabs.forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+        this.currentShaderLang = tab.dataset.shader;
+
+        // Load new content
+        this.customNodeCodeEditor.value =
+          this.customNodeCodeData[this.currentShaderLang][this.currentCodeType];
+
+        // Update placeholder
+        this.updateCodeEditorPlaceholder();
+      });
+    });
+
+    // Handle splitWebGL checkbox changes
+    this.customNodeSplitWebGLInput.addEventListener("change", () => {
+      const webgl2Tab = document.querySelector(
+        '.shader-tab[data-shader="webgl2"]'
+      );
+      if (this.customNodeSplitWebGLInput.checked) {
+        webgl2Tab.classList.remove("disabled");
+      } else {
+        webgl2Tab.classList.add("disabled");
+        // If currently on WebGL 2 tab, switch to WebGL 1
+        if (this.currentShaderLang === "webgl2") {
+          // Save current content first
+          this.customNodeCodeData[this.currentShaderLang][
+            this.currentCodeType
+          ] = this.customNodeCodeEditor.value;
+
+          // Switch to WebGL 1
+          document
+            .querySelectorAll(".shader-tab")
+            .forEach((t) => t.classList.remove("active"));
+          document
+            .querySelector('.shader-tab[data-shader="webgl1"]')
+            .classList.add("active");
+          this.currentShaderLang = "webgl1";
+          this.customNodeCodeEditor.value =
+            this.customNodeCodeData[this.currentShaderLang][
+              this.currentCodeType
+            ];
+        }
+      }
+    });
+
+    // Update code data when typing
+    this.customNodeCodeEditor.addEventListener("input", () => {
+      this.customNodeCodeData[this.currentShaderLang][this.currentCodeType] =
+        this.customNodeCodeEditor.value;
+    });
 
     // Buttons
     document.getElementById("addCustomInput").addEventListener("click", () => {
@@ -1653,19 +1752,39 @@ class BlueprintSystem {
     // Clear form
     this.customNodeNameInput.value = "";
     this.customNodeColorInput.value = "#9b59b6";
+    this.customNodeSplitWebGLInput.checked = true;
     this.customNodeInputsContainer.innerHTML = "";
     this.customNodeOutputsContainer.innerHTML = "";
-    this.customNodeWebGL1Dep.value = "";
-    this.customNodeWebGL1Exec.value = "";
-    this.customNodeWebGL2Dep.value = "";
-    this.customNodeWebGL2Exec.value = "";
-    this.customNodeWebGPUDep.value = "";
-    this.customNodeWebGPUExec.value = "";
+
+    // Reset code data
+    this.customNodeCodeData = {
+      webgl1: { dependency: "", execution: "" },
+      webgl2: { dependency: "", execution: "" },
+      webgpu: { dependency: "", execution: "" },
+    };
+
+    // Reset to default tab
+    this.currentCodeType = "dependency";
+    this.currentShaderLang = "webgl1";
+    this.customNodeCodeEditor.value = "";
+
+    // Reset tab UI
+    document.querySelectorAll(".code-tab").forEach((tab) => {
+      tab.classList.toggle("active", tab.dataset.codeType === "dependency");
+    });
+    document.querySelectorAll(".shader-tab").forEach((tab) => {
+      tab.classList.toggle("active", tab.dataset.shader === "webgl1");
+      // Set WebGL 2 tab as disabled by default (will be updated if editing)
+      if (tab.dataset.shader === "webgl2") {
+        tab.classList.remove("disabled");
+      }
+    });
 
     // If editing, populate form
     if (customNode) {
       this.customNodeNameInput.value = customNode.name;
       this.customNodeColorInput.value = customNode.color || "#9b59b6";
+      this.customNodeSplitWebGLInput.checked = customNode.splitWebGL !== false;
 
       customNode.inputs.forEach((input) => {
         this.addCustomPortItem(
@@ -1685,13 +1804,41 @@ class BlueprintSystem {
         );
       });
 
-      this.customNodeWebGL1Dep.value = customNode.code.webgl1.dependency;
-      this.customNodeWebGL1Exec.value = customNode.code.webgl1.execution;
-      this.customNodeWebGL2Dep.value = customNode.code.webgl2.dependency;
-      this.customNodeWebGL2Exec.value = customNode.code.webgl2.execution;
-      this.customNodeWebGPUDep.value = customNode.code.webgpu.dependency;
-      this.customNodeWebGPUExec.value = customNode.code.webgpu.execution;
+      // Load code data
+      this.customNodeCodeData.webgl1.dependency =
+        customNode.code.webgl1.dependency;
+      this.customNodeCodeData.webgl1.execution =
+        customNode.code.webgl1.execution;
+      this.customNodeCodeData.webgl2.dependency =
+        customNode.code.webgl2.dependency;
+      this.customNodeCodeData.webgl2.execution =
+        customNode.code.webgl2.execution;
+      this.customNodeCodeData.webgpu.dependency =
+        customNode.code.webgpu.dependency;
+      this.customNodeCodeData.webgpu.execution =
+        customNode.code.webgpu.execution;
+
+      // Show current tab content
+      this.customNodeCodeEditor.value =
+        this.customNodeCodeData[this.currentShaderLang][this.currentCodeType];
+
+      // Update WebGL 2 tab disabled state based on splitWebGL
+      const webgl2Tab = document.querySelector(
+        '.shader-tab[data-shader="webgl2"]'
+      );
+      if (!this.customNodeSplitWebGLInput.checked) {
+        webgl2Tab.classList.add("disabled");
+      }
+    } else {
+      // For new nodes, set WebGL 2 tab as enabled by default since splitWebGL is checked
+      const webgl2Tab = document.querySelector(
+        '.shader-tab[data-shader="webgl2"]'
+      );
+      webgl2Tab.classList.remove("disabled");
     }
+
+    // Update placeholder for current tab
+    this.updateCodeEditorPlaceholder();
 
     this.customNodeModal.classList.add("visible");
   }
@@ -1699,6 +1846,30 @@ class BlueprintSystem {
   hideCustomNodeModal() {
     this.customNodeModal.classList.remove("visible");
     this.editingCustomNode = null;
+  }
+
+  updateCodeEditorPlaceholder() {
+    const placeholders = {
+      dependency: {
+        webgl1:
+          "// Dependency code: functions, uniforms, etc. (outside main)\n// Example:\n// float customFunction(float x) {\n//   return x * 2.0;\n// }",
+        webgl2:
+          "// Dependency code: functions, uniforms, etc. (outside main)\n// Example:\n// float customFunction(float x) {\n//   return x * 2.0;\n// }",
+        webgpu:
+          "// Dependency code: functions, etc. (outside main)\n// Example:\n// fn customFunction(x: f32) -> f32 {\n//   return x * 2.0;\n// }",
+      },
+      execution: {
+        webgl1:
+          "// Execution code (inside main)\n// Use {input0}, {input1}, etc. for inputs\n// Use {output0}, {output1}, etc. for outputs\n// Example:\n// float {output0} = {input0} + {input1};",
+        webgl2:
+          "// Execution code (inside main)\n// Use {input0}, {input1}, etc. for inputs\n// Use {output0}, {output1}, etc. for outputs\n// Example:\n// float {output0} = {input0} + {input1};",
+        webgpu:
+          "// Execution code (inside main)\n// Use {input0}, {input1}, etc. for inputs\n// Use {output0}, {output1}, etc. for outputs\n// Example:\n// var {output0}: f32 = {input0} + {input1};",
+      },
+    };
+
+    this.customNodeCodeEditor.placeholder =
+      placeholders[this.currentCodeType][this.currentShaderLang];
   }
 
   setupPreview() {
@@ -2572,6 +2743,25 @@ class BlueprintSystem {
       return;
     }
 
+    // Save current editor content before creating the node
+    this.customNodeCodeData[this.currentShaderLang][this.currentCodeType] =
+      this.customNodeCodeEditor.value;
+
+    // Handle splitWebGL logic
+    const splitWebGL = this.customNodeSplitWebGLInput.checked;
+    let webgl2Code = {
+      dependency: this.customNodeCodeData.webgl2.dependency,
+      execution: this.customNodeCodeData.webgl2.execution,
+    };
+
+    // If splitWebGL is false, copy WebGL 1 code to WebGL 2
+    if (!splitWebGL) {
+      webgl2Code = {
+        dependency: this.customNodeCodeData.webgl1.dependency,
+        execution: this.customNodeCodeData.webgl1.execution,
+      };
+    }
+
     // Create custom node definition
     const customNode = {
       id: this.editingCustomNode
@@ -2579,20 +2769,18 @@ class BlueprintSystem {
         : this.customNodeIdCounter++,
       name: name,
       color: this.customNodeColorInput.value,
+      splitWebGL: splitWebGL,
       inputs: inputs,
       outputs: outputs,
       code: {
         webgl1: {
-          dependency: this.customNodeWebGL1Dep.value,
-          execution: this.customNodeWebGL1Exec.value,
+          dependency: this.customNodeCodeData.webgl1.dependency,
+          execution: this.customNodeCodeData.webgl1.execution,
         },
-        webgl2: {
-          dependency: this.customNodeWebGL2Dep.value,
-          execution: this.customNodeWebGL2Exec.value,
-        },
+        webgl2: webgl2Code,
         webgpu: {
-          dependency: this.customNodeWebGPUDep.value,
-          execution: this.customNodeWebGPUExec.value,
+          dependency: this.customNodeCodeData.webgpu.dependency,
+          execution: this.customNodeCodeData.webgpu.execution,
         },
       },
     };
