@@ -746,6 +746,7 @@ class BlueprintSystem {
     this.setupPreview();
     this.setupMinimap();
     this.render();
+    this.updateUndoRedoButtons();
 
     // Initialize history after setup
     setTimeout(() => {
@@ -4028,6 +4029,20 @@ class BlueprintSystem {
       this.saveToJSON();
     });
 
+    document.getElementById("undoBtn").addEventListener("click", () => {
+      if (this.history && this.history.undo()) {
+        this.updateUndoRedoButtons();
+        this.render();
+      }
+    });
+
+    document.getElementById("redoBtn").addEventListener("click", () => {
+      if (this.history && this.history.redo()) {
+        this.updateUndoRedoButtons();
+        this.render();
+      }
+    });
+
     document.getElementById("loadBtn").addEventListener("click", async () => {
       // Try to use File System Access API if available
       if ("showOpenFilePicker" in window) {
@@ -4362,7 +4377,10 @@ class BlueprintSystem {
     // Ctrl/Cmd + Z: Undo (without Shift)
     if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
       e.preventDefault();
-      this.history.undo();
+      if (this.history && this.history.undo()) {
+        this.updateUndoRedoButtons();
+        this.render();
+      }
       return;
     }
     // Ctrl/Cmd + Shift + Z or Ctrl/Cmd + Y: Redo
@@ -4371,7 +4389,10 @@ class BlueprintSystem {
       ((e.key === "z" && e.shiftKey) || e.key === "y")
     ) {
       e.preventDefault();
-      this.history.redo();
+      if (this.history && this.history.redo()) {
+        this.updateUndoRedoButtons();
+        this.render();
+      }
       return;
     }
     // Ctrl/Cmd + C: Copy
@@ -4547,6 +4568,19 @@ class BlueprintSystem {
     }
 
     return levels;
+  }
+
+  updateUndoRedoButtons() {
+    const undoBtn = document.getElementById("undoBtn");
+    const redoBtn = document.getElementById("redoBtn");
+
+    if (this.history) {
+      undoBtn.disabled = !this.history.canUndo();
+      redoBtn.disabled = !this.history.canRedo();
+    } else {
+      undoBtn.disabled = true;
+      redoBtn.disabled = true;
+    }
   }
 
   updateDependencyList() {

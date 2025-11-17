@@ -97,6 +97,8 @@ export class HistoryManager {
     this.currentState = newState;
     this.lastChangeTime = currentTime;
     this.lastChangedProperties = changedProperties;
+
+    this.blueprint.updateUndoRedoButtons();
   }
 
   /**
