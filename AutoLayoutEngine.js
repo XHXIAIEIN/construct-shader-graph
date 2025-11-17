@@ -651,6 +651,11 @@ export class AutoLayoutEngine {
   getPortYPosition(node, portIndex, isOutput) {
     if (!node) return 0;
 
+    // SPECIAL CASE: Variable nodes have output port centered in header
+    if (node.isVariable && isOutput) {
+      return node.height / 2;
+    }
+
     // Add extra offset if node has operation dropdown
     const dropdownOffset = node.nodeType?.hasOperation ? 30 : 0;
 
@@ -682,32 +687,39 @@ export class AutoLayoutEngine {
   }
 
   /**
-   * Find which output port of the parent connects to which input port of the child
+   * Find which output port of the child connects to which input port of the parent
+   * NOTE: In our tree structure, "parent" is the consumer and "child" is the provider
+   * So we search child's OUTPUT ports for connections to parent's INPUT ports
    */
   findConnectedPorts(parentNode, childNode, subgraph) {
     // Find the connection between these two nodes
-    let parentOutputIndex = -1;
-    let childInputIndex = -1;
+    let parentInputIndex = -1;
+    let childOutputIndex = -1;
 
-    if (!parentNode || !childNode) return null;
+    if (!parentNode || !childNode) {
+      return null;
+    }
 
-    // Search through parent's output ports
-    parentNode.outputPorts?.forEach((outputPort, outIdx) => {
-      outputPort.connections?.forEach((conn) => {
-        if (conn.nodeId === childNode.id) {
-          parentOutputIndex = outIdx;
-          // Find which input port on the child
-          childNode.inputPorts?.forEach((inputPort, inIdx) => {
-            if (inputPort.id === conn.portId) {
-              childInputIndex = inIdx;
+    // Search through CHILD's output ports (child provides data to parent)
+    childNode.outputPorts?.forEach((outputPort, outIdx) => {
+      outputPort.connections?.forEach((wire) => {
+        // Wire has startPort and endPort
+        // Since this is an output port, it's the startPort
+        const connectedPort = wire.endPort;
+        if (connectedPort && connectedPort.node.id === parentNode.id) {
+          childOutputIndex = outIdx;
+          // Find which input port on the parent
+          parentNode.inputPorts?.forEach((inputPort, inIdx) => {
+            if (inputPort === connectedPort) {
+              parentInputIndex = inIdx;
             }
           });
         }
       });
     });
 
-    if (parentOutputIndex >= 0 && childInputIndex >= 0) {
-      return { parentOutputIndex, childInputIndex };
+    if (childOutputIndex >= 0 && parentInputIndex >= 0) {
+      return { parentInputIndex, childOutputIndex };
     }
 
     return null;
@@ -829,19 +841,31 @@ export class AutoLayoutEngine {
 
         if (portInfo) {
           // Calculate port Y positions (relative to each node's top)
+          // Parent receives data at INPUT port, child sends data from OUTPUT port
           const parentPortY = this.getPortYPosition(
             node,
-            portInfo.parentOutputIndex,
-            true
+            portInfo.parentInputIndex,
+            false // INPUT port on parent
           );
           const childPortY = this.getPortYPosition(
             childNode,
-            portInfo.childInputIndex,
-            false
+            portInfo.childOutputIndex,
+            true // OUTPUT port on child
+          );
+
+          console.log(`🎯 PORT ALIGNMENT DEBUG:`);
+          console.log(
+            `  Parent: "${node.title}" input[${portInfo.parentInputIndex}] at Y=${parentPortY} (relative to parent top)`
+          );
+          console.log(
+            `  Child: "${childNode.title}" output[${portInfo.childOutputIndex}] at Y=${childPortY} (relative to child top)`
           );
 
           // Get the child node's position within its own layout
           const childPosInLayout = childLayout.positions.get(child.id);
+          console.log(
+            `  Child position in its layout: x=${childPosInLayout?.x}, y=${childPosInLayout?.y}`
+          );
 
           if (childPosInLayout) {
             // The child node is at childPosInLayout.y within its layout
@@ -850,13 +874,12 @@ export class AutoLayoutEngine {
             // Therefore: proposedY = parentPortY - childPosInLayout.y - childPortY
             proposedY = parentPortY - childPosInLayout.y - childPortY;
 
-            if (this.debugMode) {
-              console.log(
-                `  Port alignment: "${node.title}" output[${portInfo.parentOutputIndex}] at Y=${parentPortY} ` +
-                  `→ "${childNode.title}" input[${portInfo.childInputIndex}] at Y=${childPortY} ` +
-                  `(child in layout: ${childPosInLayout.y}, final offset: ${proposedY}px)`
-              );
-            }
+            console.log(
+              `  Calculated proposedY = ${parentPortY} - ${childPosInLayout.y} - ${childPortY} = ${proposedY}`
+            );
+            console.log(
+              `  This means child layout will be offset by ${proposedY}px`
+            );
           }
         }
       }
