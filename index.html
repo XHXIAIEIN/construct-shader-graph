@@ -302,7 +302,7 @@
         <div id="uniform-sidebar">
           <div id="shader-settings-section" class="collapsible-section">
             <div class="sidebar-section-header">
-              <h2>Shader Settings</h2>
+              <h2>Shader Info</h2>
               <button class="collapse-btn">▼</button>
             </div>
             <div class="sidebar-section-content">
@@ -327,6 +327,20 @@
                     placeholder="Author name"
                   />
                 </label>
+
+                <label>
+                  <span>Category</span>
+                  <select id="settingCategory">
+                    <option value="3d">3D</option>
+                    <option value="blend">Blend</option>
+                    <option value="color" selected>Color</option>
+                    <option value="distortion">Distortion</option>
+                    <option value="mask">Mask</option>
+                    <option value="normal-mapping">Normal Mapping</option>
+                    <option value="tiling">Tiling</option>
+                    <option value="other">Other</option>
+                  </select>
+                </label>
                 <label>
                   <span>Website</span>
                   <input
@@ -336,7 +350,7 @@
                   />
                 </label>
                 <label>
-                  <span>Documentation</span>
+                  <span>Docs</span>
                   <input
                     type="url"
                     id="settingDocumentation"
@@ -351,19 +365,16 @@
                     placeholder="Shader description..."
                   ></textarea>
                 </label>
-                <label>
-                  <span>Category</span>
-                  <select id="settingCategory">
-                    <option value="3d">3D</option>
-                    <option value="blend">Blend</option>
-                    <option value="color" selected>Color</option>
-                    <option value="distortion">Distortion</option>
-                    <option value="mask">Mask</option>
-                    <option value="normal-mapping">Normal Mapping</option>
-                    <option value="tiling">Tiling</option>
-                    <option value="other">Other</option>
-                  </select>
-                </label>
+              </div>
+            </div>
+          </div>
+          <div id="shader-settings-section" class="collapsible-section">
+            <div class="sidebar-section-header">
+              <h2>Shader Settings</h2>
+              <button class="collapse-btn">▼</button>
+            </div>
+            <div class="sidebar-section-content">
+              <div class="settings-form">
                 <label class="checkbox-label">
                   <input type="checkbox" id="settingBlendsBackground" />
                   <span>Blends Background</span>

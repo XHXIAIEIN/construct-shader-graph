@@ -735,8 +735,9 @@ body {
 
 .settings-form label {
   display: flex;
-  flex-direction: column;
-  gap: 0px;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
   font-size: 13px;
   color: #aaa;
 }
@@ -744,6 +745,19 @@ body {
 .settings-form label > span {
   font-weight: 500;
   color: #ccc;
+  min-width: 50px;
+  flex-shrink: 0;
+}
+
+/* Description field should be vertical */
+.settings-form label:has(textarea) {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.settings-form label:has(textarea) > span {
+  min-width: auto;
 }
 
 .settings-form input[type="text"],
@@ -759,6 +773,8 @@ body {
   font-size: 13px;
   font-family: inherit;
   transition: border-color 0.2s;
+  flex: 2;
+  height: 32px;
 }
 
 .settings-form input:focus,
