@@ -3974,6 +3974,10 @@ class BlueprintSystem {
       );
     });
 
+    document.getElementById("githubBtn").addEventListener("click", () => {
+      window.open("https://github.com/skymen/construct-shader-graph", "_blank");
+    });
+
     document.getElementById("saveBtn").addEventListener("click", () => {
       this.saveToJSON();
     });

@@ -61,22 +61,123 @@ body {
     overflow: hidden;
 }
 
+/* Toolbar Styles */
 #toolbar {
-  background: #2a2a2a;
-  padding: 15px 20px;
+  background: linear-gradient(135deg, #2a2a2a 0%, #242424 100%);
+  padding: 12px 20px;
   display: flex;
   align-items: center;
-  gap: 15px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.toolbar-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-branding h1 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-right: 20px;
+  color: #fff;
+  letter-spacing: 0.3px;
+}
+
+.toolbar-actions {
+  margin-left: auto;
   flex-wrap: wrap;
 }
 
-#toolbar h1 {
-  font-size: 20px;
-  margin-right: auto;
+.toolbar-separator {
+  width: 1px;
+  height: 28px;
+  background: #4a4a4a;
+  margin: 0 4px;
 }
 
-button {
+/* Toolbar Button Styles */
+.toolbar-btn {
+  background: rgba(74, 74, 74, 0.4);
+  color: #fff;
+  border: 1px solid #4a4a4a;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.toolbar-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
+.toolbar-btn span {
+  line-height: 1;
+}
+
+.toolbar-btn:hover {
+  background: rgba(90, 90, 90, 0.6);
+  border-color: #5a5a5a;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.toolbar-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Primary Button (Export) */
+.toolbar-btn-primary {
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  border-color: #357abd;
+  color: #fff;
+}
+
+.toolbar-btn-primary:hover {
+  background: linear-gradient(135deg, #5aa0f2 0%, #4585c7 100%);
+  border-color: #4585c7;
+  box-shadow: 0 2px 12px rgba(74, 144, 226, 0.4);
+}
+
+/* Secondary Button (Report Issue) */
+.toolbar-btn-secondary {
+  background: rgba(149, 165, 166, 0.2);
+  border-color: #7f8c8d;
+  color: #bbb;
+}
+
+.toolbar-btn-secondary:hover {
+  background: rgba(149, 165, 166, 0.3);
+  border-color: #95a5a6;
+  color: #ddd;
+}
+
+/* Icon-only Button (GitHub) */
+.toolbar-btn-icon {
+  padding: 8px;
+  min-width: auto;
+}
+
+.toolbar-btn-icon span {
+  display: none;
+}
+
+/* Legacy button styles for other buttons in the app */
+button:not(.toolbar-btn):not(.minimap-control-btn):not(.texture-btn):not(.texture-clear-btn):not(.reset-preview-btn) {
   background: #4a90e2;
   color: white;
   border: none;
@@ -88,7 +189,7 @@ button {
   white-space: nowrap;
 }
 
-button:hover {
+button:not(.toolbar-btn):not(.minimap-control-btn):not(.texture-btn):not(.texture-clear-btn):not(.reset-preview-btn):hover {
   background: #357abd;
 }
 
@@ -98,14 +199,6 @@ button:hover {
 
 #clearBtn:hover {
     background: #c0392b;
-}
-
-.report-issue-btn {
-    background: #95a5a6;
-}
-
-.report-issue-btn:hover {
-    background: #7f8c8d;
 }
 
 #canvas-container {
