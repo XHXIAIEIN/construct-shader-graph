@@ -8,16 +8,14 @@ export const BackUVNode = new NodeType(
   PORT_TYPES.vec2.color,
   {
     webgl1: {
-      dependency: `vec2 getBackUV() {
-    return (destStart + (destEnd - destStart) * vTex - layoutStart) / (layoutEnd - layoutStart);
-}`,
-      execution: (inputs, outputs) => `    vec2 ${outputs[0]} = getBackUV();`,
+      dependency: "",
+      execution: (inputs, outputs) =>
+        `    vec2 ${outputs[0]} = (vTex - srcStart) / (srcEnd - srcStart);`,
     },
     webgl2: {
-      dependency: `vec2 getBackUV() {
-    return (destStart + (destEnd - destStart) * vTex - layoutStart) / (layoutEnd - layoutStart);
-}`,
-      execution: (inputs, outputs) => `    vec2 ${outputs[0]} = getBackUV();`,
+      dependency: "",
+      execution: (inputs, outputs) =>
+        `    vec2 ${outputs[0]} = (vTex - srcStart) / (srcEnd - srcStart);`,
     },
     webgpu: {
       dependency: ``,

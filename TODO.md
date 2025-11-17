@@ -2,41 +2,42 @@
 
 ## WebGPU Helper Functions (from c3_helpers.wgsl)
 
-- [ ] **c3_srcOriginToNorm Node** - Converts source origin coordinates to normalized (0-1) coordinates
+- [x] **c3_srcOriginToNorm Node** - ✅ IMPLEMENTED as `SrcOriginToNormNode`
 
-  - WebGPU: `c3_srcOriginToNorm(input.fragUV)`
-  - WebGL: `(vTex - srcOriginStart) / (srcOriginEnd - srcOriginStart)`
+  - WebGPU: `c3_srcOriginToNorm(input.fragUV)` ✅
+  - WebGL: `(vTex - srcOriginStart) / (srcOriginEnd - srcOriginStart)` ✅
 
-- [ ] **c3_getLayoutPos Node** - Gets the current layout position being rendered
+- [x] **c3_getLayoutPos Node** - ✅ IMPLEMENTED as `GetLayoutPosNode`
 
-  - WebGPU: `c3_getLayoutPos(input.fragUV)`
-  - WebGL: `mix(layoutStart, layoutEnd, normalizedCoords)`
+  - WebGPU: `c3_getLayoutPos(input.fragUV)` ✅
+  - WebGL: `mix(layoutStart, layoutEnd, normalizedCoords)` ✅
 
-- [ ] **c3_unpremultiply Node** - Converts premultiplied alpha to unpremultiplied
+- [x] **c3_unpremultiply Node** - ✅ IMPLEMENTED as `UnpremultiplyNode`
 
-  - WebGPU: `c3_unpremultiply(color)`
-  - WebGL: `if (a != 0.0) color.rgb /= a;`
+  - WebGPU: `c3_unpremultiply(color)` ✅
+  - WebGL: `if (a != 0.0) color.rgb /= a;` ✅
 
-- [ ] **c3_premultiply Node** - Converts unpremultiplied to premultiplied alpha
+- [x] **c3_premultiply Node** - ✅ IMPLEMENTED as `PremultiplyNode`
 
-  - WebGPU: `c3_premultiply(color)`
-  - WebGL: `color.rgb *= a;`
+  - WebGPU: `c3_premultiply(color)` ✅
+  - WebGL: `color.rgb *= a;` ✅
 
-- [ ] **c3_getPixelSize Node** - Gets pixel size in texture coordinates (already implemented as PixelSizeNode)
+- [x] **c3_getPixelSize Node** - ✅ IMPLEMENTED as `PixelSizeNode`
 
-  - WebGPU: `c3_getPixelSize(texture)`
-  - WebGL: `pixelSize` uniform
+  - WebGPU: `c3_getPixelSize(textureFront)` ✅
+  - WebGL: `pixelSize` uniform ✅
 
-- [ ] **c3_getBackUV Node** - Gets UV coordinates for sampling background texture
+- [x] **c3_getBackUV Node** - ✅ IMPLEMENTED as `BackUVNode` (FIXED)
 
-  - WebGPU: `c3_getBackUV(input.fragPos.xy, textureBack)`
-  - WebGL: `(vTex - srcStart) / (srcEnd - srcStart)`
+  - WebGPU: `c3_getBackUV(input.fragPos.xy, textureBack)` ✅
+  - WebGL: `(vTex - srcStart) / (srcEnd - srcStart)` ✅
 
-- [ ] **c3_getDepthUV Node** - Gets UV coordinates for sampling depth buffer
+- [x] **c3_getDepthUV Node** - ✅ IMPLEMENTED as `DepthUVNode` (FIXED)
 
-  - WebGPU: `c3_getDepthUV(input.fragPos.xy, textureDepth)`
-  - WebGL: `(vTex - srcStart) / (srcEnd - srcStart)`
+  - WebGPU: `c3_getDepthUV(input.fragPos.xy, textureDepth)` ✅
+  - WebGL: `(vTex - srcStart) / (srcEnd - srcStart)` ✅
 
-- [ ] **c3_linearizeDepth Node** - Converts depth buffer value to linear depth
-  - WebGPU: `c3_linearizeDepth(depthSample)`
-  - WebGL: Manual calculation using zNear/zFar
+- [x] **c3_linearizeDepth Node** - ✅ IMPLEMENTED as `LinearizeDepthNode`
+
+  - WebGPU: `c3_linearizeDepth(depthSample)` ✅
+  - WebGL: `(2.0 * zNear * zFar) / (zFar + zNear - depth * (zFar - zNear))` ✅

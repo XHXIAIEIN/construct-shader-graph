@@ -128,6 +128,12 @@ import { BuiltinLayoutCenterNode } from "./BuiltinLayoutCenterNode.js";
 import { BuiltinLayoutSizeNode } from "./BuiltinLayoutSizeNode.js";
 import { TexelSizeNode } from "./TexelSizeNode.js";
 import { PixelSizeNode } from "./PixelSizeNode.js";
+import { LayoutPixelSizeNode } from "./LayoutPixelSizeNode.js";
+import { SrcOriginToNormNode } from "./SrcOriginToNormNode.js";
+import { GetLayoutPosNode } from "./GetLayoutPosNode.js";
+import { UnpremultiplyNode } from "./UnpremultiplyNode.js";
+import { PremultiplyNode } from "./PremultiplyNode.js";
+import { LinearizeDepthNode } from "./LinearizeDepthNode.js";
 
 // Export NODE_TYPES object
 export const NODE_TYPES = {
@@ -246,6 +252,12 @@ export const NODE_TYPES = {
   builtinZFar: BuiltinZFarNode,
   texelSize: TexelSizeNode,
   pixelSize: PixelSizeNode,
+  layoutPixelSize: LayoutPixelSizeNode,
+  srcOriginToNorm: SrcOriginToNormNode,
+  getLayoutPos: GetLayoutPosNode,
+  unpremultiply: UnpremultiplyNode,
+  premultiply: PremultiplyNode,
+  linearizeDepth: LinearizeDepthNode,
 
   // Debug nodes
   shaderLanguageTest: ShaderLanguageTestNode,

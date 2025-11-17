@@ -1,0 +1,30 @@
+import { NodeType } from "./NodeType.js";
+import { PORT_TYPES } from "./PortTypes.js";
+
+export const PremultiplyNode = new NodeType(
+  "Premultiply",
+  [{ name: "Color", type: "vec4" }],
+  [{ name: "Result", type: "vec4" }],
+  PORT_TYPES.vec4.color,
+  {
+    webgl1: {
+      dependency: "",
+      execution: (inputs, outputs) =>
+        `    vec4 ${outputs[0]} = ${inputs[0]};\n` +
+        `    ${outputs[0]}.rgb *= ${outputs[0]}.a;`,
+    },
+    webgl2: {
+      dependency: "",
+      execution: (inputs, outputs) =>
+        `    vec4 ${outputs[0]} = ${inputs[0]};\n` +
+        `    ${outputs[0]}.rgb *= ${outputs[0]}.a;`,
+    },
+    webgpu: {
+      dependency: "",
+      execution: (inputs, outputs) =>
+        `    var ${outputs[0]}: vec4<f32> = c3_premultiply(${inputs[0]});`,
+    },
+  },
+  "Color",
+  ["alpha", "premultiply", "blend", "color"]
+);
