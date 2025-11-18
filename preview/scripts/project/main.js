@@ -153,6 +153,18 @@ async function OnBeforeProjectStart(rt) {
         if (typeof globalThis[event.data.function] === "function") {
           globalThis[event.data.function](event.data.url);
         }
+      } else if (event.data && event.data.type === "requestScreenshot") {
+        // Capture canvas and send back as data URL
+        runtime.saveCanvasImage().then((blob) => {
+          const dataUrl = URL.createObjectURL(blob);
+          window.parent.postMessage(
+            {
+              type: "screenshotData",
+              dataUrl: dataUrl,
+            },
+            "*"
+          );
+        });
       }
     });
   }

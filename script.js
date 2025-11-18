@@ -2306,6 +2306,14 @@ class BlueprintSystem {
       this.resetPreviewSettings();
     });
 
+    // Screenshot preview button
+    const screenshotPreviewBtn = document.getElementById(
+      "screenshotPreviewBtn"
+    );
+    screenshotPreviewBtn.addEventListener("click", () => {
+      this.screenshotPreview();
+    });
+
     // Texture controls
     this.setupTextureControls();
 
@@ -6049,6 +6057,37 @@ class BlueprintSystem {
       // Reload preview to clear textures
       this.updatePreview();
     }
+  }
+
+  screenshotPreview() {
+    if (!this.previewIframe || !this.previewReady) {
+      alert("Preview is not ready yet");
+      return;
+    }
+
+    // Request screenshot from the preview iframe
+    this.previewIframe.contentWindow.postMessage(
+      { type: "requestScreenshot" },
+      "*"
+    );
+
+    // Listen for the screenshot response
+    const screenshotHandler = (event) => {
+      if (event.data && event.data.type === "screenshotData") {
+        // Remove the listener
+        window.removeEventListener("message", screenshotHandler);
+
+        // Create a download link
+        const link = document.createElement("a");
+        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+        const filename = `preview-${timestamp}.png`;
+        link.download = filename;
+        link.href = event.data.dataUrl;
+        link.click();
+      }
+    };
+
+    window.addEventListener("message", screenshotHandler);
   }
 
   addDefaultNodes() {
