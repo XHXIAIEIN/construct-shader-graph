@@ -1564,7 +1564,9 @@ class BlueprintSystem {
     // Copy button
     document.getElementById("copyCodeBtn").addEventListener("click", () => {
       // Find which tab is active
-      const activeTab = document.querySelector(".code-tab.active");
+      const activeTab = document
+        .getElementById("viewCodeModal")
+        .querySelector(".code-tab.active");
       if (activeTab && this.viewCodeEditors) {
         const target = activeTab.dataset.target;
         const editor = this.viewCodeEditors[target];
