@@ -873,11 +873,16 @@ class BlueprintSystem {
     this.setupShaderSettings();
     this.setupUniformSidebar();
     this.setupCustomNodeModal();
-    this.setupExamplesModal();
+    this.setupOpenFilesModal();
     this.setupPreview();
     this.setupMinimap();
     this.render();
     this.updateUndoRedoButtons();
+
+    // Show open files modal on startup
+    setTimeout(() => {
+      this.showOpenFilesModal();
+    }, 100);
 
     // Initialize history after setup
     setTimeout(() => {
@@ -1997,10 +2002,39 @@ class BlueprintSystem {
     checkCodeMirror();
   }
 
-  setupExamplesModal() {
-    const modal = document.getElementById("examplesModal");
-    const closeBtn = document.getElementById("examplesModalClose");
-    const cancelBtn = document.getElementById("examplesModalCancel");
+  setupOpenFilesModal() {
+    const modal = document.getElementById("openFilesModal");
+    const closeBtn = document.getElementById("openFilesModalClose");
+    const cancelBtn = document.getElementById("openFilesModalCancel");
+    const newBtn = document.getElementById("openFilesNewBtn");
+    const openBtn = document.getElementById("openFilesOpenBtn");
+    const clearRecentBtn = document.getElementById("clearRecentFilesBtn");
+
+    // Tab switching
+    const tabs = modal.querySelectorAll(".modal-tab");
+    const tabContents = modal.querySelectorAll(".modal-tab-content");
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const tabName = tab.getAttribute("data-tab");
+
+        // Update active tab
+        tabs.forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+
+        // Update active content
+        tabContents.forEach((content) => {
+          if (
+            content.id === `${tabName}Tab` ||
+            content.id === `${tabName}FilesTab`
+          ) {
+            content.classList.add("active");
+          } else {
+            content.classList.remove("active");
+          }
+        });
+      });
+    });
 
     closeBtn.addEventListener("click", () => {
       modal.style.display = "none";
@@ -2008,6 +2042,23 @@ class BlueprintSystem {
 
     cancelBtn.addEventListener("click", () => {
       modal.style.display = "none";
+    });
+
+    newBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+      this.createNewFile();
+    });
+
+    openBtn.addEventListener("click", async () => {
+      modal.style.display = "none";
+      await this.openFilePicker();
+    });
+
+    clearRecentBtn.addEventListener("click", () => {
+      if (confirm("Are you sure you want to clear all recent files?")) {
+        this.clearAllRecentFiles();
+        this.populateRecentFiles();
+      }
     });
 
     // Close on outside click
@@ -2018,8 +2069,152 @@ class BlueprintSystem {
     });
   }
 
-  async showExamplesModal() {
-    const modal = document.getElementById("examplesModal");
+  async showOpenFilesModal(activeTab = "recent") {
+    const modal = document.getElementById("openFilesModal");
+
+    // Check if there are recent files
+    const recentFiles = this.getRecentFiles();
+
+    // If no recent files and activeTab is "recent", switch to examples
+    if (recentFiles.length === 0 && activeTab === "recent") {
+      activeTab = "examples";
+    }
+
+    // Set active tab
+    const tabs = modal.querySelectorAll(".modal-tab");
+    const tabContents = modal.querySelectorAll(".modal-tab-content");
+
+    tabs.forEach((tab) => {
+      if (tab.getAttribute("data-tab") === activeTab) {
+        tab.classList.add("active");
+      } else {
+        tab.classList.remove("active");
+      }
+    });
+
+    tabContents.forEach((content) => {
+      if (
+        content.id === `${activeTab}Tab` ||
+        content.id === `${activeTab}FilesTab`
+      ) {
+        content.classList.add("active");
+      } else {
+        content.classList.remove("active");
+      }
+    });
+
+    // Populate both tabs
+    await this.populateRecentFiles();
+    await this.populateExamples();
+
+    modal.style.display = "flex";
+  }
+
+  async populateRecentFiles() {
+    const grid = document.getElementById("recentFilesGrid");
+    const emptyState = document.getElementById("recentFilesEmpty");
+    const clearBtn = document.getElementById("clearRecentFilesBtn");
+
+    // Get recent files from localStorage
+    const recentFiles = this.getRecentFiles();
+
+    // Clear grid
+    grid.innerHTML = "";
+
+    if (recentFiles.length === 0) {
+      grid.style.display = "none";
+      emptyState.style.display = "flex";
+      if (clearBtn) clearBtn.style.display = "none";
+    } else {
+      grid.style.display = "grid";
+      emptyState.style.display = "none";
+      if (clearBtn) clearBtn.style.display = "block";
+
+      // Create cards for each recent file
+      for (const fileInfo of recentFiles) {
+        const card = document.createElement("div");
+        card.className = "recent-file-card";
+
+        const preview = document.createElement("div");
+        preview.className = "recent-file-preview";
+
+        if (fileInfo.screenshot) {
+          const img = document.createElement("img");
+          img.src = fileInfo.screenshot;
+          preview.appendChild(img);
+        } else {
+          preview.innerHTML = `
+            <svg class="recent-file-preview-placeholder" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M13,9V3.5L18.5,9M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z" />
+            </svg>
+          `;
+        }
+
+        const info = document.createElement("div");
+        info.className = "recent-file-info";
+
+        const name = document.createElement("h3");
+        name.className = "recent-file-name";
+        name.textContent = fileInfo.name;
+        name.title = fileInfo.name;
+
+        const date = document.createElement("p");
+        date.className = "recent-file-date";
+        date.textContent = this.formatDate(fileInfo.lastOpened);
+
+        info.appendChild(name);
+        info.appendChild(date);
+
+        // Remove button
+        const removeBtn = document.createElement("button");
+        removeBtn.className = "recent-file-remove";
+        removeBtn.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+          </svg>
+        `;
+        removeBtn.title = "Remove from recent files";
+        removeBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          this.removeRecentFile(fileInfo.id);
+          this.populateRecentFiles();
+        });
+
+        card.appendChild(preview);
+        card.appendChild(info);
+        card.appendChild(removeBtn);
+
+        // Click handler to open file
+        card.addEventListener("click", async () => {
+          try {
+            const handle = await this.getFileHandleById(fileInfo.id);
+            if (handle) {
+              const file = await handle.getFile();
+              this.fileHandle = handle;
+              await this.loadFromJSON(file);
+              document.getElementById("openFilesModal").style.display = "none";
+            } else {
+              alert(
+                "Cannot access this file. It may have been moved or deleted, or permission was revoked."
+              );
+              this.removeRecentFile(fileInfo.id);
+              this.populateRecentFiles();
+            }
+          } catch (error) {
+            console.error("Error opening recent file:", error);
+            alert("Failed to open file: " + error.message);
+            this.removeRecentFile(fileInfo.id);
+            this.populateRecentFiles();
+          }
+        });
+
+        grid.appendChild(card);
+      }
+    }
+  }
+
+  async populateExamples() {
+    const modal = document.getElementById("openFilesModal");
     const grid = document.getElementById("examplesGrid");
 
     // Define examples with metadata
@@ -2161,6 +2356,208 @@ class BlueprintSystem {
     }
 
     modal.style.display = "flex";
+  }
+
+  // Recent files management
+  getRecentFiles() {
+    try {
+      const stored = localStorage.getItem("recentFiles");
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.error("Error loading recent files:", error);
+      return [];
+    }
+  }
+
+  async addRecentFile(fileHandle, screenshot) {
+    try {
+      const file = await fileHandle.getFile();
+      const recentFiles = this.getRecentFiles();
+
+      // Generate a unique ID for this file
+      const fileId = `file_${Date.now()}_${Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
+
+      // Store file handle in IndexedDB
+      await this.storeFileHandle(fileId, fileHandle);
+
+      // Create file info
+      const fileInfo = {
+        id: fileId,
+        name: file.name,
+        lastOpened: Date.now(),
+        screenshot: screenshot,
+      };
+
+      // Remove existing entry for this file if it exists (by name)
+      const filtered = recentFiles.filter((f) => f.name !== file.name);
+
+      // Add to beginning of array
+      filtered.unshift(fileInfo);
+
+      // Keep only the last 10 files
+      const limited = filtered.slice(0, 10);
+
+      // Save to localStorage
+      localStorage.setItem("recentFiles", JSON.stringify(limited));
+    } catch (error) {
+      console.error("Error adding recent file:", error);
+    }
+  }
+
+  removeRecentFile(fileId) {
+    try {
+      const recentFiles = this.getRecentFiles();
+      const filtered = recentFiles.filter((f) => f.id !== fileId);
+      localStorage.setItem("recentFiles", JSON.stringify(filtered));
+
+      // Also remove from IndexedDB
+      this.deleteFileHandle(fileId);
+    } catch (error) {
+      console.error("Error removing recent file:", error);
+    }
+  }
+
+  async clearAllRecentFiles() {
+    try {
+      const recentFiles = this.getRecentFiles();
+
+      // Remove all file handles from IndexedDB
+      for (const fileInfo of recentFiles) {
+        await this.deleteFileHandle(fileInfo.id);
+      }
+
+      // Clear localStorage
+      localStorage.removeItem("recentFiles");
+
+      console.log("All recent files cleared");
+    } catch (error) {
+      console.error("Error clearing recent files:", error);
+    }
+  }
+
+  formatDate(timestamp) {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now - date;
+
+    // Less than a minute
+    if (diff < 60000) {
+      return "Just now";
+    }
+    // Less than an hour
+    if (diff < 3600000) {
+      const minutes = Math.floor(diff / 60000);
+      return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+    }
+    // Less than a day
+    if (diff < 86400000) {
+      const hours = Math.floor(diff / 3600000);
+      return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    }
+    // Less than a week
+    if (diff < 604800000) {
+      const days = Math.floor(diff / 86400000);
+      return `${days} day${days > 1 ? "s" : ""} ago`;
+    }
+    // Otherwise show date
+    return date.toLocaleDateString();
+  }
+
+  async openFilePicker() {
+    // Try to use File System Access API if available
+    if ("showOpenFilePicker" in window) {
+      try {
+        const [fileHandle] = await window.showOpenFilePicker({
+          types: [
+            {
+              description: "Construct 3 Shader Graph",
+              accept: {
+                "application/json": [".c3sg", ".json"],
+              },
+            },
+          ],
+          multiple: false,
+        });
+
+        const file = await fileHandle.getFile();
+        this.fileHandle = fileHandle; // Store handle for future saves
+        await this.loadFromJSON(file);
+        return;
+      } catch (error) {
+        // User cancelled or error occurred, fall back to file input
+        if (error.name !== "AbortError") {
+          console.warn(
+            "File System Access API failed, falling back to file input:",
+            error
+          );
+        } else {
+          return; // User cancelled, don't show file input
+        }
+      }
+    }
+
+    // Fallback to traditional file input
+    document.getElementById("loadFileInput").click();
+  }
+
+  // IndexedDB for storing file handles
+  async openFileHandleDB() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open("ShaderGraphFileHandles", 1);
+
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains("fileHandles")) {
+          db.createObjectStore("fileHandles", { keyPath: "id" });
+        }
+      };
+    });
+  }
+
+  async storeFileHandle(id, fileHandle) {
+    try {
+      const db = await this.openFileHandleDB();
+      const transaction = db.transaction(["fileHandles"], "readwrite");
+      const store = transaction.objectStore("fileHandles");
+      await store.put({ id, handle: fileHandle });
+    } catch (error) {
+      console.error("Error storing file handle:", error);
+    }
+  }
+
+  async getFileHandleById(id) {
+    try {
+      const db = await this.openFileHandleDB();
+      const transaction = db.transaction(["fileHandles"], "readonly");
+      const store = transaction.objectStore("fileHandles");
+      return new Promise((resolve, reject) => {
+        const request = store.get(id);
+        request.onsuccess = () => {
+          const result = request.result;
+          resolve(result ? result.handle : null);
+        };
+        request.onerror = () => reject(request.error);
+      });
+    } catch (error) {
+      console.error("Error getting file handle:", error);
+      return null;
+    }
+  }
+
+  async deleteFileHandle(id) {
+    try {
+      const db = await this.openFileHandleDB();
+      const transaction = db.transaction(["fileHandles"], "readwrite");
+      const store = transaction.objectStore("fileHandles");
+      await store.delete(id);
+    } catch (error) {
+      console.error("Error deleting file handle:", error);
+    }
   }
 
   setupPreview() {
@@ -4776,44 +5173,12 @@ class BlueprintSystem {
 
     // Examples button
     document.getElementById("examplesBtn").addEventListener("click", () => {
-      this.showExamplesModal();
+      this.showOpenFilesModal("examples");
     });
 
-    document.getElementById("loadBtn").addEventListener("click", async () => {
-      // Try to use File System Access API if available
-      if ("showOpenFilePicker" in window) {
-        try {
-          const [fileHandle] = await window.showOpenFilePicker({
-            types: [
-              {
-                description: "Construct 3 Shader Graph",
-                accept: {
-                  "application/json": [".c3sg", ".json"],
-                },
-              },
-            ],
-            multiple: false,
-          });
-
-          const file = await fileHandle.getFile();
-          this.fileHandle = fileHandle; // Store handle for future saves
-          await this.loadFromJSON(file);
-          return;
-        } catch (error) {
-          // User cancelled or error occurred, fall back to file input
-          if (error.name !== "AbortError") {
-            console.warn(
-              "File System Access API failed, falling back to file input:",
-              error
-            );
-          } else {
-            return; // User cancelled, don't show file input
-          }
-        }
-      }
-
-      // Fallback to traditional file input
-      document.getElementById("loadFileInput").click();
+    document.getElementById("loadBtn").addEventListener("click", () => {
+      // Show open files modal with recent files tab
+      this.showOpenFilesModal("recent");
     });
 
     document.getElementById("loadFileInput").addEventListener("change", (e) => {
@@ -6346,6 +6711,12 @@ class BlueprintSystem {
         console.log(
           "Blueprint saved successfully using File System Access API"
         );
+
+        // Add to recent files after successful save
+        if (this.fileHandle && previewScreenshot) {
+          await this.addRecentFile(this.fileHandle, previewScreenshot);
+        }
+
         return;
       } catch (error) {
         // User cancelled or error occurred, fall back to download
@@ -6556,6 +6927,11 @@ class BlueprintSystem {
       // Clear and reinitialize history
       this.history.clear();
       this.history.currentState = this.exportState();
+
+      // Add to recent files if we have a file handle
+      if (this.fileHandle && data.previewScreenshot) {
+        await this.addRecentFile(this.fileHandle, data.previewScreenshot);
+      }
     } catch (error) {
       console.error("Failed to load blueprint:", error);
       alert(`Failed to load blueprint: ${error.message}`);

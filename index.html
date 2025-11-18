@@ -734,20 +734,92 @@
       </div>
     </div>
 
-    <!-- Examples Modal -->
-    <div id="examplesModal" class="modal" style="display: none">
-      <div class="modal-content examples-modal">
+    <!-- Open Files Modal (Combined Recent Files and Examples) -->
+    <div id="openFilesModal" class="modal" style="display: none">
+      <div class="modal-content open-files-modal">
         <div class="modal-header">
-          <h2>Load Example</h2>
-          <button class="modal-close" id="examplesModalClose">×</button>
+          <h2>Open Shader</h2>
+          <button class="modal-close" id="openFilesModalClose">×</button>
+        </div>
+        <div class="modal-tabs">
+          <button class="modal-tab active" data-tab="recent">
+            Recent Files
+          </button>
+          <button class="modal-tab" data-tab="examples">Examples</button>
         </div>
         <div class="modal-body">
-          <div class="examples-grid" id="examplesGrid">
-            <!-- Examples will be populated here -->
+          <!-- Recent Files Tab -->
+          <div class="modal-tab-content active" id="recentFilesTab">
+            <div class="recent-files-grid" id="recentFilesGrid">
+              <!-- Recent files will be populated here -->
+            </div>
+            <div
+              class="recent-files-empty"
+              id="recentFilesEmpty"
+              style="display: none"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                width="64"
+                height="64"
+                style="opacity: 0.3; margin-bottom: 16px"
+              >
+                <path
+                  fill="currentColor"
+                  d="M13,9V3.5L18.5,9M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z"
+                />
+              </svg>
+              <p>No recent files</p>
+              <p style="font-size: 13px; color: #888; margin-top: 8px">
+                Open or create a file to get started
+              </p>
+            </div>
+          </div>
+          <!-- Examples Tab -->
+          <div class="modal-tab-content" id="examplesTab">
+            <div class="examples-grid" id="examplesGrid">
+              <!-- Examples will be populated here -->
+            </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button id="examplesModalCancel">Cancel</button>
+          <button
+            id="clearRecentFilesBtn"
+            class="link-btn"
+            style="margin-right: auto"
+          >
+            Clear Recent Files
+          </button>
+          <button id="openFilesNewBtn" class="primary-btn">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+            >
+              <path
+                fill="currentColor"
+                d="M13,9V3.5L18.5,9M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z"
+              />
+            </svg>
+            New File
+          </button>
+          <button id="openFilesOpenBtn" class="primary-btn">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+            >
+              <path
+                fill="currentColor"
+                d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"
+              />
+            </svg>
+            Open File
+          </button>
+          <button id="openFilesModalCancel">Cancel</button>
         </div>
       </div>
     </div>
