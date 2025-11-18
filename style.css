@@ -2443,7 +2443,7 @@ body {
   max-height: 85vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: auto;
 }
 
 .open-files-modal .modal-header {
@@ -2516,6 +2516,12 @@ body {
   padding: 20px;
   min-height: 560px;
   position: relative;
+}
+
+@media (max-height: 890px) {
+  .open-files-modal .modal-body {
+    min-height: 280px;
+  }
 }
 
 .open-files-modal .modal-body::before {
