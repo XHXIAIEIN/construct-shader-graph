@@ -6177,33 +6177,25 @@ class BlueprintSystem {
 
   initializeViewCodeEditors() {
     const checkCodeMirror = () => {
-      if (window.CodeMirror) {
-        const { EditorView, EditorState, basicSetup, cpp, oneDark } =
-          window.CodeMirror;
+      const targets = ["webgl1", "webgl2", "webgpu"];
 
-        const targets = ["webgl1", "webgl2", "webgpu"];
+      for (const target of targets) {
+        const container = document.getElementById(`code-${target}`);
 
-        for (const target of targets) {
-          const container = document.getElementById(`code-${target}`);
-
-          // Create readonly CodeMirror editor
-          this.viewCodeEditors[target] = new EditorView({
-            state: EditorState.create({
-              doc: "",
-              extensions: [
-                basicSetup,
-                cpp(),
-                oneDark,
-                EditorView.editable.of(false), // Make it readonly
-                EditorState.readOnly.of(true),
-              ],
-            }),
-            parent: container,
-          });
-        }
-      } else {
-        // Retry after a short delay
-        setTimeout(checkCodeMirror, 100);
+        // Create readonly CodeMirror editor
+        this.viewCodeEditors[target] = new EditorView({
+          state: EditorState.create({
+            doc: "",
+            extensions: [
+              basicSetup,
+              cpp(),
+              oneDark,
+              EditorView.editable.of(false), // Make it readonly
+              EditorState.readOnly.of(true),
+            ],
+          }),
+          parent: container,
+        });
       }
     };
 
