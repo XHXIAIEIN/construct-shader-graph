@@ -2279,6 +2279,11 @@ class BlueprintSystem {
         name: "Sampling Depth",
         description: "Depth buffer sampling techniques",
       },
+      {
+        file: "kaleidoscope.c3sg",
+        name: "Kaleidoscope",
+        description: "Kaleidoscope shader",
+      },
     ];
 
     // Clear grid
