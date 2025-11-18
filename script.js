@@ -2188,23 +2188,49 @@ class BlueprintSystem {
         card.addEventListener("click", async () => {
           try {
             const handle = await this.getFileHandleById(fileInfo.id);
-            if (handle) {
+            if (!handle) {
+              alert(
+                "Cannot access this file. It may have been moved or deleted."
+              );
+              this.removeRecentFile(fileInfo.id);
+              this.populateRecentFiles();
+              return;
+            }
+
+            // Request permission to access the file (will prompt user if needed)
+            const options = { mode: "read" };
+            const permission = await handle.requestPermission(options);
+
+            if (permission === "granted") {
+              // Permission granted, open the file
               const file = await handle.getFile();
               this.fileHandle = handle;
               await this.loadFromJSON(file);
               document.getElementById("openFilesModal").style.display = "none";
             } else {
+              // Permission denied by user
               alert(
-                "Cannot access this file. It may have been moved or deleted, or permission was revoked."
+                "Permission denied. Please grant permission to access this file, or use 'Open File' to select it manually."
               );
-              this.removeRecentFile(fileInfo.id);
-              this.populateRecentFiles();
             }
           } catch (error) {
             console.error("Error opening recent file:", error);
-            alert("Failed to open file: " + error.message);
-            this.removeRecentFile(fileInfo.id);
-            this.populateRecentFiles();
+
+            // Handle specific error types
+            if (error.name === "NotFoundError") {
+              alert(
+                "This file no longer exists or has been moved. Removing it from recent files."
+              );
+              this.removeRecentFile(fileInfo.id);
+              this.populateRecentFiles();
+            } else if (error.name === "NotAllowedError") {
+              alert(
+                "Cannot request file permission at this time. This may be due to browser security policies. " +
+                  "Please use the 'Open File' button to select the file manually."
+              );
+            } else {
+              alert("Failed to open file: " + error.message);
+            }
           }
         });
 
