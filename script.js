@@ -1254,8 +1254,14 @@ class BlueprintSystem {
       }
     });
 
-    // Prevent search menu clicks from propagating to canvas
+    // Prevent search menu mouse events from propagating to canvas
     this.searchMenu.addEventListener("mousedown", (e) => {
+      e.stopPropagation();
+    });
+    this.searchMenu.addEventListener("mouseup", (e) => {
+      e.stopPropagation();
+    });
+    this.searchMenu.addEventListener("mousemove", (e) => {
       e.stopPropagation();
     });
   }

@@ -699,8 +699,10 @@ export class AutoLayoutEngine {
         if (processedNodes.has(nodeId)) return;
 
         // Get all children (nodes that feed into this one)
-        const children =
+        // Deduplicate in case the same node is connected to multiple input ports
+        const childrenRaw =
           subgraph.get(nodeId)?.inputs.filter((id) => subgraph.has(id)) || [];
+        const children = [...new Set(childrenRaw)];
 
         // Sort children by port index to maintain visual order and prevent wire crossings
         this.sortChildrenByPortIndex(nodeId, children, subgraph);
@@ -1011,6 +1013,40 @@ export class AutoLayoutEngine {
   }
 
   /**
+   * Find ALL connections between a child and parent node
+   * Returns an array of {parentInputIndex, childOutputIndex} for each connection
+   */
+  findAllConnectedPorts(parentNode, childNode, subgraph) {
+    const connections = [];
+
+    if (!parentNode || !childNode) {
+      return connections;
+    }
+
+    // Search through CHILD's output ports (child provides data to parent)
+    childNode.outputPorts?.forEach((outputPort, outIdx) => {
+      outputPort.connections?.forEach((wire) => {
+        // Wire has startPort and endPort
+        // Since this is an output port, it's the startPort
+        const connectedPort = wire.endPort;
+        if (connectedPort && connectedPort.node.id === parentNode.id) {
+          // Find which input port on the parent
+          parentNode.inputPorts?.forEach((inputPort, inIdx) => {
+            if (inputPort === connectedPort) {
+              connections.push({
+                parentInputIndex: inIdx,
+                childOutputIndex: outIdx,
+              });
+            }
+          });
+        }
+      });
+    });
+
+    return connections;
+  }
+
+  /**
    * Arrange a branch node with its children (which are already arranged)
    */
   arrangeBranchWithChildren(
@@ -1261,33 +1297,56 @@ export class AutoLayoutEngine {
           }
         }
 
-        // SPECIAL CASE: If this is a single child with single connection, align by port
+        // SPECIAL CASE: If this is a single child, align by port(s)
         if (childLayouts.length === 1 && childNode) {
-          const portInfo = this.findConnectedPorts(node, childNode, subgraph);
+          const allConnections = this.findAllConnectedPorts(
+            node,
+            childNode,
+            subgraph
+          );
 
-          if (portInfo) {
-            // Calculate port Y positions (relative to each node's top)
-            // Parent receives data at INPUT port, child sends data from OUTPUT port
-            const parentPortY = this.getPortYPosition(
-              node,
-              portInfo.parentInputIndex,
-              false // INPUT port on parent
-            );
-            const childPortY = this.getPortYPosition(
-              childNode,
-              portInfo.childOutputIndex,
-              true // OUTPUT port on child
-            );
-
+          if (allConnections.length > 0) {
             // Get the child node's position within its own layout
             const childPosInLayout = childLayout.positions.get(child.id);
 
             if (childPosInLayout) {
-              // The child node is at childPosInLayout.y within its layout
-              // We want: parentY + parentPortY = proposedY + childPosInLayout.y + childPortY
-              // Since parentY = 0: parentPortY = proposedY + childPosInLayout.y + childPortY
-              // Therefore: proposedY = parentPortY - childPosInLayout.y - childPortY
-              proposedY = parentPortY - childPosInLayout.y - childPortY;
+              if (allConnections.length === 1) {
+                // Single connection - align ports directly
+                const portInfo = allConnections[0];
+                const parentPortY = this.getPortYPosition(
+                  node,
+                  portInfo.parentInputIndex,
+                  false // INPUT port on parent
+                );
+                const childPortY = this.getPortYPosition(
+                  childNode,
+                  portInfo.childOutputIndex,
+                  true // OUTPUT port on child
+                );
+
+                proposedY = parentPortY - childPosInLayout.y - childPortY;
+              } else {
+                // Multiple connections - align to center of all parent ports
+                let totalParentPortY = 0;
+                allConnections.forEach((conn) => {
+                  totalParentPortY += this.getPortYPosition(
+                    node,
+                    conn.parentInputIndex,
+                    false // INPUT port on parent
+                  );
+                });
+                const avgParentPortY = totalParentPortY / allConnections.length;
+
+                // Use the first child output port for alignment
+                // (or could average child ports too, but typically it's one output to many inputs)
+                const childPortY = this.getPortYPosition(
+                  childNode,
+                  allConnections[0].childOutputIndex,
+                  true // OUTPUT port on child
+                );
+
+                proposedY = avgParentPortY - childPosInLayout.y - childPortY;
+              }
             }
           }
         }
