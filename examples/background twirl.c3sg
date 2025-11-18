@@ -15,7 +15,9 @@
     "isDeprecated": false,
     "extendBoxH": 0,
     "extendBoxV": 0,
-    "usesDepth": false
+    "usesDepth": false,
+    "mustPredraw": false,
+    "supports3DDirectRendering": false
   },
   "uniforms": [
     {
@@ -40,47 +42,15 @@
     "shapeTextureUrl": null
   },
   "camera": {
-    "x": 50.56817822535754,
-    "y": 22.359261401068807,
-    "zoom": 0.5223227809726371
+    "x": 1411.9040865278669,
+    "y": 263.696738363754,
+    "zoom": 0.583510127967532
   },
   "nodes": [
     {
-      "id": 2,
-      "x": -43.85829954151099,
-      "y": 138.96850339760158,
-      "nodeTypeKey": "textureFront",
-      "title": "Front Texture",
-      "isVariable": false,
-      "inputPorts": [
-        {
-          "name": "UV",
-          "portType": "vec2",
-          "value": [
-            0,
-            0
-          ]
-        }
-      ],
-      "outputPorts": [
-        {
-          "name": "RGBA",
-          "portType": "vec4"
-        },
-        {
-          "name": "Color",
-          "portType": "vec3"
-        },
-        {
-          "name": "Alpha",
-          "portType": "float"
-        }
-      ]
-    },
-    {
       "id": 4,
-      "x": -70.85829954151099,
-      "y": 515.4685033976016,
+      "x": -1790.08373509624,
+      "y": 564.5827382430552,
       "nodeTypeKey": "textureBack",
       "title": "Back Texture",
       "isVariable": false,
@@ -111,8 +81,8 @@
     },
     {
       "id": 6,
-      "x": 229.29399112392198,
-      "y": 146.95666648247396,
+      "x": -1390,
+      "y": 45,
       "nodeTypeKey": "unpremultiply",
       "title": "Unpremultiply",
       "isVariable": false,
@@ -137,8 +107,8 @@
     },
     {
       "id": 7,
-      "x": 202.69555567835064,
-      "y": 524.8517234775512,
+      "x": -1390,
+      "y": 280,
       "nodeTypeKey": "unpremultiply",
       "title": "Unpremultiply",
       "isVariable": false,
@@ -163,8 +133,8 @@
     },
     {
       "id": 8,
-      "x": 448.33863985424006,
-      "y": 543.3871657183255,
+      "x": -1180,
+      "y": 235,
       "nodeTypeKey": "swizzle",
       "title": "Swizzle",
       "customInput": "xyz",
@@ -184,8 +154,8 @@
     },
     {
       "id": 9,
-      "x": 472.8058280390496,
-      "y": 128.42122424169952,
+      "x": -1180,
+      "y": 0,
       "nodeTypeKey": "swizzle",
       "title": "Swizzle",
       "customInput": "xyz",
@@ -205,8 +175,8 @@
     },
     {
       "id": 10,
-      "x": 784.2966900541143,
-      "y": 343.15616779920055,
+      "x": -900,
+      "y": 0,
       "nodeTypeKey": "mix",
       "title": "Mix",
       "isVariable": false,
@@ -237,80 +207,9 @@
       ]
     },
     {
-      "id": 11,
-      "x": 279.0157825535033,
-      "y": 426.4737642487694,
-      "nodeTypeKey": "uniform_1",
-      "title": "mixSlider",
-      "uniformName": "mixSlider",
-      "uniformDisplayName": "mixSlider",
-      "uniformVariableName": "mixSlider",
-      "uniformId": 1,
-      "isVariable": true,
-      "inputPorts": [],
-      "outputPorts": [
-        {
-          "name": "Value",
-          "portType": "float"
-        }
-      ]
-    },
-    {
-      "id": 12,
-      "x": 476.5591160710296,
-      "y": 335.09317459440354,
-      "nodeTypeKey": "math",
-      "title": "Math",
-      "operation": "*",
-      "isVariable": false,
-      "inputPorts": [
-        {
-          "name": "A",
-          "portType": "genType"
-        },
-        {
-          "name": "B",
-          "portType": "genType",
-          "value": 0
-        }
-      ],
-      "outputPorts": [
-        {
-          "name": "Result",
-          "portType": "genType"
-        }
-      ]
-    },
-    {
-      "id": 14,
-      "x": 826.2336968493174,
-      "y": 573.229682706333,
-      "nodeTypeKey": "math",
-      "title": "Math",
-      "operation": "*",
-      "isVariable": false,
-      "inputPorts": [
-        {
-          "name": "A",
-          "portType": "genType"
-        },
-        {
-          "name": "B",
-          "portType": "genType",
-          "value": 0
-        }
-      ],
-      "outputPorts": [
-        {
-          "name": "Result",
-          "portType": "genType"
-        }
-      ]
-    },
-    {
       "id": 13,
-      "x": 1128.081006036269,
-      "y": 393.5173926549218,
+      "x": -620,
+      "y": 0,
       "nodeTypeKey": "appendVec4",
       "title": "Append Vec4",
       "isVariable": false,
@@ -333,8 +232,8 @@
     },
     {
       "id": 3,
-      "x": 1655.2742352890496,
-      "y": 355.75390413759084,
+      "x": -200,
+      "y": 0,
       "nodeTypeKey": "output",
       "title": "Output",
       "isVariable": false,
@@ -354,8 +253,8 @@
     },
     {
       "id": 15,
-      "x": 1388.383547970626,
-      "y": 396.3754978313934,
+      "x": -410,
+      "y": 0,
       "nodeTypeKey": "premultiply",
       "title": "Premultiply",
       "isVariable": false,
@@ -379,24 +278,9 @@
       ]
     },
     {
-      "id": 1,
-      "x": -651.7355346100668,
-      "y": 139.95371411032755,
-      "nodeTypeKey": "frontUV",
-      "title": "Front UV",
-      "isVariable": true,
-      "inputPorts": [],
-      "outputPorts": [
-        {
-          "name": "UV",
-          "portType": "vec2"
-        }
-      ]
-    },
-    {
       "id": 5,
-      "x": -642.4306311119457,
-      "y": 506.67555341943785,
+      "x": -2159.0837350962397,
+      "y": 597.0827382430552,
       "nodeTypeKey": "backUV",
       "title": "Back UV",
       "isVariable": true,
@@ -410,8 +294,8 @@
     },
     {
       "id": 16,
-      "x": -420.2297783909268,
-      "y": 482.88051927112036,
+      "x": -2000.0837350962397,
+      "y": 564.5827382430552,
       "nodeTypeKey": "twirl",
       "title": "Twirl",
       "isVariable": false,
@@ -452,8 +336,8 @@
     },
     {
       "id": 17,
-      "x": -641.3607320749849,
-      "y": 561.7347388473213,
+      "x": -2180.0837350962397,
+      "y": 637.0827382430552,
       "nodeTypeKey": "builtinDestCenter",
       "title": "destCenter",
       "isVariable": true,
@@ -462,6 +346,124 @@
         {
           "name": "Value",
           "portType": "vec2"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "x": -1956.08373509624,
+      "y": 357.0827382430552,
+      "nodeTypeKey": "frontUV",
+      "title": "Front UV",
+      "isVariable": true,
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "name": "UV",
+          "portType": "vec2"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "x": -1171.8625439533316,
+      "y": 449.0268604752141,
+      "nodeTypeKey": "math",
+      "title": "Math",
+      "operation": "*",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "A",
+          "portType": "genType"
+        },
+        {
+          "name": "B",
+          "portType": "genType",
+          "value": 0
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Result",
+          "portType": "genType"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "x": -1170.4273752129109,
+      "y": 635.9485989780279,
+      "nodeTypeKey": "math",
+      "title": "Math",
+      "operation": "*",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "A",
+          "portType": "genType"
+        },
+        {
+          "name": "B",
+          "portType": "genType",
+          "value": 0
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Result",
+          "portType": "genType"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "x": -1407.03407402061,
+      "y": 736.8206764052118,
+      "nodeTypeKey": "uniform_1",
+      "title": "mixSlider",
+      "uniformName": "mixSlider",
+      "uniformDisplayName": "mixSlider",
+      "uniformVariableName": "mixSlider",
+      "uniformId": 1,
+      "isVariable": true,
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "name": "Value",
+          "portType": "float"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "x": -1790.08373509624,
+      "y": 324.5827382430552,
+      "nodeTypeKey": "textureFront",
+      "title": "Front Texture",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "UV",
+          "portType": "vec2",
+          "value": [
+            0,
+            0
+          ]
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "RGBA",
+          "portType": "vec4"
+        },
+        {
+          "name": "Color",
+          "portType": "vec3"
+        },
+        {
+          "name": "Alpha",
+          "portType": "float"
         }
       ]
     }

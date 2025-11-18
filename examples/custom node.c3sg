@@ -14,7 +14,10 @@
     "animated": false,
     "isDeprecated": false,
     "extendBoxH": 0,
-    "extendBoxV": 0
+    "extendBoxV": 0,
+    "usesDepth": false,
+    "mustPredraw": false,
+    "supports3DDirectRendering": false
   },
   "uniforms": [],
   "customNodes": [
@@ -62,9 +65,9 @@
     "shapeTextureUrl": null
   },
   "camera": {
-    "x": 1003,
-    "y": 21,
-    "zoom": 1
+    "x": 1049.1146711635752,
+    "y": 244.41526138279932,
+    "zoom": 0.948566610455312
   },
   "nodes": [
     {

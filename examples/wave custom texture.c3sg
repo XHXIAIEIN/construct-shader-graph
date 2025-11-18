@@ -14,7 +14,10 @@
     "animated": true,
     "isDeprecated": false,
     "extendBoxH": 0,
-    "extendBoxV": 0
+    "extendBoxV": 0,
+    "usesDepth": false,
+    "mustPredraw": false,
+    "supports3DDirectRendering": false
   },
   "uniforms": [
     {
@@ -56,19 +59,20 @@
     "cameraMode": "2d",
     "autoRotate": true,
     "samplingMode": "nearest",
+    "shaderLanguage": "webgpu",
     "spriteTextureUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAClElEQVR4AeydQU4EMQwEPbwMnoN4BPAI4DnwMgYszvjgmU46OzWSORC541SRXa20EnfBY0UAIVY6IhCCEDMCZuNwQxBiRsBsHG4IQswImI3DDUGIGQGzcTQ3xOyQK42DEDNbCEGIGQGzcbghCDEjYDbOOjfkY78PtxLIXEPI2/4Se3yGW+UfyMlS1hBy8qGd49YQssWzM8QzZ1tDyN+JL/HTX4jgddrZrL+Q77iPCz3+Qi4kI4/qL+RCb+jnCMnX+Pd9D1XllBcq/xtyIRl5VIQkBaNCiJGMHAUhScGoEGIkI0dBSFIwKoQYychREJIUjAohRjJyFIQkBaNCiJGMHAUhScGoEGIkI0dBSFIwKoRoZLRTEdJGp2lEiIZrOxUhbXSaRoRouLZTEdJGp2lEiIZrOxUhbXSaRoRouLZTEdJGp2lEiIZrO7UU0k6lsU0AIW10mkaEaLi2UxHSRqdpRIiGazsVIW10mkaEaLi2U9cWssdrbPEQisrsNtZ+49pC7uIrHjdNZXaMf9YWkjLGM5PuOEGI9DzLh68rZNJrvNr4ukLUZCblrytk0puu2tO6Qm7wDT1lnyNki6/fzwJjK27zOS4k/1Ift4ffzwNj6zZ98B923LwevyFuJ1p8HoSYCbwZIWZc2+MgpI1O04gQDdd2KkLa6DSNCNFwbacipI1O04gQDdd2KkLa6DSNCNFwbacipI1O04iQkuv4RYSMZ17uiJASz/hFhIxnXu6IkBLP+EWEjGde7oiQCk9+Ga+q/D5B1d9YQ8h/0BL20/YSVf3Xe+D3CDkAT9GKEAXVA5kIOQCv21r1IaSiM2ENIROgV1sipKIzYQ0hE6BXWyKkojNhDSEToFdbIqSiM2ENIROgV1v+AAAA//8hi4GlAAAABklEQVQDAMDhMtgNdzFoAAAAAElFTkSuQmCC",
     "shapeTextureUrl": null
   },
   "camera": {
-    "x": 429.66048692881384,
-    "y": 161.83464285238347,
-    "zoom": 0.5457840630746799
+    "x": 1078.1631502237478,
+    "y": 229.40303506104064,
+    "zoom": 0.5854606222031526
   },
   "nodes": [
     {
       "id": 1,
-      "x": 1009,
-      "y": 169,
+      "x": -200,
+      "y": 0,
       "nodeTypeKey": "output",
       "title": "Output",
       "isVariable": false,
@@ -88,8 +92,8 @@
     },
     {
       "id": 27,
-      "x": -578.1447095632786,
-      "y": 467.00055527221497,
+      "x": -1582.563905983124,
+      "y": 537.4667606495232,
       "nodeTypeKey": "math",
       "title": "Math",
       "operation": "*",
@@ -115,8 +119,8 @@
     },
     {
       "id": 25,
-      "x": -760.5488141779917,
-      "y": 504.09358163530965,
+      "x": -1741.563905983124,
+      "y": 599.9667606495232,
       "nodeTypeKey": "builtinSeconds",
       "title": "seconds",
       "isVariable": true,
@@ -130,8 +134,8 @@
     },
     {
       "id": 28,
-      "x": -795.1280970396208,
-      "y": 583.4295447004022,
+      "x": -1732.563905983124,
+      "y": 639.9667606495232,
       "nodeTypeKey": "uniform_2",
       "title": "speed",
       "uniformName": "speed",
@@ -149,8 +153,8 @@
     },
     {
       "id": 26,
-      "x": -341.50920887713494,
-      "y": 461.37364927363825,
+      "x": -1372.563905983124,
+      "y": 567.4667606495232,
       "nodeTypeKey": "sin",
       "title": "Sin",
       "isVariable": false,
@@ -169,8 +173,8 @@
     },
     {
       "id": 29,
-      "x": -417.1628878906348,
-      "y": 361.52738965164264,
+      "x": -1335.563905983124,
+      "y": 442.4667606495232,
       "nodeTypeKey": "uniform_3",
       "title": "magnitude",
       "uniformName": "magnitude",
@@ -188,8 +192,8 @@
     },
     {
       "id": 23,
-      "x": 751.4357076898458,
-      "y": 130.857011957535,
+      "x": -410,
+      "y": 0,
       "nodeTypeKey": "textureFront",
       "title": "Front Texture",
       "isVariable": false,
@@ -220,8 +224,8 @@
     },
     {
       "id": 24,
-      "x": -278.7704171987863,
-      "y": 160.24598606316675,
+      "x": -1318.563905983124,
+      "y": 244.96676064952322,
       "nodeTypeKey": "frontUV",
       "title": "Front UV",
       "isVariable": true,
@@ -235,8 +239,8 @@
     },
     {
       "id": 31,
-      "x": -107.86838509076358,
-      "y": 101.35677945455426,
+      "x": -1152.563905983124,
+      "y": 212.46676064952322,
       "nodeTypeKey": "vec2Decompose",
       "title": "Vec2 Decompose",
       "isVariable": false,
@@ -263,8 +267,8 @@
     },
     {
       "id": 30,
-      "x": -122.10617623239415,
-      "y": 350.5542061602204,
+      "x": -1152.563905983124,
+      "y": 442.4667606495232,
       "nodeTypeKey": "math",
       "title": "Math",
       "operation": "*",
@@ -289,36 +293,9 @@
       ]
     },
     {
-      "id": 33,
-      "x": 187.99632078402334,
-      "y": 267.577771544318,
-      "nodeTypeKey": "math",
-      "title": "Math",
-      "operation": "+",
-      "isVariable": false,
-      "inputPorts": [
-        {
-          "name": "A",
-          "portType": "genType",
-          "value": 0
-        },
-        {
-          "name": "B",
-          "portType": "genType",
-          "value": 0
-        }
-      ],
-      "outputPorts": [
-        {
-          "name": "Result",
-          "portType": "genType"
-        }
-      ]
-    },
-    {
       "id": 32,
-      "x": 192.9412283498125,
-      "y": 69.78146891275227,
+      "x": -900,
+      "y": 0,
       "nodeTypeKey": "math",
       "title": "Math",
       "operation": "+",
@@ -344,8 +321,8 @@
     },
     {
       "id": 34,
-      "x": 427.00018646383194,
-      "y": 150.5482924873083,
+      "x": -620,
+      "y": 0,
       "nodeTypeKey": "vec2",
       "title": "Vec2",
       "isVariable": false,
@@ -365,6 +342,33 @@
         {
           "name": "Vec2",
           "portType": "vec2"
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "x": -902.563905983124,
+      "y": 212.46676064952322,
+      "nodeTypeKey": "math",
+      "title": "Math",
+      "operation": "+",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "A",
+          "portType": "genType",
+          "value": 0
+        },
+        {
+          "name": "B",
+          "portType": "genType",
+          "value": 0
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Result",
+          "portType": "genType"
         }
       ]
     }
