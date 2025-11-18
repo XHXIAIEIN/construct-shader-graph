@@ -6,7 +6,7 @@ export default defineConfig({
     process.env.NODE_ENV === "production" ? "/construct-shader-graph/" : "/",
   assetsInclude: ["**/*.glsl", "**/*.wgsl"],
   server: {
-    port: 3000,
+    port: 3002,
     open: true,
   },
   build: {
@@ -18,6 +18,10 @@ export default defineConfig({
       targets: [
         {
           src: "preview",
+          dest: ".",
+        },
+        {
+          src: "examples",
           dest: ".",
         },
       ],

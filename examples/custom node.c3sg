@@ -1,0 +1,225 @@
+{
+  "version": "1.0.0",
+  "shaderSettings": {
+    "name": "",
+    "version": "1.0.0.0",
+    "author": "",
+    "website": "",
+    "documentation": "",
+    "description": "",
+    "category": "color",
+    "blendsBackground": false,
+    "crossSampling": false,
+    "preservesOpaqueness": true,
+    "animated": false,
+    "isDeprecated": false,
+    "extendBoxH": 0,
+    "extendBoxV": 0
+  },
+  "uniforms": [],
+  "customNodes": [
+    {
+      "id": 1,
+      "name": "nothing burger",
+      "color": "#9b59b6",
+      "splitWebGL": false,
+      "inputs": [
+        {
+          "name": "input",
+          "type": "float"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "float"
+        }
+      ],
+      "code": {
+        "webgl1": {
+          "dependency": "",
+          "execution": "float {output0} = {input0};"
+        },
+        "webgl2": {
+          "dependency": "",
+          "execution": "float {output0} = {input0};"
+        },
+        "webgpu": {
+          "dependency": "",
+          "execution": "var {output0} : f32 = {input0};"
+        }
+      }
+    }
+  ],
+  "previewSettings": {
+    "effectTarget": "sprite",
+    "object": "sprite",
+    "cameraMode": "2d",
+    "autoRotate": true,
+    "samplingMode": "trilinear",
+    "shaderLanguage": "webgpu",
+    "spriteTextureUrl": null,
+    "shapeTextureUrl": null
+  },
+  "camera": {
+    "x": 1003,
+    "y": 21,
+    "zoom": 1
+  },
+  "nodes": [
+    {
+      "id": 1,
+      "x": -1006,
+      "y": 257.5,
+      "nodeTypeKey": "frontUV",
+      "title": "Front UV",
+      "isVariable": true,
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "name": "UV",
+          "portType": "vec2"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "x": -840,
+      "y": 225,
+      "nodeTypeKey": "textureFront",
+      "title": "Front Texture",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "UV",
+          "portType": "vec2",
+          "value": [
+            0,
+            0
+          ]
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "RGBA",
+          "portType": "vec4"
+        },
+        {
+          "name": "Color",
+          "portType": "vec3"
+        },
+        {
+          "name": "Alpha",
+          "portType": "float"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "x": -630,
+      "y": 305,
+      "nodeTypeKey": "custom_1",
+      "title": "nothing burger",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "input",
+          "portType": "float",
+          "value": 0
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "output",
+          "portType": "float"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "x": -200,
+      "y": 0,
+      "nodeTypeKey": "output",
+      "title": "Output",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "Color",
+          "portType": "vec4",
+          "value": [
+            1,
+            1,
+            1,
+            1
+          ]
+        }
+      ],
+      "outputPorts": []
+    },
+    {
+      "id": 5,
+      "x": -410,
+      "y": 0,
+      "nodeTypeKey": "multiplyVector",
+      "title": "Multiply Vector",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "Vector",
+          "portType": "genType"
+        },
+        {
+          "name": "Scalar",
+          "portType": "float",
+          "value": 0
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Result",
+          "portType": "genType"
+        }
+      ]
+    }
+  ],
+  "wires": [
+    {
+      "startNodeId": 1,
+      "startPortIndex": 0,
+      "endNodeId": 2,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 2,
+      "startPortIndex": 2,
+      "endNodeId": 4,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 4,
+      "startPortIndex": 0,
+      "endNodeId": 5,
+      "endPortIndex": 1,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 2,
+      "startPortIndex": 0,
+      "endNodeId": 5,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 5,
+      "startPortIndex": 0,
+      "endNodeId": 3,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    }
+  ],
+  "nodeIdCounter": 6,
+  "uniformIdCounter": 1,
+  "customNodeIdCounter": 2
+}

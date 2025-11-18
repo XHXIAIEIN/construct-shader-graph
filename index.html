@@ -11,25 +11,13 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="CAW Shader" />
     <link rel="manifest" href="/site.webmanifest" />
-    <script type="module">
-      // Import CodeMirror 6 modules from local npm packages
-      import {
-        EditorView,
-        basicSetup,
-      } from "/node_modules/codemirror/dist/index.js";
-      import { EditorState } from "/node_modules/@codemirror/state/dist/index.js";
-      import { cpp } from "/node_modules/@codemirror/lang-cpp/dist/index.js";
-      import { oneDark } from "/node_modules/@codemirror/theme-one-dark/dist/index.js";
-
-      // Make available globally
-      window.CodeMirror = { EditorView, EditorState, basicSetup, cpp, oneDark };
-    </script>
+    <script type="module"></script>
   </head>
   <body>
     <div id="app">
       <div id="toolbar">
         <div class="toolbar-section toolbar-branding">
-          <img src="/public/favicon.svg" alt="Logo" class="toolbar-logo" />
+          <img src="/favicon.svg" alt="Logo" class="toolbar-logo" />
           <h1>CAW Shader</h1>
         </div>
         <div class="toolbar-section toolbar-actions">
@@ -48,6 +36,14 @@
               />
             </svg>
             <span>Open</span>
+          </button>
+          <button id="examplesBtn" class="toolbar-btn" title="Open Example">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path
+                d="M19,2L14,6.5V17.5L19,13V2M6.5,5C4.55,5 2.45,5.4 1,6.5V21.16C1,21.41 1.25,21.66 1.5,21.66C1.6,21.66 1.65,21.59 1.75,21.59C3.1,20.94 5.05,20.5 6.5,20.5C8.45,20.5 10.55,20.9 12,22C13.35,21.15 15.8,20.5 17.5,20.5C19.15,20.5 20.85,20.81 22.25,21.56C22.35,21.61 22.4,21.59 22.5,21.59C22.75,21.59 23,21.34 23,21.09V6.5C22.4,6.05 21.75,5.75 21,5.5V19C19.9,18.65 18.7,18.5 17.5,18.5C15.8,18.5 13.35,19.15 12,20V6.5C10.55,5.4 8.45,5 6.5,5Z"
+              />
+            </svg>
+            <span>Examples</span>
           </button>
           <button id="saveBtn" class="toolbar-btn" title="Save (Ctrl+S)">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -726,6 +722,24 @@
         <div class="modal-footer">
           <button id="copyCodeBtn">Copy Current</button>
           <button id="viewCodeModalOk">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Examples Modal -->
+    <div id="examplesModal" class="modal" style="display: none">
+      <div class="modal-content examples-modal">
+        <div class="modal-header">
+          <h2>Load Example</h2>
+          <button class="modal-close" id="examplesModalClose">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="examples-grid" id="examplesGrid">
+            <!-- Examples will be populated here -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="examplesModalCancel">Cancel</button>
         </div>
       </div>
     </div>

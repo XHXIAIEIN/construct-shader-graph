@@ -1,0 +1,607 @@
+{
+  "version": "1.0.0",
+  "shaderSettings": {
+    "name": "Twist Background Mask",
+    "version": "1.1.0.0",
+    "author": "skymen",
+    "website": "",
+    "documentation": "",
+    "description": "",
+    "category": "distortion",
+    "blendsBackground": true,
+    "crossSampling": false,
+    "preservesOpaqueness": false,
+    "animated": false,
+    "isDeprecated": false,
+    "extendBoxH": 0,
+    "extendBoxV": 0,
+    "usesDepth": false
+  },
+  "uniforms": [
+    {
+      "id": 1,
+      "name": "mixSlider",
+      "variableName": "mixSlider",
+      "description": "",
+      "type": "float",
+      "value": 1,
+      "isPercent": true
+    }
+  ],
+  "customNodes": [],
+  "previewSettings": {
+    "effectTarget": "sprite",
+    "object": "sprite",
+    "cameraMode": "2d",
+    "autoRotate": true,
+    "samplingMode": "trilinear",
+    "shaderLanguage": "webgl1",
+    "spriteTextureUrl": null,
+    "shapeTextureUrl": null
+  },
+  "camera": {
+    "x": 50.56817822535754,
+    "y": 22.359261401068807,
+    "zoom": 0.5223227809726371
+  },
+  "nodes": [
+    {
+      "id": 2,
+      "x": -43.85829954151099,
+      "y": 138.96850339760158,
+      "nodeTypeKey": "textureFront",
+      "title": "Front Texture",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "UV",
+          "portType": "vec2",
+          "value": [
+            0,
+            0
+          ]
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "RGBA",
+          "portType": "vec4"
+        },
+        {
+          "name": "Color",
+          "portType": "vec3"
+        },
+        {
+          "name": "Alpha",
+          "portType": "float"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "x": -70.85829954151099,
+      "y": 515.4685033976016,
+      "nodeTypeKey": "textureBack",
+      "title": "Back Texture",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "UV",
+          "portType": "vec2",
+          "value": [
+            0,
+            0
+          ]
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "RGBA",
+          "portType": "vec4"
+        },
+        {
+          "name": "Color",
+          "portType": "vec3"
+        },
+        {
+          "name": "Alpha",
+          "portType": "float"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "x": 229.29399112392198,
+      "y": 146.95666648247396,
+      "nodeTypeKey": "unpremultiply",
+      "title": "Unpremultiply",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "Color",
+          "portType": "vec4",
+          "value": [
+            1,
+            1,
+            1,
+            1
+          ]
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Result",
+          "portType": "vec4"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "x": 202.69555567835064,
+      "y": 524.8517234775512,
+      "nodeTypeKey": "unpremultiply",
+      "title": "Unpremultiply",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "Color",
+          "portType": "vec4",
+          "value": [
+            1,
+            1,
+            1,
+            1
+          ]
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Result",
+          "portType": "vec4"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "x": 448.33863985424006,
+      "y": 543.3871657183255,
+      "nodeTypeKey": "swizzle",
+      "title": "Swizzle",
+      "customInput": "xyz",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "Value",
+          "portType": "genType"
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Result",
+          "portType": "custom"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "x": 472.8058280390496,
+      "y": 128.42122424169952,
+      "nodeTypeKey": "swizzle",
+      "title": "Swizzle",
+      "customInput": "xyz",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "Value",
+          "portType": "genType"
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Result",
+          "portType": "custom"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "x": 784.2966900541143,
+      "y": 343.15616779920055,
+      "nodeTypeKey": "mix",
+      "title": "Mix",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "A",
+          "portType": "genType",
+          "value": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "name": "B",
+          "portType": "genType"
+        },
+        {
+          "name": "T",
+          "portType": "genType2"
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Result",
+          "portType": "genType"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "x": 279.0157825535033,
+      "y": 426.4737642487694,
+      "nodeTypeKey": "uniform_1",
+      "title": "mixSlider",
+      "uniformName": "mixSlider",
+      "uniformDisplayName": "mixSlider",
+      "uniformVariableName": "mixSlider",
+      "uniformId": 1,
+      "isVariable": true,
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "name": "Value",
+          "portType": "float"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "x": 476.5591160710296,
+      "y": 335.09317459440354,
+      "nodeTypeKey": "math",
+      "title": "Math",
+      "operation": "*",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "A",
+          "portType": "genType"
+        },
+        {
+          "name": "B",
+          "portType": "genType",
+          "value": 0
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Result",
+          "portType": "genType"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "x": 826.2336968493174,
+      "y": 573.229682706333,
+      "nodeTypeKey": "math",
+      "title": "Math",
+      "operation": "*",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "A",
+          "portType": "genType"
+        },
+        {
+          "name": "B",
+          "portType": "genType",
+          "value": 0
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Result",
+          "portType": "genType"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "x": 1128.081006036269,
+      "y": 393.5173926549218,
+      "nodeTypeKey": "appendVec4",
+      "title": "Append Vec4",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "A",
+          "portType": "custom"
+        },
+        {
+          "name": "B",
+          "portType": "custom"
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Result",
+          "portType": "vec4"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "x": 1655.2742352890496,
+      "y": 355.75390413759084,
+      "nodeTypeKey": "output",
+      "title": "Output",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "Color",
+          "portType": "vec4",
+          "value": [
+            1,
+            1,
+            1,
+            1
+          ]
+        }
+      ],
+      "outputPorts": []
+    },
+    {
+      "id": 15,
+      "x": 1388.383547970626,
+      "y": 396.3754978313934,
+      "nodeTypeKey": "premultiply",
+      "title": "Premultiply",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "Color",
+          "portType": "vec4",
+          "value": [
+            1,
+            1,
+            1,
+            1
+          ]
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Result",
+          "portType": "vec4"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "x": -651.7355346100668,
+      "y": 139.95371411032755,
+      "nodeTypeKey": "frontUV",
+      "title": "Front UV",
+      "isVariable": true,
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "name": "UV",
+          "portType": "vec2"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "x": -642.4306311119457,
+      "y": 506.67555341943785,
+      "nodeTypeKey": "backUV",
+      "title": "Back UV",
+      "isVariable": true,
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "name": "UV",
+          "portType": "vec2"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "x": -420.2297783909268,
+      "y": 482.88051927112036,
+      "nodeTypeKey": "twirl",
+      "title": "Twirl",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "UV",
+          "portType": "vec2",
+          "value": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Center",
+          "portType": "vec2",
+          "value": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "Strength",
+          "portType": "float",
+          "value": 70
+        },
+        {
+          "name": "Radius",
+          "portType": "float",
+          "value": 5
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Result",
+          "portType": "vec2"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "x": -641.3607320749849,
+      "y": 561.7347388473213,
+      "nodeTypeKey": "builtinDestCenter",
+      "title": "destCenter",
+      "isVariable": true,
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "name": "Value",
+          "portType": "vec2"
+        }
+      ]
+    }
+  ],
+  "wires": [
+    {
+      "startNodeId": 2,
+      "startPortIndex": 0,
+      "endNodeId": 6,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 4,
+      "startPortIndex": 0,
+      "endNodeId": 7,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 7,
+      "startPortIndex": 0,
+      "endNodeId": 8,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 6,
+      "startPortIndex": 0,
+      "endNodeId": 9,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 8,
+      "startPortIndex": 0,
+      "endNodeId": 10,
+      "endPortIndex": 1,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 9,
+      "startPortIndex": 0,
+      "endNodeId": 10,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 2,
+      "startPortIndex": 2,
+      "endNodeId": 12,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 11,
+      "startPortIndex": 0,
+      "endNodeId": 12,
+      "endPortIndex": 1,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 12,
+      "startPortIndex": 0,
+      "endNodeId": 10,
+      "endPortIndex": 2,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 10,
+      "startPortIndex": 0,
+      "endNodeId": 13,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 2,
+      "startPortIndex": 2,
+      "endNodeId": 14,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 4,
+      "startPortIndex": 2,
+      "endNodeId": 14,
+      "endPortIndex": 1,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 14,
+      "startPortIndex": 0,
+      "endNodeId": 13,
+      "endPortIndex": 1,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 13,
+      "startPortIndex": 0,
+      "endNodeId": 15,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 15,
+      "startPortIndex": 0,
+      "endNodeId": 3,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 1,
+      "startPortIndex": 0,
+      "endNodeId": 2,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 16,
+      "startPortIndex": 0,
+      "endNodeId": 4,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 5,
+      "startPortIndex": 0,
+      "endNodeId": 16,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 17,
+      "startPortIndex": 0,
+      "endNodeId": 16,
+      "endPortIndex": 1,
+      "rerouteNodes": []
+    }
+  ],
+  "nodeIdCounter": 18,
+  "uniformIdCounter": 2,
+  "customNodeIdCounter": 1
+}

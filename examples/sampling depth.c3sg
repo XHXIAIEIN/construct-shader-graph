@@ -1,0 +1,295 @@
+{
+  "version": "1.0.0",
+  "shaderSettings": {
+    "name": "",
+    "version": "1.0.0.0",
+    "author": "",
+    "website": "",
+    "documentation": "",
+    "description": "",
+    "category": "color",
+    "blendsBackground": false,
+    "crossSampling": false,
+    "preservesOpaqueness": false,
+    "animated": false,
+    "isDeprecated": false,
+    "extendBoxH": 0,
+    "extendBoxV": 0,
+    "usesDepth": true
+  },
+  "uniforms": [],
+  "customNodes": [],
+  "previewSettings": {
+    "effectTarget": "layer",
+    "object": "box",
+    "cameraMode": "perspective",
+    "autoRotate": true,
+    "samplingMode": "trilinear",
+    "shaderLanguage": "webgpu",
+    "spriteTextureUrl": null,
+    "shapeTextureUrl": null
+  },
+  "camera": {
+    "x": 655.8419659954855,
+    "y": 169.9500169241458,
+    "zoom": 0.4139999479257052
+  },
+  "nodes": [
+    {
+      "id": 3,
+      "x": -200,
+      "y": 0,
+      "nodeTypeKey": "output",
+      "title": "Output",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "Color",
+          "portType": "vec4",
+          "value": [
+            1,
+            1,
+            1,
+            1
+          ]
+        }
+      ],
+      "outputPorts": []
+    },
+    {
+      "id": 6,
+      "x": -410,
+      "y": 0,
+      "nodeTypeKey": "vec4",
+      "title": "Vec4",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "X",
+          "portType": "float",
+          "value": 0
+        },
+        {
+          "name": "Y",
+          "portType": "float",
+          "value": 0
+        },
+        {
+          "name": "Z",
+          "portType": "float",
+          "value": 0
+        },
+        {
+          "name": "W",
+          "portType": "float",
+          "value": 1
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Vec4",
+          "portType": "vec4"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "x": -1124.830918482045,
+      "y": 39.565138093113895,
+      "nodeTypeKey": "textureDepth",
+      "title": "Depth Texture",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "UV",
+          "portType": "vec2",
+          "value": [
+            0,
+            0
+          ]
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Depth",
+          "portType": "float"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "x": -1290.830918482045,
+      "y": 72.06513809311389,
+      "nodeTypeKey": "depthUV",
+      "title": "Depth UV",
+      "isVariable": true,
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "name": "UV",
+          "portType": "vec2"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "x": -914.8309184820451,
+      "y": 39.565138093113895,
+      "nodeTypeKey": "linearizeDepth",
+      "title": "Linearize Depth",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "Depth",
+          "portType": "float",
+          "value": 0
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Linear",
+          "portType": "float"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "x": -854.8309184820451,
+      "y": 234.5651380931139,
+      "nodeTypeKey": "builtinZFar",
+      "title": "zFar",
+      "isVariable": true,
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "name": "Value",
+          "portType": "float"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "x": -854.8309184820451,
+      "y": 184.5651380931139,
+      "nodeTypeKey": "builtinZNear",
+      "title": "zNear",
+      "isVariable": true,
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "name": "Value",
+          "portType": "float"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "x": -694.8309184820451,
+      "y": 39.565138093113895,
+      "nodeTypeKey": "remap",
+      "title": "Remap",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "Value",
+          "portType": "genType",
+          "value": 0
+        },
+        {
+          "name": "From Min",
+          "portType": "genType",
+          "value": 0
+        },
+        {
+          "name": "From Max",
+          "portType": "genType",
+          "value": 1000
+        },
+        {
+          "name": "To Min",
+          "portType": "genType",
+          "value": 0
+        },
+        {
+          "name": "To Max",
+          "portType": "genType",
+          "value": 2
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Result",
+          "portType": "genType"
+        }
+      ]
+    }
+  ],
+  "wires": [
+    {
+      "startNodeId": 5,
+      "startPortIndex": 0,
+      "endNodeId": 4,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 6,
+      "startPortIndex": 0,
+      "endNodeId": 3,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 4,
+      "startPortIndex": 0,
+      "endNodeId": 7,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 10,
+      "startPortIndex": 0,
+      "endNodeId": 6,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 10,
+      "startPortIndex": 0,
+      "endNodeId": 6,
+      "endPortIndex": 1,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 10,
+      "startPortIndex": 0,
+      "endNodeId": 6,
+      "endPortIndex": 2,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 7,
+      "startPortIndex": 0,
+      "endNodeId": 10,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 13,
+      "startPortIndex": 0,
+      "endNodeId": 10,
+      "endPortIndex": 2,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 14,
+      "startPortIndex": 0,
+      "endNodeId": 10,
+      "endPortIndex": 1,
+      "rerouteNodes": []
+    }
+  ],
+  "nodeIdCounter": 15,
+  "uniformIdCounter": 1,
+  "customNodeIdCounter": 1
+}

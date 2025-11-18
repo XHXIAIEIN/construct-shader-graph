@@ -18,6 +18,69 @@ import boilerplateWebGL1 from "./shaders/boilerplate-webgl1.glsl?raw";
 import boilerplateWebGL2 from "./shaders/boilerplate-webgl2.glsl?raw";
 import boilerplateWebGPU from "./shaders/boilerplate-webgpu.wgsl?raw";
 
+import { EditorState } from "@codemirror/state";
+import {
+  EditorView,
+  keymap,
+  lineNumbers,
+  highlightActiveLineGutter,
+  highlightSpecialChars,
+  drawSelection,
+  dropCursor,
+  rectangularSelection,
+  crosshairCursor,
+  highlightActiveLine,
+} from "@codemirror/view";
+import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
+import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
+import {
+  autocompletion,
+  completionKeymap,
+  closeBrackets,
+  closeBracketsKeymap,
+} from "@codemirror/autocomplete";
+import {
+  foldGutter,
+  indentOnInput,
+  syntaxHighlighting,
+  defaultHighlightStyle,
+  bracketMatching,
+  foldKeymap,
+} from "@codemirror/language";
+import { lintKeymap } from "@codemirror/lint";
+import { cpp } from "@codemirror/lang-cpp";
+import { oneDark } from "@codemirror/theme-one-dark";
+
+// Create our own basicSetup
+const basicSetup = [
+  lineNumbers(),
+  highlightActiveLineGutter(),
+  highlightSpecialChars(),
+  history(),
+  foldGutter(),
+  drawSelection(),
+  dropCursor(),
+  EditorState.allowMultipleSelections.of(true),
+  indentOnInput(),
+  syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+  bracketMatching(),
+  closeBrackets(),
+  autocompletion(),
+  rectangularSelection(),
+  crosshairCursor(),
+  highlightActiveLine(),
+  highlightSelectionMatches(),
+  keymap.of([
+    ...closeBracketsKeymap,
+    ...defaultKeymap,
+    ...searchKeymap,
+    ...historyKeymap,
+    ...foldKeymap,
+    ...completionKeymap,
+    ...lintKeymap,
+  ]),
+];
+
 class Port {
   constructor(node, type, index, portDef) {
     this.node = node;
@@ -810,6 +873,7 @@ class BlueprintSystem {
     this.setupShaderSettings();
     this.setupUniformSidebar();
     this.setupCustomNodeModal();
+    this.setupExamplesModal();
     this.setupPreview();
     this.setupMinimap();
     this.render();
@@ -1902,37 +1966,167 @@ class BlueprintSystem {
   initializeCodeMirror() {
     // Wait for CodeMirror to be available
     const checkCodeMirror = () => {
-      if (window.CodeMirror) {
-        const { EditorView, EditorState, basicSetup, cpp, oneDark } =
-          window.CodeMirror;
-
-        // Create CodeMirror editor
-        this.codeMirrorEditor = new EditorView({
-          state: EditorState.create({
-            doc: "",
-            extensions: [
-              basicSetup,
-              cpp(),
-              oneDark,
-              EditorView.updateListener.of((update) => {
-                if (update.docChanged) {
-                  // Save content when it changes
-                  this.customNodeCodeData[this.currentShaderLang][
-                    this.currentCodeType
-                  ] = update.state.doc.toString();
-                }
-              }),
-            ],
-          }),
-          parent: this.customNodeCodeEditorContainer,
-        });
-      } else {
-        // Retry after a short delay
-        setTimeout(checkCodeMirror, 100);
-      }
+      // Create CodeMirror editor
+      this.codeMirrorEditor = new EditorView({
+        state: EditorState.create({
+          doc: "",
+          extensions: [
+            basicSetup,
+            cpp(),
+            oneDark,
+            EditorView.updateListener.of((update) => {
+              if (update.docChanged) {
+                // Save content when it changes
+                this.customNodeCodeData[this.currentShaderLang][
+                  this.currentCodeType
+                ] = update.state.doc.toString();
+              }
+            }),
+          ],
+        }),
+        parent: this.customNodeCodeEditorContainer,
+      });
     };
 
     checkCodeMirror();
+  }
+
+  setupExamplesModal() {
+    const modal = document.getElementById("examplesModal");
+    const closeBtn = document.getElementById("examplesModalClose");
+    const cancelBtn = document.getElementById("examplesModalCancel");
+
+    closeBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+
+    cancelBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+
+    // Close on outside click
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+  }
+
+  async showExamplesModal() {
+    const modal = document.getElementById("examplesModal");
+    const grid = document.getElementById("examplesGrid");
+
+    // Define examples with metadata
+    const examples = [
+      {
+        file: "blend background.c3sg",
+        name: "Blend Background",
+        description: "Demonstrates how to sample the background texture",
+      },
+      {
+        file: "wave custom texture.c3sg",
+        name: "Wave With Custom Texture",
+        description:
+          "Simple waving shader with a custom texture in the preview",
+      },
+      {
+        file: "custom node.c3sg",
+        name: "Custom Node",
+        description: "Simple example showing how to use custom nodes",
+      },
+      {
+        file: "depth sample with vars.c3sg",
+        name: "Gradient Fog with Variables",
+        description:
+          "Advanced depth sampling using shader variables. Original shader by Federico Calchera",
+      },
+      {
+        file: "background twirl.c3sg",
+        name: "Background Twirl",
+        description: "Basic background cross sampling distortion shader.",
+      },
+      {
+        file: "sampling depth.c3sg",
+        name: "Sampling Depth",
+        description: "Depth buffer sampling techniques",
+      },
+    ];
+
+    // Clear grid
+    grid.innerHTML = "";
+
+    // Create cards for each example
+    for (const example of examples) {
+      const card = document.createElement("div");
+      card.className = "example-card";
+
+      // Check if preview image exists
+      const imageName = example.file.replace(".c3sg", ".png");
+      const imagePath = `/examples/${imageName}`;
+
+      const preview = document.createElement("div");
+      preview.className = "example-preview";
+
+      // Try to load image, fallback to placeholder
+      const img = document.createElement("img");
+      img.src = imagePath;
+      img.onerror = () => {
+        // Replace with placeholder SVG
+        preview.innerHTML = `
+          <svg class="example-preview-placeholder" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M19,2L14,6.5V17.5L19,13V2M6.5,5C4.55,5 2.45,5.4 1,6.5V21.16C1,21.41 1.25,21.66 1.5,21.66C1.6,21.66 1.65,21.59 1.75,21.59C3.1,20.94 5.05,20.5 6.5,20.5C8.45,20.5 10.55,20.9 12,22C13.35,21.15 15.8,20.5 17.5,20.5C19.15,20.5 20.85,20.81 22.25,21.56C22.35,21.61 22.4,21.59 22.5,21.59C22.75,21.59 23,21.34 23,21.09V6.5C22.4,6.05 21.75,5.75 21,5.5V19C19.9,18.65 18.7,18.5 17.5,18.5C15.8,18.5 13.35,19.15 12,20V6.5C10.55,5.4 8.45,5 6.5,5Z" />
+          </svg>
+        `;
+      };
+      preview.appendChild(img);
+
+      const info = document.createElement("div");
+      info.className = "example-info";
+
+      const name = document.createElement("h3");
+      name.className = "example-name";
+      name.textContent = example.name;
+
+      const description = document.createElement("p");
+      description.className = "example-description";
+      description.textContent = example.description;
+
+      info.appendChild(name);
+      info.appendChild(description);
+
+      card.appendChild(preview);
+      card.appendChild(info);
+
+      // Click handler to load example
+      card.addEventListener("click", async () => {
+        try {
+          const response = await fetch(`/examples/${example.file}`);
+          if (!response.ok) throw new Error("Failed to load example");
+
+          const text = await response.text();
+
+          // Create a File object from the fetched text
+          const blob = new Blob([text], { type: "application/json" });
+          const file = new File([blob], example.file, {
+            type: "application/json",
+          });
+
+          // Load the example
+          await this.loadFromJSON(file);
+          this.currentFileName = example.name;
+          this.fileHandle = null; // Clear file handle so it doesn't overwrite the example
+
+          modal.style.display = "none";
+        } catch (error) {
+          console.error("Error loading example:", error);
+          alert("Failed to load example: " + error.message);
+        }
+      });
+
+      grid.appendChild(card);
+    }
+
+    modal.style.display = "flex";
   }
 
   setupPreview() {
@@ -4536,6 +4730,11 @@ class BlueprintSystem {
         this.updateUndoRedoButtons();
         this.render();
       }
+    });
+
+    // Examples button
+    document.getElementById("examplesBtn").addEventListener("click", () => {
+      this.showExamplesModal();
     });
 
     document.getElementById("loadBtn").addEventListener("click", async () => {

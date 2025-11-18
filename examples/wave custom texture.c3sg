@@ -1,0 +1,475 @@
+{
+  "version": "1.0.0",
+  "shaderSettings": {
+    "name": "",
+    "version": "1.0.0.0",
+    "author": "",
+    "website": "",
+    "documentation": "",
+    "description": "",
+    "category": "color",
+    "blendsBackground": false,
+    "crossSampling": false,
+    "preservesOpaqueness": true,
+    "animated": true,
+    "isDeprecated": false,
+    "extendBoxH": 0,
+    "extendBoxV": 0
+  },
+  "uniforms": [
+    {
+      "id": 1,
+      "name": "color",
+      "variableName": "color",
+      "description": "",
+      "type": "color",
+      "value": {
+        "r": 1,
+        "g": 0,
+        "b": 0
+      },
+      "isPercent": false
+    },
+    {
+      "id": 2,
+      "name": "speed",
+      "variableName": "speed",
+      "description": "",
+      "type": "float",
+      "value": 5,
+      "isPercent": false
+    },
+    {
+      "id": 3,
+      "name": "magnitude",
+      "variableName": "magnitude",
+      "description": "",
+      "type": "float",
+      "value": 0.1,
+      "isPercent": false
+    }
+  ],
+  "customNodes": [],
+  "previewSettings": {
+    "effectTarget": "sprite",
+    "object": "sprite",
+    "cameraMode": "2d",
+    "autoRotate": true,
+    "samplingMode": "nearest",
+    "spriteTextureUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAClElEQVR4AeydQU4EMQwEPbwMnoN4BPAI4DnwMgYszvjgmU46OzWSORC541SRXa20EnfBY0UAIVY6IhCCEDMCZuNwQxBiRsBsHG4IQswImI3DDUGIGQGzcTQ3xOyQK42DEDNbCEGIGQGzcbghCDEjYDbOOjfkY78PtxLIXEPI2/4Se3yGW+UfyMlS1hBy8qGd49YQssWzM8QzZ1tDyN+JL/HTX4jgddrZrL+Q77iPCz3+Qi4kI4/qL+RCb+jnCMnX+Pd9D1XllBcq/xtyIRl5VIQkBaNCiJGMHAUhScGoEGIkI0dBSFIwKoQYychREJIUjAohRjJyFIQkBaNCiJGMHAUhScGoEGIkI0dBSFIwKoRoZLRTEdJGp2lEiIZrOxUhbXSaRoRouLZTEdJGp2lEiIZrOxUhbXSaRoRouLZTEdJGp2lEiIZrO7UU0k6lsU0AIW10mkaEaLi2UxHSRqdpRIiGazsVIW10mkaEaLi2U9cWssdrbPEQisrsNtZ+49pC7uIrHjdNZXaMf9YWkjLGM5PuOEGI9DzLh68rZNJrvNr4ukLUZCblrytk0puu2tO6Qm7wDT1lnyNki6/fzwJjK27zOS4k/1Ift4ffzwNj6zZ98B923LwevyFuJ1p8HoSYCbwZIWZc2+MgpI1O04gQDdd2KkLa6DSNCNFwbacipI1O04gQDdd2KkLa6DSNCNFwbacipI1O04iQkuv4RYSMZ17uiJASz/hFhIxnXu6IkBLP+EWEjGde7oiQCk9+Ga+q/D5B1d9YQ8h/0BL20/YSVf3Xe+D3CDkAT9GKEAXVA5kIOQCv21r1IaSiM2ENIROgV1sipKIzYQ0hE6BXWyKkojNhDSEToFdbIqSiM2ENIROgV1v+AAAA//8hi4GlAAAABklEQVQDAMDhMtgNdzFoAAAAAElFTkSuQmCC",
+    "shapeTextureUrl": null
+  },
+  "camera": {
+    "x": 429.66048692881384,
+    "y": 161.83464285238347,
+    "zoom": 0.5457840630746799
+  },
+  "nodes": [
+    {
+      "id": 1,
+      "x": 1009,
+      "y": 169,
+      "nodeTypeKey": "output",
+      "title": "Output",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "Color",
+          "portType": "vec4",
+          "value": [
+            1,
+            1,
+            1,
+            1
+          ]
+        }
+      ],
+      "outputPorts": []
+    },
+    {
+      "id": 27,
+      "x": -578.1447095632786,
+      "y": 467.00055527221497,
+      "nodeTypeKey": "math",
+      "title": "Math",
+      "operation": "*",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "A",
+          "portType": "genType",
+          "value": 0
+        },
+        {
+          "name": "B",
+          "portType": "genType",
+          "value": 100
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Result",
+          "portType": "genType"
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "x": -760.5488141779917,
+      "y": 504.09358163530965,
+      "nodeTypeKey": "builtinSeconds",
+      "title": "seconds",
+      "isVariable": true,
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "name": "Value",
+          "portType": "float"
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "x": -795.1280970396208,
+      "y": 583.4295447004022,
+      "nodeTypeKey": "uniform_2",
+      "title": "speed",
+      "uniformName": "speed",
+      "uniformDisplayName": "speed",
+      "uniformVariableName": "speed",
+      "uniformId": 2,
+      "isVariable": true,
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "name": "Value",
+          "portType": "float"
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "x": -341.50920887713494,
+      "y": 461.37364927363825,
+      "nodeTypeKey": "sin",
+      "title": "Sin",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "Angle",
+          "portType": "genType"
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Result",
+          "portType": "genType"
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "x": -417.1628878906348,
+      "y": 361.52738965164264,
+      "nodeTypeKey": "uniform_3",
+      "title": "magnitude",
+      "uniformName": "magnitude",
+      "uniformDisplayName": "magnitude",
+      "uniformVariableName": "magnitude",
+      "uniformId": 3,
+      "isVariable": true,
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "name": "Value",
+          "portType": "float"
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "x": 751.4357076898458,
+      "y": 130.857011957535,
+      "nodeTypeKey": "textureFront",
+      "title": "Front Texture",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "UV",
+          "portType": "vec2",
+          "value": [
+            0,
+            0
+          ]
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "RGBA",
+          "portType": "vec4"
+        },
+        {
+          "name": "Color",
+          "portType": "vec3"
+        },
+        {
+          "name": "Alpha",
+          "portType": "float"
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "x": -278.7704171987863,
+      "y": 160.24598606316675,
+      "nodeTypeKey": "frontUV",
+      "title": "Front UV",
+      "isVariable": true,
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "name": "UV",
+          "portType": "vec2"
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "x": -107.86838509076358,
+      "y": 101.35677945455426,
+      "nodeTypeKey": "vec2Decompose",
+      "title": "Vec2 Decompose",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "Vec2",
+          "portType": "vec2",
+          "value": [
+            0,
+            0
+          ]
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "X",
+          "portType": "float"
+        },
+        {
+          "name": "Y",
+          "portType": "float"
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "x": -122.10617623239415,
+      "y": 350.5542061602204,
+      "nodeTypeKey": "math",
+      "title": "Math",
+      "operation": "*",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "A",
+          "portType": "genType",
+          "value": 0
+        },
+        {
+          "name": "B",
+          "portType": "genType",
+          "value": 0
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Result",
+          "portType": "genType"
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "x": 187.99632078402334,
+      "y": 267.577771544318,
+      "nodeTypeKey": "math",
+      "title": "Math",
+      "operation": "+",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "A",
+          "portType": "genType",
+          "value": 0
+        },
+        {
+          "name": "B",
+          "portType": "genType",
+          "value": 0
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Result",
+          "portType": "genType"
+        }
+      ]
+    },
+    {
+      "id": 32,
+      "x": 192.9412283498125,
+      "y": 69.78146891275227,
+      "nodeTypeKey": "math",
+      "title": "Math",
+      "operation": "+",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "A",
+          "portType": "genType",
+          "value": 0
+        },
+        {
+          "name": "B",
+          "portType": "genType",
+          "value": 0
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Result",
+          "portType": "genType"
+        }
+      ]
+    },
+    {
+      "id": 34,
+      "x": 427.00018646383194,
+      "y": 150.5482924873083,
+      "nodeTypeKey": "vec2",
+      "title": "Vec2",
+      "isVariable": false,
+      "inputPorts": [
+        {
+          "name": "X",
+          "portType": "float",
+          "value": 0
+        },
+        {
+          "name": "Y",
+          "portType": "float",
+          "value": 0
+        }
+      ],
+      "outputPorts": [
+        {
+          "name": "Vec2",
+          "portType": "vec2"
+        }
+      ]
+    }
+  ],
+  "wires": [
+    {
+      "startNodeId": 23,
+      "startPortIndex": 0,
+      "endNodeId": 1,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 25,
+      "startPortIndex": 0,
+      "endNodeId": 27,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 27,
+      "startPortIndex": 0,
+      "endNodeId": 26,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 28,
+      "startPortIndex": 0,
+      "endNodeId": 27,
+      "endPortIndex": 1,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 26,
+      "startPortIndex": 0,
+      "endNodeId": 30,
+      "endPortIndex": 1,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 29,
+      "startPortIndex": 0,
+      "endNodeId": 30,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 24,
+      "startPortIndex": 0,
+      "endNodeId": 31,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 31,
+      "startPortIndex": 0,
+      "endNodeId": 32,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 30,
+      "startPortIndex": 0,
+      "endNodeId": 32,
+      "endPortIndex": 1,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 31,
+      "startPortIndex": 1,
+      "endNodeId": 33,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 30,
+      "startPortIndex": 0,
+      "endNodeId": 33,
+      "endPortIndex": 1,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 32,
+      "startPortIndex": 0,
+      "endNodeId": 34,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 33,
+      "startPortIndex": 0,
+      "endNodeId": 34,
+      "endPortIndex": 1,
+      "rerouteNodes": []
+    },
+    {
+      "startNodeId": 34,
+      "startPortIndex": 0,
+      "endNodeId": 23,
+      "endPortIndex": 0,
+      "rerouteNodes": []
+    }
+  ],
+  "nodeIdCounter": 35,
+  "uniformIdCounter": 4,
+  "customNodeIdCounter": 1
+}

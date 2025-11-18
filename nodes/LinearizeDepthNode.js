@@ -10,12 +10,12 @@ export const LinearizeDepthNode = new NodeType(
     webgl1: {
       dependency: "",
       execution: (inputs, outputs) =>
-        `    float ${outputs[0]} = (2.0 * zNear * zFar) / (zFar + zNear - ${inputs[0]} * (zFar - zNear));`,
+        `    float ${outputs[0]} = zNear * zFar / (zFar + ${inputs[0]} * (zNear - zFar));`,
     },
     webgl2: {
       dependency: "",
       execution: (inputs, outputs) =>
-        `    float ${outputs[0]} = (2.0 * zNear * zFar) / (zFar + zNear - ${inputs[0]} * (zFar - zNear));`,
+        `    float ${outputs[0]} = zNear * zFar / (zFar + ${inputs[0]} * (zNear - zFar));`,
     },
     webgpu: {
       dependency: "",
